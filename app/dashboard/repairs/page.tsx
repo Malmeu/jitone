@@ -474,12 +474,12 @@ export default function RepairsPage() {
                                                         setFormData({ ...formData, clientPhone: value ? `+213 ${value}` : '' });
                                                     }}
                                                     className="w-full pl-16 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                                    placeholder="540031126"
+                                                    placeholder="550123456"
                                                     maxLength={9}
                                                 />
                                             </div>
                                             <p className="text-xs text-neutral-400 mt-1">
-                                                Format: 9 chiffres sans le 0 (ex: 540031126)
+                                                Format: 9 chiffres sans le 0 (ex: 550123456)
                                             </p>
                                         </div>
                                     </>
