@@ -18,6 +18,11 @@ export default function RepairsPage() {
     const [submitting, setSubmitting] = useState(false);
     const [showTicket, setShowTicket] = useState(false);
     const [ticketData, setTicketData] = useState<any>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedRepair, setSelectedRepair] = useState<any>(null);
+    const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [paymentAmount, setPaymentAmount] = useState(0);
+    const [paymentNote, setPaymentNote] = useState('');
 
     const [formData, setFormData] = useState({
         clientId: '',
@@ -227,6 +232,52 @@ export default function RepairsPage() {
         }
     };
 
+    const handlePayment = async () => {
+        if (!selectedRepair) return;
+
+        setSubmitting(true);
+        try {
+            // Mettre à jour la réparation
+            const { error: repairError } = await supabase
+                .from('repairs')
+                .update({
+                    payment_status: 'paid',
+                    payment_method: paymentMethod,
+                    paid_amount: paymentAmount,
+                    paid_at: new Date().toISOString(),
+                    paid: true, // Pour compatibilité avec l'ancienne colonne
+                })
+                .eq('id', selectedRepair.id);
+
+            if (repairError) throw repairError;
+
+            // Créer un enregistrement de paiement
+            const { error: paymentError } = await supabase
+                .from('payments')
+                .insert([{
+                    repair_id: selectedRepair.id,
+                    establishment_id: establishmentId,
+                    amount: paymentAmount,
+                    payment_method: paymentMethod,
+                    status: 'completed',
+                    note: paymentNote || null,
+                }]);
+
+            if (paymentError) throw paymentError;
+
+            alert('✓ Paiement enregistré avec succès !');
+            setShowPaymentModal(false);
+            setSelectedRepair(null);
+            setPaymentNote('');
+            await fetchData();
+        } catch (error: any) {
+            console.error('Payment error:', error);
+            alert('Erreur lors de l\'enregistrement du paiement');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     if (loading) {
         return <div className="flex items-center justify-center h-full">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -276,6 +327,7 @@ export default function RepairsPage() {
                                     <th className="px-6 py-4 text-left">Appareil</th>
                                     <th className="px-6 py-4 text-left">Statut</th>
                                     <th className="px-6 py-4 text-left">Prix</th>
+                                    <th className="px-6 py-4 text-left">Paiement</th>
                                     <th className="px-6 py-4 text-left">Date</th>
                                     <th className="px-6 py-4 text-left">Actions</th>
                                 </tr>
@@ -297,6 +349,31 @@ export default function RepairsPage() {
                                         </td>
                                         <td className="px-6 py-4 font-medium text-neutral-900">
                                             {repair.price ? `${parseFloat(repair.price).toLocaleString('fr-DZ')} DA` : '-'}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {repair.payment_status === 'paid' ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">
+                                                        ✓ Payé
+                                                    </span>
+                                                    <span className="text-xs text-neutral-500">
+                                                        {repair.payment_method === 'baridimob' ? 'BaridiMob' : 'Cash'}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedRepair(repair);
+                                                        setPaymentAmount(parseFloat(repair.price) || 0);
+                                                        setPaymentNote('');
+                                                        setShowPaymentModal(true);
+                                                    }}
+                                                    className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors"
+                                                    disabled={!repair.price}
+                                                >
+                                                    💰 Payé
+                                                </button>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-neutral-500 text-xs">
                                             {new Date(repair.created_at).toLocaleDateString('fr-FR')}
@@ -469,6 +546,133 @@ export default function RepairsPage() {
                     onClose={() => setShowTicket(false)}
                 />
             )}
+
+            {/* Modal de Paiement */}
+            <AnimatePresence>
+                {showPaymentModal && selectedRepair && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6"
+                        >
+                            <div className="mb-6">
+                                <h2 className="text-xl font-bold text-neutral-900 mb-2">Enregistrer le paiement</h2>
+                                <p className="text-sm text-neutral-500">
+                                    Réparation : {selectedRepair.code}
+                                </p>
+                            </div>
+
+                            <div className="space-y-4 mb-6">
+                                {/* Montant personnalisable */}
+                                <div>
+                                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                                        Montant à encaisser
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            value={paymentAmount}
+                                            onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
+                                            className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-lg font-bold"
+                                            step="0.01"
+                                            min="0"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">
+                                            DA
+                                        </span>
+                                    </div>
+                                    {selectedRepair.price && parseFloat(selectedRepair.price) !== paymentAmount && (
+                                        <p className="text-xs text-amber-600 mt-1">
+                                            Prix initial : {parseFloat(selectedRepair.price).toLocaleString('fr-DZ')} DA
+                                            {paymentAmount > parseFloat(selectedRepair.price)
+                                                ? ` (+${(paymentAmount - parseFloat(selectedRepair.price)).toLocaleString('fr-DZ')} DA)`
+                                                : ` (${(paymentAmount - parseFloat(selectedRepair.price)).toLocaleString('fr-DZ')} DA)`
+                                            }
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Note optionnelle */}
+                                <div>
+                                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                                        Note (optionnel)
+                                    </label>
+                                    <textarea
+                                        value={paymentNote}
+                                        onChange={(e) => setPaymentNote(e.target.value)}
+                                        placeholder="Ex: Pièce supplémentaire, frais de déplacement..."
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                                        rows={2}
+                                        maxLength={200}
+                                    />
+                                    <p className="text-xs text-neutral-400 mt-1">
+                                        {paymentNote.length}/200 caractères
+                                    </p>
+                                </div>
+
+                                {/* Méthode de paiement */}
+                                <div>
+                                    <label className="block text-sm font-medium text-neutral-700 mb-3">
+                                        Méthode de paiement
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => setPaymentMethod('cash')}
+                                            className={`p-4 rounded-xl border-2 transition-all ${paymentMethod === 'cash'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            <div className="text-3xl mb-2">💵</div>
+                                            <p className="font-medium text-sm">Espèces</p>
+                                        </button>
+                                        <button
+                                            onClick={() => setPaymentMethod('baridimob')}
+                                            className={`p-4 rounded-xl border-2 transition-all ${paymentMethod === 'baridimob'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            <div className="text-3xl mb-2">📱</div>
+                                            <p className="font-medium text-sm">BaridiMob</p>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        setShowPaymentModal(false);
+                                        setSelectedRepair(null);
+                                    }}
+                                    className="flex-1"
+                                >
+                                    Annuler
+                                </Button>
+                                <Button
+                                    onClick={handlePayment}
+                                    disabled={submitting}
+                                    className="flex-1"
+                                >
+                                    {submitting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Enregistrement...
+                                        </>
+                                    ) : (
+                                        '✓ Confirmer le paiement'
+                                    )}
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
