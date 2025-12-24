@@ -462,13 +462,25 @@ export default function RepairsPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-neutral-700 mb-2">Téléphone</label>
-                                            <input
-                                                type="tel"
-                                                value={formData.clientPhone}
-                                                onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                                placeholder="+213 555 123 456"
-                                            />
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">
+                                                    +213
+                                                </span>
+                                                <input
+                                                    type="tel"
+                                                    value={formData.clientPhone.replace('+213', '').trim()}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/[^0-9]/g, '');
+                                                        setFormData({ ...formData, clientPhone: value ? `+213 ${value}` : '' });
+                                                    }}
+                                                    className="w-full pl-16 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
+                                                    placeholder="540031126"
+                                                    maxLength={9}
+                                                />
+                                            </div>
+                                            <p className="text-xs text-neutral-400 mt-1">
+                                                Format: 9 chiffres sans le 0 (ex: 540031126)
+                                            </p>
                                         </div>
                                     </>
                                 )}

@@ -142,13 +142,25 @@ export default function SettingsPage() {
                             <Phone className="w-4 h-4" />
                             Téléphone
                         </label>
-                        <input
-                            type="tel"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                            placeholder="+213 555 123 456"
-                        />
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">
+                                +213
+                            </span>
+                            <input
+                                type="tel"
+                                value={formData.phone.replace('+213', '').trim()}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9]/g, '');
+                                    setFormData({ ...formData, phone: value ? `+213 ${value}` : '' });
+                                }}
+                                className="w-full pl-16 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
+                                placeholder="550123456"
+                                maxLength={9}
+                            />
+                        </div>
+                        <p className="text-xs text-neutral-400 mt-1">
+                            Format: 9 chiffres sans le 0 (ex: 550123456)
+                        </p>
                     </div>
 
                     <div>
