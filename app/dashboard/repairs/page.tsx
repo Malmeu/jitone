@@ -348,7 +348,12 @@ export default function RepairsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 font-medium text-neutral-900">
-                                            {repair.price ? `${parseFloat(repair.price).toLocaleString('fr-DZ')} DA` : '-'}
+                                            {repair.payment_status === 'paid' && repair.paid_amount
+                                                ? `${parseFloat(repair.paid_amount).toLocaleString('fr-DZ')} DA`
+                                                : repair.price
+                                                    ? `${parseFloat(repair.price).toLocaleString('fr-DZ')} DA`
+                                                    : '-'
+                                            }
                                         </td>
                                         <td className="px-6 py-4">
                                             {repair.payment_status === 'paid' ? (

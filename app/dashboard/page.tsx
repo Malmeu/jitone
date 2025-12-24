@@ -58,8 +58,8 @@ export default function DashboardPage() {
                     ).length;
 
                     const todayRevenue = repairs
-                        .filter(r => new Date(r.created_at) >= today && r.paid)
-                        .reduce((sum, r) => sum + parseFloat(r.price || 0), 0);
+                        .filter(r => new Date(r.created_at) >= today && r.payment_status === 'paid')
+                        .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
 
                     setStats({
                         todayRepairs,
@@ -201,7 +201,12 @@ export default function DashboardPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right font-medium text-neutral-900">
-                                            {repair.price ? `${parseFloat(repair.price).toLocaleString('fr-DZ')} DA` : '-'}
+                                            {repair.payment_status === 'paid' && repair.paid_amount
+                                                ? `${parseFloat(repair.paid_amount).toLocaleString('fr-DZ')} DA`
+                                                : repair.price
+                                                    ? `${parseFloat(repair.price).toLocaleString('fr-DZ')} DA`
+                                                    : '-'
+                                            }
                                         </td>
                                     </tr>
                                 ))}
