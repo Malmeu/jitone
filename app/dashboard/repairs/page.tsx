@@ -32,6 +32,8 @@ export default function RepairsPage() {
         description: '',
         status: 'nouveau',
         price: '',
+        is_unlock: false,
+        imei_sn: '',
     });
 
     useEffect(() => {
@@ -137,6 +139,8 @@ export default function RepairsPage() {
                 description: formData.description,
                 status: formData.status,
                 price: formData.price ? parseFloat(formData.price) : null,
+                is_unlock: formData.is_unlock,
+                imei_sn: formData.is_unlock ? formData.imei_sn : null,
             };
 
             console.log('Creating repair with data:', repairData);
@@ -174,6 +178,8 @@ export default function RepairsPage() {
                 description: '',
                 status: 'nouveau',
                 price: '',
+                is_unlock: false,
+                imei_sn: '',
             });
             setShowModal(false);
             await fetchData();
@@ -341,7 +347,23 @@ export default function RepairsPage() {
                                         <td className="px-6 py-4 font-medium text-neutral-900">
                                             {repair.client?.name || 'N/A'}
                                         </td>
-                                        <td className="px-6 py-4 text-neutral-700">{repair.item}</td>
+                                        <td className="px-6 py-4 text-neutral-700">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    {repair.item}
+                                                    {repair.is_unlock && (
+                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                                                            🔓 Déblocage
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {repair.is_unlock && repair.imei_sn && (
+                                                    <p className="text-xs text-neutral-500 font-mono mt-1">
+                                                        IMEI: {repair.imei_sn}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4">
                                             <span className={`${statusColors[repair.status]} px-3 py-1 rounded-lg text-xs font-bold`}>
                                                 {statusLabels[repair.status]}
@@ -539,6 +561,44 @@ export default function RepairsPage() {
                                             placeholder="5000"
                                         />
                                     </div>
+
+                                    {/* Checkbox Déblocage */}
+                                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                        <input
+                                            type="checkbox"
+                                            id="is_unlock"
+                                            checked={formData.is_unlock}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                is_unlock: e.target.checked,
+                                                imei_sn: e.target.checked ? formData.imei_sn : ''
+                                            })}
+                                            className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary/20"
+                                        />
+                                        <label htmlFor="is_unlock" className="text-sm font-medium text-neutral-700 cursor-pointer">
+                                            🔓 Déblocage (IMEI/SN requis)
+                                        </label>
+                                    </div>
+
+                                    {/* Champ IMEI/SN conditionnel */}
+                                    {formData.is_unlock && (
+                                        <div className="animate-in slide-in-from-top-2 duration-200">
+                                            <label className="block text-sm font-medium text-neutral-700 mb-2">
+                                                IMEI / Numéro de série *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.imei_sn}
+                                                onChange={(e) => setFormData({ ...formData, imei_sn: e.target.value })}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50 font-mono"
+                                                placeholder="123456789012345"
+                                                required={formData.is_unlock}
+                                            />
+                                            <p className="text-xs text-neutral-500 mt-1">
+                                                Tapez *#06# sur le téléphone pour obtenir l'IMEI
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex gap-3 pt-4">

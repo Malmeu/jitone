@@ -13,6 +13,8 @@ interface RepairTicketProps {
         client?: { name: string; phone?: string };
         created_at: string;
         price?: number;
+        is_unlock?: boolean;
+        imei_sn?: string;
     };
     establishment: {
         name: string;
@@ -157,7 +159,19 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
 
                             <div>
                                 <p className="text-xs text-neutral-400 uppercase font-bold tracking-wider mb-1">Appareil</p>
-                                <p className="text-base font-bold text-neutral-900">{repair.item}</p>
+                                <p className="text-base font-bold text-neutral-900">
+                                    {repair.item}
+                                    {repair.is_unlock && (
+                                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                                            🔓 Déblocage
+                                        </span>
+                                    )}
+                                </p>
+                                {repair.is_unlock && repair.imei_sn && (
+                                    <p className="text-xs text-neutral-600 font-mono mt-1">
+                                        IMEI/SN: {repair.imei_sn}
+                                    </p>
+                                )}
                             </div>
 
                             {repair.description && (
