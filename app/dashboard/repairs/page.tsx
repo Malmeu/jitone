@@ -15,6 +15,8 @@ export default function RepairsPage() {
     const [establishment, setEstablishment] = useState<any>(null);
     const [showModal, setShowModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [paymentFilter, setPaymentFilter] = useState('all');
     const [submitting, setSubmitting] = useState(false);
     const [showTicket, setShowTicket] = useState(false);
     const [ticketData, setTicketData] = useState<any>(null);
@@ -32,6 +34,7 @@ export default function RepairsPage() {
         description: '',
         status: 'nouveau',
         price: '',
+        cost_price: '',
         is_unlock: false,
         imei_sn: '',
     });
@@ -139,6 +142,7 @@ export default function RepairsPage() {
                 description: formData.description,
                 status: formData.status,
                 price: formData.price ? parseFloat(formData.price) : null,
+                cost_price: formData.cost_price ? parseFloat(formData.cost_price) : 0,
                 is_unlock: formData.is_unlock,
                 imei_sn: formData.is_unlock ? formData.imei_sn : null,
             };
@@ -178,6 +182,7 @@ export default function RepairsPage() {
                 description: '',
                 status: 'nouveau',
                 price: '',
+                cost_price: '',
                 is_unlock: false,
                 imei_sn: '',
             });
@@ -194,11 +199,26 @@ export default function RepairsPage() {
         }
     };
 
-    const filteredRepairs = repairs.filter(r =>
-        r.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.client?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredRepairs = repairs.filter(r => {
+        // Filtre de recherche
+        const matchesSearch =
+            r.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.client?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.imei_sn?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        // Filtre de statut
+        const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
+
+        // Filtre de paiement
+        const matchesPayment =
+            paymentFilter === 'all' ||
+            (paymentFilter === 'paid' && r.payment_status === 'paid') ||
+            (paymentFilter === 'unpaid' && r.payment_status !== 'paid');
+
+        return matchesSearch && matchesStatus && matchesPayment;
+    });
 
     const statusColors: Record<string, string> = {
         nouveau: 'bg-gray-100 text-gray-700',
@@ -303,17 +323,51 @@ export default function RepairsPage() {
                 </Button>
             </div>
 
-            {/* Search */}
-            <div className="mb-6">
+            {/* Search and Filters */}
+            <div className="mb-6 space-y-4">
+                {/* Barre de recherche */}
                 <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
                     <input
                         type="text"
-                        placeholder="Rechercher par code, appareil ou client..."
+                        placeholder="Rechercher par code, appareil, client, téléphone ou IMEI..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                     />
+                </div>
+
+                {/* Filtres */}
+                <div className="flex gap-3">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
+                    >
+                        <option value="all">📋 Tous les statuts</option>
+                        <option value="nouveau">🆕 Nouveau</option>
+                        <option value="diagnostic">🔍 Diagnostic</option>
+                        <option value="en_reparation">🔧 En cours</option>
+                        <option value="pret_recup">✅ Prêt</option>
+                        <option value="recupere">📦 Récupéré</option>
+                        <option value="annule">❌ Annulé</option>
+                    </select>
+
+                    <select
+                        value={paymentFilter}
+                        onChange={(e) => setPaymentFilter(e.target.value)}
+                        className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
+                    >
+                        <option value="all">💳 Tous les paiements</option>
+                        <option value="paid">✓ Payé</option>
+                        <option value="unpaid">⏳ Non payé</option>
+                    </select>
+
+                    {/* Compteur de résultats */}
+                    <div className="flex items-center px-4 py-2 bg-gray-50 rounded-xl text-sm text-neutral-600">
+                        <span className="font-medium">{filteredRepairs.length}</span>
+                        <span className="ml-1">résultat{filteredRepairs.length > 1 ? 's' : ''}</span>
+                    </div>
                 </div>
             </div>
 
@@ -551,16 +605,54 @@ export default function RepairsPage() {
                                         </select>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-neutral-700 mb-2">Prix (DA)</label>
-                                        <input
-                                            type="number"
-                                            value={formData.price}
-                                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                            placeholder="5000"
-                                        />
+                                    {/* Prix et Coût sur la même ligne */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-neutral-700 mb-2">
+                                                Prix de vente (DA)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={formData.price}
+                                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
+                                                placeholder="5000"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-neutral-700 mb-2">
+                                                Prix de revient (DA)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={formData.cost_price}
+                                                onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
+                                                placeholder="3000"
+                                            />
+                                            <p className="text-xs text-neutral-500 mt-1">
+                                                Coût des pièces, déblocage, etc.
+                                            </p>
+                                        </div>
                                     </div>
+
+                                    {/* Affichage du bénéfice */}
+                                    {formData.price && formData.cost_price && (
+                                        <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-medium text-neutral-700">
+                                                    💰 Bénéfice estimé :
+                                                </span>
+                                                <span className={`text-lg font-bold ${(parseFloat(formData.price) - parseFloat(formData.cost_price)) >= 0
+                                                    ? 'text-green-600'
+                                                    : 'text-red-600'
+                                                    }`}>
+                                                    {(parseFloat(formData.price) - parseFloat(formData.cost_price)).toLocaleString('fr-DZ')} DA
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Checkbox Déblocage */}
                                     <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">

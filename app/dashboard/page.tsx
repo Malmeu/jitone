@@ -58,7 +58,11 @@ export default function DashboardPage() {
                     ).length;
 
                     const todayRevenue = repairs
-                        .filter(r => new Date(r.created_at) >= today && r.payment_status === 'paid')
+                        .filter(r =>
+                            new Date(r.created_at) >= today &&
+                            r.payment_status === 'paid' &&
+                            r.status !== 'annule'  // Exclure les réparations annulées
+                        )
                         .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
 
                     setStats({
@@ -127,7 +131,16 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <p className="text-neutral-500 text-sm font-medium mb-1">Réparations aujourd&apos;hui</p>
-                    <h3 className="text-2xl font-bold text-neutral-900">{stats.todayRepairs}</h3>
+                    <h3 className="text-2xl font-bold text-neutral-900 mb-3">{stats.todayRepairs}</h3>
+                    <button
+                        onClick={() => {
+                            const today = new Date().toISOString().split('T')[0];
+                            router.push(`/dashboard/repairs`);
+                        }}
+                        className="text-primary text-sm font-medium hover:underline"
+                    >
+                        Afficher les détails →
+                    </button>
                 </div>
 
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -137,7 +150,13 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <p className="text-neutral-500 text-sm font-medium mb-1">Prêtes à récupérer</p>
-                    <h3 className="text-2xl font-bold text-neutral-900">{stats.readyRepairs}</h3>
+                    <h3 className="text-2xl font-bold text-neutral-900 mb-3">{stats.readyRepairs}</h3>
+                    <button
+                        onClick={() => router.push('/dashboard/repairs')}
+                        className="text-primary text-sm font-medium hover:underline"
+                    >
+                        Afficher les détails →
+                    </button>
                 </div>
 
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">

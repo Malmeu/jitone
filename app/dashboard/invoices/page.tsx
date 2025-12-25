@@ -13,6 +13,8 @@ export default function InvoicesPage() {
         cash: 0,
         baridimob: 0,
         count: 0,
+        totalCost: 0,
+        profit: 0,
     });
 
     useEffect(() => {
@@ -53,6 +55,9 @@ export default function InvoicesPage() {
                     repair:repairs(
                         code,
                         item,
+                        status,
+                        cost_price,
+                        profit,
                         establishment_id,
                         client:clients(name, phone)
                     )
@@ -69,20 +74,29 @@ export default function InvoicesPage() {
             if (paymentsData) {
                 setPayments(paymentsData);
 
+                // Filtrer les paiements des réparations non annulées
+                const validPayments = paymentsData.filter(p => p.repair?.status !== 'annule');
+
                 // Calculer les statistiques
-                const total = paymentsData.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-                const cash = paymentsData
+                const total = validPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+                const cash = validPayments
                     .filter(p => p.payment_method === 'cash')
                     .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-                const baridimob = paymentsData
+                const baridimob = validPayments
                     .filter(p => p.payment_method === 'baridimob')
                     .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+                // Calculer les coûts et bénéfices
+                const totalCost = validPayments.reduce((sum, p) => sum + parseFloat(p.repair?.cost_price || 0), 0);
+                const profit = validPayments.reduce((sum, p) => sum + parseFloat(p.repair?.profit || 0), 0);
 
                 setStats({
                     total,
                     cash,
                     baridimob,
-                    count: paymentsData.length,
+                    count: validPayments.length,
+                    totalCost,
+                    profit,
                 });
             }
         } catch (error) {
@@ -108,13 +122,13 @@ export default function InvoicesPage() {
             </div>
 
             {/* Statistiques */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
                 <div className="bg-gradient-to-br from-primary/10 to-blue-50 rounded-3xl p-6 border border-primary/20">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-primary/20 rounded-xl">
                             <DollarSign className="w-5 h-5 text-primary" />
                         </div>
-                        <p className="text-sm font-medium text-neutral-600">Total Encaissé</p>
+                        <p className="text-sm font-medium text-neutral-600">Chiffre d'Affaires</p>
                     </div>
                     <p className="text-3xl font-bold text-neutral-900">
                         {stats.total.toLocaleString('fr-DZ')} DA
@@ -142,6 +156,33 @@ export default function InvoicesPage() {
                     </div>
                     <p className="text-2xl font-bold text-neutral-900">
                         {stats.baridimob.toLocaleString('fr-DZ')} DA
+                    </p>
+                </div>
+
+                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-orange-100 rounded-xl">
+                            <span className="text-2xl">📦</span>
+                        </div>
+                        <p className="text-sm font-medium text-neutral-600">Coût Total</p>
+                    </div>
+                    <p className="text-2xl font-bold text-neutral-900">
+                        {stats.totalCost.toLocaleString('fr-DZ')} DA
+                    </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-6 border border-green-200">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-green-200 rounded-xl">
+                            <span className="text-2xl">💰</span>
+                        </div>
+                        <p className="text-sm font-medium text-neutral-600">Bénéfice</p>
+                    </div>
+                    <p className="text-3xl font-bold text-green-600">
+                        {stats.profit.toLocaleString('fr-DZ')} DA
+                    </p>
+                    <p className="text-xs text-neutral-500 mt-1">
+                        Marge: {stats.total > 0 ? ((stats.profit / stats.total) * 100).toFixed(1) : 0}%
                     </p>
                 </div>
 
@@ -212,13 +253,19 @@ export default function InvoicesPage() {
                                                 {payment.payment_method === 'baridimob' ? '📱 BaridiMob' : '💵 Espèces'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-neutral-900">
+                                        <td className={`px-6 py-4 font-bold ${payment.repair?.status === 'annule' ? 'text-neutral-400 line-through' : 'text-neutral-900'}`}>
                                             {parseFloat(payment.amount).toLocaleString('fr-DZ')} DA
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">
-                                                ✓ Payé
-                                            </span>
+                                            {payment.repair?.status === 'annule' ? (
+                                                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-bold line-through">
+                                                    ✗ Annulé
+                                                </span>
+                                            ) : (
+                                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">
+                                                    ✓ Payé
+                                                </span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
