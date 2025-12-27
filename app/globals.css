@@ -2,17 +2,17 @@
 
 @theme {
   --font-sans: var(--font-inter);
-  
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  
+
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-neutral: var(--neutral);
   --color-card: var(--card);
-  
+
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
@@ -59,17 +59,31 @@ body {
 }
 
 @keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
+
 .animate-blob {
   animation: blob 7s infinite;
 }
+
 .animation-delay-2000 {
   animation-delay: 2s;
 }
+
 .animation-delay-4000 {
   animation-delay: 4s;
 }

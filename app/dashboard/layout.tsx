@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield } from 'lucide-react';
+import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -10,6 +10,8 @@ const menu = [
     { icon: Home, label: 'Accueil', href: '/dashboard' },
     { icon: Briefcase, label: 'Réparations', href: '/dashboard/repairs' },
     { icon: Users, label: 'Clients', href: '/dashboard/clients' },
+    { icon: Calendar, label: 'Calendrier', href: '/dashboard/calendar' },
+    { icon: FileText, label: 'Devis', href: '/dashboard/quotes' },
     { icon: FileText, label: 'Factures', href: '/dashboard/invoices' },
     { icon: Code, label: 'Widget', href: '/dashboard/widget-config' },
     { icon: Settings, label: 'Paramètres', href: '/dashboard/settings' },
@@ -116,20 +118,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="bg-primary/5 p-2 rounded-xl">
                         <Wrench className="w-5 h-5 text-primary" />
                     </div>
-                    <span className="font-bold text-lg tracking-tight text-neutral-900">
+                    <span className="font-bold text-lg tracking-tight">
                         Repair<span className="text-primary">Track</span>
                     </span>
                 </Link>
-                <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-                >
-                    {mobileMenuOpen ? (
-                        <X className="w-6 h-6 text-neutral-900" />
-                    ) : (
-                        <Menu className="w-6 h-6 text-neutral-900" />
-                    )}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                    >
+                        {mobileMenuOpen ? (
+                            <X className="w-6 h-6 text-neutral-900" />
+                        ) : (
+                            <Menu className="w-6 h-6 text-neutral-900" />
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Menu Overlay */}
