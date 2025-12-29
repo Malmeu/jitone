@@ -12,10 +12,15 @@ export default function DashboardPage() {
         todayRepairs: 0,
         readyRepairs: 0,
         todayRevenue: 0,
+        monthRevenue: 0,
+        customRevenue: 0,
     });
     const [recentRepairs, setRecentRepairs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [establishmentId, setEstablishmentId] = useState<string | null>(null);
+    const [revenueFilter, setRevenueFilter] = useState<'today' | 'month' | 'custom'>('today');
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -65,10 +70,40 @@ export default function DashboardPage() {
                         )
                         .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
 
+                    // Revenu du mois
+                    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                    const monthRevenue = repairs
+                        .filter(r =>
+                            new Date(r.created_at) >= firstDayOfMonth &&
+                            r.payment_status === 'paid' &&
+                            r.status !== 'annule'
+                        )
+                        .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
+
+                    // Revenu personnalisé (initialement 0)
+                    let customRevenue = 0;
+                    if (customStartDate && customEndDate) {
+                        const startDate = new Date(customStartDate);
+                        const endDate = new Date(customEndDate);
+                        endDate.setHours(23, 59, 59, 999);
+
+                        customRevenue = repairs
+                            .filter(r => {
+                                const repairDate = new Date(r.created_at);
+                                return repairDate >= startDate &&
+                                    repairDate <= endDate &&
+                                    r.payment_status === 'paid' &&
+                                    r.status !== 'annule';
+                            })
+                            .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
+                    }
+
                     setStats({
                         todayRepairs,
                         readyRepairs,
                         todayRevenue,
+                        monthRevenue,
+                        customRevenue,
                     });
 
                     // Prendre les 5 dernières réparations
@@ -82,7 +117,7 @@ export default function DashboardPage() {
         };
 
         fetchData();
-    }, []);
+    }, [customStartDate, customEndDate]);
 
     const statusColors: Record<string, string> = {
         nouveau: 'bg-gray-100 text-gray-700',
@@ -123,15 +158,16 @@ export default function DashboardPage() {
                 </Button>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            {/* Cartes de statistiques - Mobile First */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-4">
                         <div className="bg-blue-50 text-blue-500 p-3 rounded-xl">
                             <Wrench size={24} />
                         </div>
                     </div>
-                    <p className="text-neutral-500 text-sm font-medium mb-1">Réparations aujourd&apos;hui</p>
-                    <h3 className="text-2xl font-bold text-neutral-900 mb-3">{stats.todayRepairs}</h3>
+                    <p className="text-neutral-500 text-xs md:text-sm font-medium mb-1">Réparations aujourd&apos;hui</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-2 md:mb-3">{stats.todayRepairs}</h3>
                     <button
                         onClick={() => {
                             const today = new Date().toISOString().split('T')[0];
@@ -149,8 +185,8 @@ export default function DashboardPage() {
                             <CheckCircle2 size={24} />
                         </div>
                     </div>
-                    <p className="text-neutral-500 text-sm font-medium mb-1">Prêtes à récupérer</p>
-                    <h3 className="text-2xl font-bold text-neutral-900 mb-3">{stats.readyRepairs}</h3>
+                    <p className="text-neutral-500 text-xs md:text-sm font-medium mb-1">Prêtes à récupérer</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-2 md:mb-3">{stats.readyRepairs}</h3>
                     <button
                         onClick={() => router.push('/dashboard/repairs')}
                         className="text-primary text-sm font-medium hover:underline"
@@ -159,16 +195,91 @@ export default function DashboardPage() {
                     </button>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start mb-4">
                         <div className="bg-orange-50 text-orange-500 p-3 rounded-xl">
                             <DollarSign size={24} />
                         </div>
                     </div>
-                    <p className="text-neutral-500 text-sm font-medium mb-1">Revenu du jour</p>
-                    <h3 className="text-2xl font-bold text-neutral-900">
-                        {stats.todayRevenue.toLocaleString('fr-DZ')} DA
+                    <p className="text-neutral-500 text-xs md:text-sm font-medium mb-3">Chiffre d'affaires</p>
+
+                    {/* Filtres de période */}
+                    <div className="flex gap-1.5 md:gap-2 mb-3 md:mb-4">
+                        <button
+                            onClick={() => setRevenueFilter('today')}
+                            className={`px-2 md:px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${revenueFilter === 'today'
+                                ? 'bg-primary text-white'
+                                : 'bg-gray-100 text-neutral-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            Aujourd'hui
+                        </button>
+                        <button
+                            onClick={() => setRevenueFilter('month')}
+                            className={`px-2 md:px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${revenueFilter === 'month'
+                                ? 'bg-primary text-white'
+                                : 'bg-gray-100 text-neutral-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            Ce mois
+                        </button>
+                        <button
+                            onClick={() => setRevenueFilter('custom')}
+                            className={`px-2 md:px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${revenueFilter === 'custom'
+                                ? 'bg-primary text-white'
+                                : 'bg-gray-100 text-neutral-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            Période
+                        </button>
+                    </div>
+
+                    {/* Sélecteurs de dates pour période personnalisée */}
+                    {revenueFilter === 'custom' && (
+                        <div className="mb-3 md:mb-4 space-y-2 p-2 md:p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <label className="block text-xs text-neutral-600 mb-1">Du</label>
+                                <input
+                                    type="date"
+                                    value={customStartDate}
+                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-neutral-600 mb-1">Au</label>
+                                <input
+                                    type="date"
+                                    value={customEndDate}
+                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Affichage du montant */}
+                    <h3 className="text-xl md:text-2xl font-bold text-neutral-900">
+                        {revenueFilter === 'today' && `${stats.todayRevenue.toLocaleString('fr-DZ')} DA`}
+                        {revenueFilter === 'month' && `${stats.monthRevenue.toLocaleString('fr-DZ')} DA`}
+                        {revenueFilter === 'custom' && (
+                            customStartDate && customEndDate
+                                ? `${stats.customRevenue.toLocaleString('fr-DZ')} DA`
+                                : '- DA'
+                        )}
                     </h3>
+
+                    {/* Indicateur de période */}
+                    <p className="text-xs text-neutral-400 mt-2">
+                        {revenueFilter === 'today' && 'Paiements reçus aujourd\'hui'}
+                        {revenueFilter === 'month' && `Paiements de ${new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`}
+                        {revenueFilter === 'custom' && customStartDate && customEndDate && (
+                            `Du ${new Date(customStartDate).toLocaleDateString('fr-FR')} au ${new Date(customEndDate).toLocaleDateString('fr-FR')}`
+                        )}
+                        {revenueFilter === 'custom' && (!customStartDate || !customEndDate) && (
+                            'Sélectionnez une période'
+                        )}
+                    </p>
                 </div>
             </div>
 

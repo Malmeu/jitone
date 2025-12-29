@@ -304,6 +304,74 @@ export default function RepairsPage() {
         }
     };
 
+    const deleteRepair = async (repairId: string, repairCode: string) => {
+        try {
+            // D'abord, vérifier s'il y a des paiements associés
+            const { data: paymentsData, error: checkError } = await supabase
+                .from('payments')
+                .select('id')
+                .eq('repair_id', repairId);
+
+            if (checkError) {
+                console.error('Error checking payments:', checkError);
+                throw new Error('Erreur lors de la vérification des paiements');
+            }
+
+            const hasPayments = paymentsData && paymentsData.length > 0;
+
+            // Message de confirmation adapté
+            const confirmMessage = hasPayments
+                ? `Êtes-vous sûr de vouloir supprimer la réparation ${repairCode} ?\n\n⚠️ Cette réparation a ${paymentsData.length} paiement(s) associé(s) qui seront également supprimés.\n\nCette action est irréversible.`
+                : `Êtes-vous sûr de vouloir supprimer la réparation ${repairCode} ?\n\nCette action est irréversible.`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Si des paiements existent, les supprimer d'abord
+            if (hasPayments) {
+                console.log(`Suppression de ${paymentsData.length} paiement(s)...`);
+
+                const { error: paymentsError } = await supabase
+                    .from('payments')
+                    .delete()
+                    .eq('repair_id', repairId);
+
+                if (paymentsError) {
+                    console.error('Error deleting payments:', paymentsError);
+                    throw new Error(`Impossible de supprimer les paiements associés: ${paymentsError.message}`);
+                }
+
+                console.log('Paiements supprimés avec succès');
+
+                // Petit délai pour s'assurer que la suppression est bien propagée
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            // Maintenant, supprimer la réparation
+            console.log('Suppression de la réparation...');
+            const { error: repairError } = await supabase
+                .from('repairs')
+                .delete()
+                .eq('id', repairId);
+
+            if (repairError) {
+                console.error('Error deleting repair:', repairError);
+                throw new Error(`Impossible de supprimer la réparation: ${repairError.message}`);
+            }
+
+            const successMessage = hasPayments
+                ? `✓ Réparation et ${paymentsData.length} paiement(s) supprimés avec succès !`
+                : '✓ Réparation supprimée avec succès !';
+
+            alert(successMessage);
+            await fetchData();
+        } catch (error: any) {
+            console.error('Delete error:', error);
+            alert('❌ Erreur lors de la suppression :\n\n' + (error.message || 'Erreur inconnue'));
+        }
+    };
+
     if (loading) {
         return <div className="flex items-center justify-center h-full">
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -483,6 +551,18 @@ export default function RepairsPage() {
                                                 >
                                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteRepair(repair.id, repair.code);
+                                                    }}
+                                                    className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors flex items-center gap-1"
+                                                    title="Supprimer la réparation"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
                                                 </button>
                                             </div>
