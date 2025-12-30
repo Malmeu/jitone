@@ -2,13 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Plus, Search, Loader2 } from 'lucide-react';
+import { Plus, Search, Loader2, Edit, Trash2, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ClientsPage() {
     const [clients, setClients] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [editingClient, setEditingClient] = useState<any>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [establishmentId, setEstablishmentId] = useState<string | null>(null);
+
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        email: '',
+    });
 
     useEffect(() => {
         fetchClients();
@@ -26,6 +37,7 @@ export default function ClientsPage() {
                 .single();
 
             if (!establishment) return;
+            setEstablishmentId(establishment.id);
 
             const { data } = await supabase
                 .from('clients')
@@ -42,6 +54,89 @@ export default function ClientsPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!establishmentId) return;
+
+        setSubmitting(true);
+        try {
+            if (editingClient) {
+                // Mise à jour
+                const { error } = await supabase
+                    .from('clients')
+                    .update({
+                        name: formData.name,
+                        phone: formData.phone || null,
+                        email: formData.email || null,
+                    })
+                    .eq('id', editingClient.id);
+
+                if (error) throw error;
+                alert('✓ Client modifié avec succès !');
+            } else {
+                // Création
+                const { error } = await supabase
+                    .from('clients')
+                    .insert([{
+                        establishment_id: establishmentId,
+                        name: formData.name,
+                        phone: formData.phone || null,
+                        email: formData.email || null,
+                    }]);
+
+                if (error) throw error;
+                alert('✓ Client créé avec succès !');
+            }
+
+            setShowModal(false);
+            setEditingClient(null);
+            setFormData({ name: '', phone: '', email: '' });
+            await fetchClients();
+        } catch (error: any) {
+            console.error('Error:', error);
+            alert('Erreur: ' + (error.message || 'Erreur inconnue'));
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleEdit = (client: any) => {
+        setEditingClient(client);
+        setFormData({
+            name: client.name,
+            phone: client.phone || '',
+            email: client.email || '',
+        });
+        setShowModal(true);
+    };
+
+    const handleDelete = async (clientId: string, clientName: string) => {
+        if (!confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?\n\nCette action est irréversible.`)) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('clients')
+                .delete()
+                .eq('id', clientId);
+
+            if (error) throw error;
+
+            alert('✓ Client supprimé avec succès !');
+            await fetchClients();
+        } catch (error: any) {
+            console.error('Delete error:', error);
+            alert('Erreur lors de la suppression : ' + (error.message || 'Erreur inconnue'));
+        }
+    };
+
+    const handleNewClient = () => {
+        setEditingClient(null);
+        setFormData({ name: '', phone: '', email: '' });
+        setShowModal(true);
     };
 
     const filteredClients = clients.filter(c =>
@@ -63,6 +158,10 @@ export default function ClientsPage() {
                     <h1 className="text-2xl font-bold text-neutral-900">Clients</h1>
                     <p className="text-neutral-500">Gérez votre base de clients</p>
                 </div>
+                <Button onClick={handleNewClient}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nouveau Client
+                </Button>
             </div>
 
             {/* Search */}
@@ -95,6 +194,7 @@ export default function ClientsPage() {
                                     <th className="px-6 py-4 text-left">Email</th>
                                     <th className="px-6 py-4 text-left">Réparations</th>
                                     <th className="px-6 py-4 text-left">Inscrit le</th>
+                                    <th className="px-6 py-4 text-left">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -111,6 +211,24 @@ export default function ClientsPage() {
                                         <td className="px-6 py-4 text-neutral-500 text-xs">
                                             {new Date(client.created_at).toLocaleDateString('fr-FR')}
                                         </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEdit(client)}
+                                                    className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-medium hover:bg-primary/10 transition-colors flex items-center gap-1"
+                                                    title="Modifier"
+                                                >
+                                                    <Edit className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(client.id, client.name)}
+                                                    className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors flex items-center gap-1"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -118,6 +236,76 @@ export default function ClientsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modal */}
+            <AnimatePresence>
+                {showModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-3xl shadow-2xl max-w-md w-full"
+                        >
+                            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                                <h2 className="text-xl font-bold text-neutral-900">
+                                    {editingClient ? 'Modifier le client' : 'Nouveau client'}
+                                </h2>
+                                <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Nom *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        placeholder="Nom du client"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Téléphone</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        placeholder="+213 550123456"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        placeholder="client@example.com"
+                                    />
+                                </div>
+
+
+
+                                <div className="flex gap-3 pt-4">
+                                    <Button type="button" variant="secondary" onClick={() => setShowModal(false)} className="flex-1">
+                                        Annuler
+                                    </Button>
+                                    <Button type="submit" disabled={submitting} className="flex-1">
+                                        {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enregistrement...</> : editingClient ? 'Modifier' : 'Créer'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

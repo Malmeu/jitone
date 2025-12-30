@@ -22,6 +22,7 @@ export default function RepairsPage() {
     const [ticketData, setTicketData] = useState<any>(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedRepair, setSelectedRepair] = useState<any>(null);
+    const [editingRepair, setEditingRepair] = useState<any>(null);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [paymentAmount, setPaymentAmount] = useState(0);
     const [paymentNote, setPaymentNote] = useState('');
@@ -103,13 +104,13 @@ export default function RepairsPage() {
         }
 
         setSubmitting(true);
-        console.log('Starting repair creation...', { establishmentId, formData });
+        console.log(editingRepair ? 'Updating repair...' : 'Starting repair creation...', { establishmentId, formData });
 
         try {
             let clientId = formData.clientId;
 
-            // Si nouveau client
-            if (!clientId && formData.clientName) {
+            // Si nouveau client (seulement en création)
+            if (!editingRepair && !clientId && formData.clientName) {
                 console.log('Creating new client...');
                 const { data: newClient, error: clientError } = await supabase
                     .from('clients')
@@ -133,45 +134,82 @@ export default function RepairsPage() {
                 throw new Error('Aucun client sélectionné ou créé');
             }
 
-            // Créer la réparation
-            const repairData = {
-                establishment_id: establishmentId,
-                client_id: clientId,
-                code: generateCode(),
-                item: formData.item,
-                description: formData.description,
-                status: formData.status,
-                price: formData.price ? parseFloat(formData.price) : null,
-                cost_price: formData.cost_price ? parseFloat(formData.cost_price) : 0,
-                is_unlock: formData.is_unlock,
-                imei_sn: formData.is_unlock ? formData.imei_sn : null,
-            };
+            // Calculer le profit (pour information, mais ne pas l'enregistrer car c'est une colonne générée)
+            const price = formData.price ? parseFloat(formData.price) : 0;
+            const costPrice = formData.cost_price ? parseFloat(formData.cost_price) : 0;
 
-            console.log('Creating repair with data:', repairData);
+            if (editingRepair) {
+                // Mise à jour de la réparation
+                const updateData = {
+                    client_id: clientId,
+                    item: formData.item,
+                    description: formData.description,
+                    status: formData.status,
+                    price: formData.price ? parseFloat(formData.price) : null,
+                    cost_price: costPrice,
+                    is_unlock: formData.is_unlock,
+                    imei_sn: formData.is_unlock ? formData.imei_sn : null,
+                    updated_at: new Date().toISOString(),
+                };
 
-            const { data: repairResult, error: repairError } = await supabase
-                .from('repairs')
-                .insert([repairData])
-                .select();
+                console.log('Updating repair with data:', updateData);
 
-            if (repairError) {
-                console.error('Repair creation error:', repairError);
-                throw repairError;
+                const { error: repairError } = await supabase
+                    .from('repairs')
+                    .update(updateData)
+                    .eq('id', editingRepair.id);
+
+                if (repairError) {
+                    console.error('Repair update error:', repairError);
+                    throw repairError;
+                }
+
+                console.log('Repair updated successfully');
+                alert('✓ Réparation modifiée avec succès !');
+            } else {
+                // Créer la réparation
+                const repairData = {
+                    establishment_id: establishmentId,
+                    client_id: clientId,
+                    code: generateCode(),
+                    item: formData.item,
+                    description: formData.description,
+                    status: formData.status,
+                    price: formData.price ? parseFloat(formData.price) : null,
+                    cost_price: costPrice,
+                    is_unlock: formData.is_unlock,
+                    imei_sn: formData.is_unlock ? formData.imei_sn : null,
+                };
+
+                console.log('Creating repair with data:', repairData);
+
+                const { data: repairResult, error: repairError } = await supabase
+                    .from('repairs')
+                    .insert([repairData])
+                    .select();
+
+                if (repairError) {
+                    console.error('Repair creation error:', repairError);
+                    throw repairError;
+                }
+
+                console.log('Repair created successfully:', repairResult);
+
+                // Préparer les données du ticket
+                const newRepair = repairResult[0];
+                const clientData = clients.find(c => c.id === clientId) || {
+                    name: formData.clientName,
+                    phone: formData.clientPhone,
+                };
+
+                setTicketData({
+                    ...newRepair,
+                    client: clientData,
+                });
+
+                // Afficher le ticket
+                setShowTicket(true);
             }
-
-            console.log('Repair created successfully:', repairResult);
-
-            // Préparer les données du ticket
-            const newRepair = repairResult[0];
-            const clientData = clients.find(c => c.id === clientId) || {
-                name: formData.clientName,
-                phone: formData.clientPhone,
-            };
-
-            setTicketData({
-                ...newRepair,
-                client: clientData,
-            });
 
             // Réinitialiser et recharger
             setFormData({
@@ -187,10 +225,8 @@ export default function RepairsPage() {
                 imei_sn: '',
             });
             setShowModal(false);
+            setEditingRepair(null);
             await fetchData();
-
-            // Afficher le ticket
-            setShowTicket(true);
         } catch (error: any) {
             console.error('Full error:', error);
             alert('Erreur: ' + (error.message || 'Erreur inconnue'));
@@ -370,6 +406,23 @@ export default function RepairsPage() {
             console.error('Delete error:', error);
             alert('❌ Erreur lors de la suppression :\n\n' + (error.message || 'Erreur inconnue'));
         }
+    };
+
+    const handleEdit = (repair: any) => {
+        setEditingRepair(repair);
+        setFormData({
+            clientId: repair.client_id,
+            clientName: repair.client?.name || '',
+            clientPhone: repair.client?.phone || '',
+            item: repair.item,
+            description: repair.description || '',
+            status: repair.status,
+            price: repair.price?.toString() || '',
+            cost_price: repair.cost_price?.toString() || '',
+            is_unlock: repair.is_unlock || false,
+            imei_sn: repair.imei_sn || '',
+        });
+        setShowModal(true);
     };
 
     if (loading) {
@@ -556,6 +609,18 @@ export default function RepairsPage() {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
+                                                        handleEdit(repair);
+                                                    }}
+                                                    className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-medium hover:bg-primary/10 transition-colors flex items-center gap-1"
+                                                    title="Modifier la réparation"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         deleteRepair(repair.id, repair.code);
                                                     }}
                                                     className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors flex items-center gap-1"
@@ -586,7 +651,7 @@ export default function RepairsPage() {
                             className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
                         >
                             <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white">
-                                <h2 className="text-xl font-bold text-neutral-900">Nouvelle Réparation</h2>
+                                <h2 className="text-xl font-bold text-neutral-900">{editingRepair ? 'Modifier la réparation' : 'Nouvelle Réparation'}</h2>
                                 <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
@@ -778,7 +843,7 @@ export default function RepairsPage() {
                                         Annuler
                                     </Button>
                                     <Button type="submit" disabled={submitting} className="flex-1">
-                                        {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Création...</> : 'Créer la réparation'}
+                                        {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {editingRepair ? 'Modification...' : 'Création...'}</> : editingRepair ? 'Modifier' : 'Créer la réparation'}
                                     </Button>
                                 </div>
                             </form>
