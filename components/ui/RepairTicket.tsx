@@ -34,7 +34,7 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
         if (qrCanvasRef.current) {
             const trackUrl = `${window.location.origin}/track/${repair.code}`;
             QRCode.toCanvas(qrCanvasRef.current, trackUrl, {
-                width: 150,
+                width: 100,
                 margin: 1,
                 color: {
                     dark: '#000000',
@@ -106,85 +106,77 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
 
                 {/* Ticket à imprimer - avec scroll */}
                 <div className="overflow-y-auto flex-1 print:overflow-visible">
-                    <div className="p-8 print:p-6 ticket-content">
-                        {/* En-tête établissement */}
-                        <div className="text-center mb-6 pb-6 border-b-2 border-dashed border-gray-300">
+                    <div className="p-8 print:p-4 ticket-content">
+                        {/* En-tête établissement - Compact */}
+                        <div className="text-center mb-3 pb-3 border-b-2 border-dashed border-gray-300">
                             {establishment.logo_url && (
-                                <div className="mb-4 flex justify-center">
+                                <div className="mb-2 flex justify-center">
                                     <img
                                         src={establishment.logo_url}
                                         alt={establishment.name}
-                                        className="h-16 w-auto object-contain"
+                                        className="h-12 w-auto object-contain"
                                     />
                                 </div>
                             )}
-                            <h1 className="text-2xl font-bold text-neutral-900 mb-2">{establishment.name}</h1>
-                            {establishment.phone && (
-                                <p className="text-sm text-neutral-600">📞 {establishment.phone}</p>
-                            )}
-                            {establishment.address && (
-                                <p className="text-sm text-neutral-600">📍 {establishment.address}</p>
-                            )}
-                        </div>
-
-                        {/* Code de suivi */}
-                        <div className="text-center mb-6">
-                            <p className="text-sm text-neutral-500 uppercase font-bold tracking-wider mb-2">
-                                Code de suivi
-                            </p>
-                            <div
-                                className="text-white px-6 py-3 rounded-xl inline-block"
-                                style={{ backgroundColor: establishment.ticket_color || '#000000' }}
-                            >
-                                <p className="text-2xl font-mono font-bold tracking-wider">{repair.code}</p>
+                            <h1 className="text-xl font-bold text-neutral-900 mb-1">{establishment.name}</h1>
+                            <div className="text-xs text-neutral-600 space-y-0.5">
+                                {establishment.phone && <p>📞 {establishment.phone}</p>}
+                                {establishment.address && <p>📍 {establishment.address}</p>}
                             </div>
                         </div>
 
-                        {/* QR Code */}
-                        <div className="flex justify-center mb-6">
-                            <div className="bg-white p-3 rounded-xl border-2 border-gray-200">
+                        {/* Code + QR en ligne */}
+                        <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-dashed border-gray-300">
+                            <div className="flex-1">
+                                <p className="text-xs text-neutral-500 uppercase font-bold mb-1">Code de suivi</p>
+                                <div
+                                    className="text-white px-4 py-2 rounded-lg inline-block"
+                                    style={{ backgroundColor: establishment.ticket_color || '#000000' }}
+                                >
+                                    <p className="text-lg font-mono font-bold">{repair.code}</p>
+                                </div>
+                            </div>
+                            <div className="bg-white p-2 rounded-lg border-2 border-gray-200">
                                 <canvas ref={qrCanvasRef} className="qr-code" />
                             </div>
                         </div>
 
-                        {/* Informations réparation */}
-                        <div className="space-y-4 mb-6 pb-6 border-b-2 border-dashed border-gray-300">
-                            <div>
-                                <p className="text-xs text-neutral-400 uppercase font-bold tracking-wider mb-1">Client</p>
-                                <p className="text-base font-bold text-neutral-900">{repair.client?.name || 'N/A'}</p>
-                                {repair.client?.phone && (
-                                    <p className="text-sm text-neutral-600">{repair.client.phone}</p>
-                                )}
-                            </div>
-
-                            <div>
-                                <p className="text-xs text-neutral-400 uppercase font-bold tracking-wider mb-1">Appareil</p>
-                                <p className="text-base font-bold text-neutral-900">
-                                    {repair.item}
-                                    {repair.is_unlock && (
-                                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                                            🔓 Déblocage
-                                        </span>
+                        {/* Informations réparation - 2 colonnes */}
+                        <div className="mb-3 pb-3 border-b-2 border-dashed border-gray-300">
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                                <div className="col-span-2">
+                                    <p className="text-xs text-neutral-400 uppercase font-bold mb-0.5">Client</p>
+                                    <p className="text-sm font-bold text-neutral-900">{repair.client?.name || 'N/A'}</p>
+                                    {repair.client?.phone && (
+                                        <p className="text-xs text-neutral-600">{repair.client.phone}</p>
                                     )}
-                                </p>
-                                {repair.is_unlock && repair.imei_sn && (
-                                    <p className="text-xs text-neutral-600 font-mono mt-1">
-                                        IMEI/SN: {repair.imei_sn}
-                                    </p>
-                                )}
-                            </div>
-
-                            {repair.description && (
-                                <div>
-                                    <p className="text-xs text-neutral-400 uppercase font-bold tracking-wider mb-1">Description</p>
-                                    <p className="text-sm text-neutral-700">{repair.description}</p>
                                 </div>
-                            )}
 
-                            <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2">
+                                    <p className="text-xs text-neutral-400 uppercase font-bold mb-0.5">Appareil</p>
+                                    <p className="text-sm font-bold text-neutral-900">
+                                        {repair.item}
+                                        {repair.is_unlock && (
+                                            <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
+                                                🔓
+                                            </span>
+                                        )}
+                                    </p>
+                                    {repair.is_unlock && repair.imei_sn && (
+                                        <p className="text-xs text-neutral-600 font-mono">IMEI: {repair.imei_sn}</p>
+                                    )}
+                                </div>
+
+                                {repair.description && (
+                                    <div className="col-span-2">
+                                        <p className="text-xs text-neutral-400 uppercase font-bold mb-0.5">Description</p>
+                                        <p className="text-xs text-neutral-700">{repair.description}</p>
+                                    </div>
+                                )}
+
                                 <div>
-                                    <p className="text-xs text-neutral-400 uppercase font-bold tracking-wider mb-1">Date de dépôt</p>
-                                    <p className="text-sm font-medium text-neutral-900">
+                                    <p className="text-xs text-neutral-400 uppercase font-bold mb-0.5">Date</p>
+                                    <p className="text-xs font-medium text-neutral-900">
                                         {new Date(repair.created_at).toLocaleDateString('fr-FR', {
                                             day: '2-digit',
                                             month: '2-digit',
@@ -195,8 +187,8 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
 
                                 {repair.price && (
                                     <div>
-                                        <p className="text-xs text-neutral-400 uppercase font-bold tracking-wider mb-1">Prix estimé</p>
-                                        <p className="text-sm font-bold text-neutral-900">
+                                        <p className="text-xs text-neutral-400 uppercase font-bold mb-0.5">Prix estimé</p>
+                                        <p className="text-xs font-bold text-neutral-900">
                                             {parseFloat(repair.price.toString()).toLocaleString('fr-DZ')} DA
                                         </p>
                                     </div>
@@ -204,29 +196,26 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
                             </div>
                         </div>
 
-                        {/* Instructions */}
-                        <div className="bg-blue-50 p-4 rounded-xl">
-                            <p className="text-xs text-blue-900 font-medium mb-2">📱 Suivez votre réparation en ligne :</p>
-                            <p className="text-xs text-blue-700">
-                                1. Scannez le QR code ci-dessus<br />
-                                2. Ou rendez-vous sur <span className="font-mono font-bold">{window.location.origin}/track</span><br />
-                                3. Entrez votre code : <span className="font-mono font-bold">{repair.code}</span>
+                        {/* Instructions compactes */}
+                        <div className="bg-blue-50 p-2 rounded-lg mb-2">
+                            <p className="text-xs text-blue-900 font-medium">
+                                📱 Suivez en ligne : <span className="font-mono font-bold">{window.location.origin}/track</span>
                             </p>
                         </div>
 
-                        {/* Message personnalisé */}
+                        {/* Message personnalisé compact */}
                         {establishment.ticket_message && (
-                            <div className="bg-green-50 p-4 rounded-xl mb-4 border border-green-200">
-                                <p className="text-sm text-green-900 font-medium text-center">
+                            <div className="bg-green-50 p-2 rounded-lg mb-2 border border-green-200">
+                                <p className="text-xs text-green-900 font-medium text-center">
                                     {establishment.ticket_message}
                                 </p>
                             </div>
                         )}
 
-                        {/* Footer */}
-                        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+                        {/* Footer compact */}
+                        <div className="mt-2 pt-2 border-t border-gray-200 text-center">
                             <p className="text-xs text-neutral-400">
-                                Conservez ce ticket jusqu&apos;à la récupération de votre appareil
+                                Conservez ce ticket
                             </p>
                         </div>
                     </div>
@@ -253,7 +242,7 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
             display: none !important;
           }
           
-          /* Container du ticket - centré */
+          /* Container du ticket - centré et compact */
           .ticket-content {
             position: absolute !important;
             left: 50% !important;
@@ -261,7 +250,7 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
             transform: translateX(-50%) !important;
             width: 80mm !important;
             max-width: 80mm !important;
-            padding: 10mm !important;
+            padding: 5mm !important;
             margin: 0 auto !important;
             background: white !important;
             box-sizing: border-box !important;
@@ -273,54 +262,66 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
             margin: 0;
           }
           
-          /* Réinitialiser les styles pour l'impression */
+          /* Tailles de police réduites */
           .ticket-content {
-            font-size: 9pt !important;
-            line-height: 1.4 !important;
+            font-size: 8pt !important;
+            line-height: 1.2 !important;
           }
           
-          /* Ajuster les tailles pour ticket de caisse */
+          /* Titres compacts */
           .ticket-content h1 {
-            font-size: 14pt !important;
-            margin-bottom: 8px !important;
+            font-size: 11pt !important;
+            margin-bottom: 3px !important;
           }
           
           .ticket-content h2 {
-            font-size: 12pt !important;
+            font-size: 10pt !important;
           }
           
           .ticket-content p {
-            margin: 4px 0 !important;
+            margin: 2px 0 !important;
           }
           
-          /* QR Code */
+          /* QR Code plus petit */
           .ticket-content .qr-code {
-            width: 100px !important;
-            height: 100px !important;
+            width: 70px !important;
+            height: 70px !important;
           }
           
-          /* Logo */
+          /* Logo plus petit */
           .ticket-content img {
-            max-height: 35px !important;
+            max-height: 25px !important;
             width: auto !important;
           }
           
-          /* Espacements */
+          /* Espacements réduits */
           .ticket-content > div {
-            margin-bottom: 8px !important;
+            margin-bottom: 4px !important;
           }
           
-          /* Bordures */
+          /* Bordures compactes */
           .ticket-content .border-b-2 {
             border-bottom: 1px dashed #000 !important;
-            padding-bottom: 8px !important;
-            margin-bottom: 8px !important;
+            padding-bottom: 4px !important;
+            margin-bottom: 4px !important;
           }
           
-          /* Code de suivi */
+          /* Code de suivi compact */
           .ticket-content [style*="background"] {
-            padding: 8px 12px !important;
-            border-radius: 8px !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+          }
+          
+          /* Grille compacte */
+          .ticket-content .grid {
+            gap: 4px !important;
+          }
+          
+          /* Boxes compactes */
+          .ticket-content .bg-blue-50,
+          .ticket-content .bg-green-50 {
+            padding: 3px !important;
+            margin-bottom: 3px !important;
           }
         }
       `}</style>

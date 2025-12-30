@@ -33,6 +33,7 @@ export default function RepairsPage() {
         clientPhone: '',
         item: '',
         description: '',
+        additional_info: '',
         status: 'nouveau',
         price: '',
         cost_price: '',
@@ -144,6 +145,7 @@ export default function RepairsPage() {
                     client_id: clientId,
                     item: formData.item,
                     description: formData.description,
+                    additional_info: formData.additional_info || null,
                     status: formData.status,
                     price: formData.price ? parseFloat(formData.price) : null,
                     cost_price: costPrice,
@@ -174,6 +176,7 @@ export default function RepairsPage() {
                     code: generateCode(),
                     item: formData.item,
                     description: formData.description,
+                    additional_info: formData.additional_info || null,
                     status: formData.status,
                     price: formData.price ? parseFloat(formData.price) : null,
                     cost_price: costPrice,
@@ -218,6 +221,7 @@ export default function RepairsPage() {
                 clientPhone: '',
                 item: '',
                 description: '',
+                additional_info: '',
                 status: 'nouveau',
                 price: '',
                 cost_price: '',
@@ -416,6 +420,7 @@ export default function RepairsPage() {
             clientPhone: repair.client?.phone || '',
             item: repair.item,
             description: repair.description || '',
+            additional_info: repair.additional_info || '',
             status: repair.status,
             price: repair.price?.toString() || '',
             cost_price: repair.cost_price?.toString() || '',
@@ -506,6 +511,7 @@ export default function RepairsPage() {
                                     <th className="px-6 py-4 text-left">Code</th>
                                     <th className="px-6 py-4 text-left">Client</th>
                                     <th className="px-6 py-4 text-left">Appareil</th>
+                                    <th className="px-6 py-4 text-left">Note</th>
                                     <th className="px-6 py-4 text-left">Statut</th>
                                     <th className="px-6 py-4 text-left">Prix</th>
                                     <th className="px-6 py-4 text-left">Paiement</th>
@@ -538,6 +544,17 @@ export default function RepairsPage() {
                                                     </p>
                                                 )}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-neutral-600 text-sm max-w-xs">
+                                            {repair.additional_info ? (
+                                                <div className="group relative">
+                                                    <p className="truncate" title={repair.additional_info}>
+                                                        📝 {repair.additional_info}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <span className="text-neutral-400 text-xs">-</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`${statusColors[repair.status]} px-3 py-1 rounded-lg text-xs font-bold`}>
@@ -731,6 +748,17 @@ export default function RepairsPage() {
                                         rows={3}
                                         className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
                                         placeholder="Écran cassé, batterie faible..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Informations supplémentaires</label>
+                                    <textarea
+                                        value={formData.additional_info}
+                                        onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
+                                        rows={2}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
+                                        placeholder="Notes, observations, demandes spéciales du client..."
                                     />
                                 </div>
 
