@@ -273,7 +273,7 @@ export default function ClientsPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                                 <button onClick={() => handleEdit(client)} className="p-2.5 bg-white text-blue-500 rounded-xl border border-neutral-100 hover:bg-blue-50 shadow-sm transition-all" title="Modifier"><Edit3 size={18} /></button>
                                                 <button onClick={() => handleDelete(client.id, client.name)} className="p-2.5 bg-white text-red-500 rounded-xl border border-neutral-100 hover:bg-red-50 shadow-sm transition-all" title="Supprimer"><Trash2 size={18} /></button>
                                             </div>

@@ -48,6 +48,23 @@ export default function QuotesPage() {
         }
     };
 
+    const handleDelete = async (id: string, quoteNumber: string) => {
+        if (!confirm(`Êtes-vous sûr de vouloir supprimer le devis ${quoteNumber} ?`)) return;
+
+        try {
+            const { error } = await supabase
+                .from('quotes')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            setQuotes(quotes.filter(q => q.id !== id));
+        } catch (error) {
+            console.error('Error deleting quote:', error);
+            alert('Erreur lors de la suppression du devis');
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         const badges = {
             draft: { label: 'Brouillon', color: 'bg-neutral-100 text-neutral-500' },
@@ -235,7 +252,7 @@ export default function QuotesPage() {
                                             {getStatusBadge(quote.status)}
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                                 <Link
                                                     href={`/dashboard/quotes/${quote.id}`}
                                                     className="p-2.5 bg-white text-neutral-600 rounded-xl border border-neutral-100 hover:bg-neutral-50 shadow-sm transition-all"
@@ -255,6 +272,13 @@ export default function QuotesPage() {
                                                     title="Télécharger"
                                                 >
                                                     <Download size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(quote.id, quote.quote_number)}
+                                                    className="p-2.5 bg-white text-red-500 rounded-xl border border-neutral-100 hover:bg-red-50 shadow-sm transition-all"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </td>
