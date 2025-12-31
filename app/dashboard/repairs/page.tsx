@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Plus, Search, X, Loader2 } from 'lucide-react';
+import { Plus, Search, X, Loader2, Smartphone, User, DollarSign, Calendar, Filter, MoreHorizontal, Printer, Edit3, Trash2, CheckCircle2, AlertCircle, Info, Clock, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RepairTicket } from '@/components/ui/RepairTicket';
@@ -60,7 +60,6 @@ export default function RepairsPage() {
             setEstablishmentId(establishmentData.id);
             setEstablishment(establishmentData);
 
-            // Récupérer les réparations
             const { data: repairsData } = await supabase
                 .from('repairs')
                 .select(`
@@ -72,7 +71,6 @@ export default function RepairsPage() {
 
             if (repairsData) setRepairs(repairsData);
 
-            // Récupérer les clients
             const { data: clientsData } = await supabase
                 .from('clients')
                 .select('*')
@@ -98,21 +96,13 @@ export default function RepairsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!establishmentId) {
-            console.error('No establishment ID found');
-            alert('Erreur: Établissement non trouvé');
-            return;
-        }
+        if (!establishmentId) return;
 
         setSubmitting(true);
-        console.log(editingRepair ? 'Updating repair...' : 'Starting repair creation...', { establishmentId, formData });
-
         try {
             let clientId = formData.clientId;
 
-            // Si nouveau client (seulement en création)
             if (!editingRepair && !clientId && formData.clientName) {
-                console.log('Creating new client...');
                 const { data: newClient, error: clientError } = await supabase
                     .from('clients')
                     .insert([{
@@ -123,24 +113,15 @@ export default function RepairsPage() {
                     .select()
                     .single();
 
-                if (clientError) {
-                    console.error('Client creation error:', clientError);
-                    throw clientError;
-                }
-                console.log('Client created:', newClient);
+                if (clientError) throw clientError;
                 clientId = newClient.id;
             }
 
-            if (!clientId) {
-                throw new Error('Aucun client sélectionné ou créé');
-            }
+            if (!clientId) throw new Error('Aucun client sélectionné ou créé');
 
-            // Calculer le profit (pour information, mais ne pas l'enregistrer car c'est une colonne générée)
-            const price = formData.price ? parseFloat(formData.price) : 0;
             const costPrice = formData.cost_price ? parseFloat(formData.cost_price) : 0;
 
             if (editingRepair) {
-                // Mise à jour de la réparation
                 const updateData = {
                     client_id: clientId,
                     item: formData.item,
@@ -154,22 +135,13 @@ export default function RepairsPage() {
                     updated_at: new Date().toISOString(),
                 };
 
-                console.log('Updating repair with data:', updateData);
-
                 const { error: repairError } = await supabase
                     .from('repairs')
                     .update(updateData)
                     .eq('id', editingRepair.id);
 
-                if (repairError) {
-                    console.error('Repair update error:', repairError);
-                    throw repairError;
-                }
-
-                console.log('Repair updated successfully');
-                alert('✓ Réparation modifiée avec succès !');
+                if (repairError) throw repairError;
             } else {
-                // Créer la réparation
                 const repairData = {
                     establishment_id: establishmentId,
                     client_id: clientId,
@@ -184,21 +156,13 @@ export default function RepairsPage() {
                     imei_sn: formData.is_unlock ? formData.imei_sn : null,
                 };
 
-                console.log('Creating repair with data:', repairData);
-
                 const { data: repairResult, error: repairError } = await supabase
                     .from('repairs')
                     .insert([repairData])
                     .select();
 
-                if (repairError) {
-                    console.error('Repair creation error:', repairError);
-                    throw repairError;
-                }
+                if (repairError) throw repairError;
 
-                console.log('Repair created successfully:', repairResult);
-
-                // Préparer les données du ticket
                 const newRepair = repairResult[0];
                 const clientData = clients.find(c => c.id === clientId) || {
                     name: formData.clientName,
@@ -209,12 +173,9 @@ export default function RepairsPage() {
                     ...newRepair,
                     client: clientData,
                 });
-
-                // Afficher le ticket
                 setShowTicket(true);
             }
 
-            // Réinitialiser et recharger
             setFormData({
                 clientId: '',
                 clientName: '',
@@ -232,7 +193,7 @@ export default function RepairsPage() {
             setEditingRepair(null);
             await fetchData();
         } catch (error: any) {
-            console.error('Full error:', error);
+            console.error('Error:', error);
             alert('Erreur: ' + (error.message || 'Erreur inconnue'));
         } finally {
             setSubmitting(false);
@@ -240,7 +201,6 @@ export default function RepairsPage() {
     };
 
     const filteredRepairs = repairs.filter(r => {
-        // Filtre de recherche
         const matchesSearch =
             r.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -248,10 +208,7 @@ export default function RepairsPage() {
             r.client?.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             r.imei_sn?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // Filtre de statut
         const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
-
-        // Filtre de paiement
         const matchesPayment =
             paymentFilter === 'all' ||
             (paymentFilter === 'paid' && r.payment_status === 'paid') ||
@@ -261,20 +218,20 @@ export default function RepairsPage() {
     });
 
     const statusColors: Record<string, string> = {
-        nouveau: 'bg-gray-100 text-gray-700',
-        diagnostic: 'bg-yellow-100 text-yellow-700',
-        en_reparation: 'bg-blue-100 text-blue-700',
-        pret_recup: 'bg-green-100 text-green-700',
-        recupere: 'bg-neutral-100 text-neutral-600',
-        annule: 'bg-red-100 text-red-700',
+        nouveau: 'bg-blue-50 text-blue-600',
+        diagnostic: 'bg-amber-50 text-amber-600',
+        en_reparation: 'bg-indigo-50 text-indigo-600',
+        pret_recup: 'bg-emerald-50 text-emerald-600',
+        recupere: 'bg-neutral-50 text-neutral-400',
+        annule: 'bg-red-50 text-red-600',
     };
 
     const statusLabels: Record<string, string> = {
         nouveau: 'Nouveau',
         diagnostic: 'Diagnostic',
-        en_reparation: 'En cours',
-        pret_recup: 'Prêt',
-        recupere: 'Récupéré',
+        en_reparation: 'Réparation',
+        pret_recup: 'Terminé',
+        recupere: 'Livré',
         annule: 'Annulé',
     };
 
@@ -289,21 +246,16 @@ export default function RepairsPage() {
                 .eq('id', repairId);
 
             if (error) throw error;
-
-            // Recharger les données
             await fetchData();
         } catch (error: any) {
             console.error('Error updating status:', error);
-            alert('Erreur lors de la mise à jour du statut');
         }
     };
 
     const handlePayment = async () => {
         if (!selectedRepair) return;
-
         setSubmitting(true);
         try {
-            // Mettre à jour la réparation
             const { error: repairError } = await supabase
                 .from('repairs')
                 .update({
@@ -311,13 +263,12 @@ export default function RepairsPage() {
                     payment_method: paymentMethod,
                     paid_amount: paymentAmount,
                     paid_at: new Date().toISOString(),
-                    paid: true, // Pour compatibilité avec l'ancienne colonne
+                    paid: true,
                 })
                 .eq('id', selectedRepair.id);
 
             if (repairError) throw repairError;
 
-            // Créer un enregistrement de paiement
             const { error: paymentError } = await supabase
                 .from('payments')
                 .insert([{
@@ -331,84 +282,25 @@ export default function RepairsPage() {
 
             if (paymentError) throw paymentError;
 
-            alert('✓ Paiement enregistré avec succès !');
             setShowPaymentModal(false);
             setSelectedRepair(null);
             setPaymentNote('');
             await fetchData();
         } catch (error: any) {
             console.error('Payment error:', error);
-            alert('Erreur lors de l\'enregistrement du paiement');
         } finally {
             setSubmitting(false);
         }
     };
 
     const deleteRepair = async (repairId: string, repairCode: string) => {
+        if (!confirm(`Supprimer définitivement ${repairCode} ?`)) return;
         try {
-            // D'abord, vérifier s'il y a des paiements associés
-            const { data: paymentsData, error: checkError } = await supabase
-                .from('payments')
-                .select('id')
-                .eq('repair_id', repairId);
-
-            if (checkError) {
-                console.error('Error checking payments:', checkError);
-                throw new Error('Erreur lors de la vérification des paiements');
-            }
-
-            const hasPayments = paymentsData && paymentsData.length > 0;
-
-            // Message de confirmation adapté
-            const confirmMessage = hasPayments
-                ? `Êtes-vous sûr de vouloir supprimer la réparation ${repairCode} ?\n\n⚠️ Cette réparation a ${paymentsData.length} paiement(s) associé(s) qui seront également supprimés.\n\nCette action est irréversible.`
-                : `Êtes-vous sûr de vouloir supprimer la réparation ${repairCode} ?\n\nCette action est irréversible.`;
-
-            if (!confirm(confirmMessage)) {
-                return;
-            }
-
-            // Si des paiements existent, les supprimer d'abord
-            if (hasPayments) {
-                console.log(`Suppression de ${paymentsData.length} paiement(s)...`);
-
-                const { error: paymentsError } = await supabase
-                    .from('payments')
-                    .delete()
-                    .eq('repair_id', repairId);
-
-                if (paymentsError) {
-                    console.error('Error deleting payments:', paymentsError);
-                    throw new Error(`Impossible de supprimer les paiements associés: ${paymentsError.message}`);
-                }
-
-                console.log('Paiements supprimés avec succès');
-
-                // Petit délai pour s'assurer que la suppression est bien propagée
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-
-            // Maintenant, supprimer la réparation
-            console.log('Suppression de la réparation...');
-            const { error: repairError } = await supabase
-                .from('repairs')
-                .delete()
-                .eq('id', repairId);
-
-            if (repairError) {
-                console.error('Error deleting repair:', repairError);
-                throw new Error(`Impossible de supprimer la réparation: ${repairError.message}`);
-            }
-
-            const successMessage = hasPayments
-                ? `✓ Réparation et ${paymentsData.length} paiement(s) supprimés avec succès !`
-                : '✓ Réparation supprimée avec succès !';
-
-            alert(successMessage);
+            const { error } = await supabase.from('repairs').delete().eq('id', repairId);
+            if (error) throw error;
             await fetchData();
         } catch (error: any) {
             console.error('Delete error:', error);
-            alert('❌ Erreur lors de la suppression :\n\n' + (error.message || 'Erreur inconnue'));
         }
     };
 
@@ -431,447 +323,365 @@ export default function RepairsPage() {
     };
 
     if (loading) {
-        return <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        </div>;
+        return (
+            <div className="flex items-center justify-center h-[60vh]">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
     }
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.6, staggerChildren: 0.05 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 15 },
+        visible: { opacity: 1, y: 0 }
+    };
+
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="max-w-[1600px] mx-auto pb-24 px-4 md:px-8"
+        >
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
-                    <h1 className="text-2xl font-bold text-neutral-900">Réparations</h1>
-                    <p className="text-neutral-500">Gérez toutes vos réparations</p>
+                    <motion.div variants={itemVariants} className="flex items-center gap-2 mb-4">
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full font-inter">SAV & Maintenance</span>
+                    </motion.div>
+                    <motion.h1
+                        variants={itemVariants}
+                        className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight mb-2 font-inter"
+                    >
+                        Réparations
+                    </motion.h1>
+                    <motion.p
+                        variants={itemVariants}
+                        className="text-lg text-neutral-500 font-medium font-inter"
+                    >
+                        Gérez le cycle de vie complet de vos interventions techniques.
+                    </motion.p>
                 </div>
-                <Button onClick={() => setShowModal(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nouvelle Réparation
-                </Button>
+                <motion.div variants={itemVariants}>
+                    <Button
+                        onClick={() => {
+                            setEditingRepair(null);
+                            setFormData({
+                                clientId: '', clientName: '', clientPhone: '', item: '', description: '',
+                                additional_info: '', status: 'nouveau', price: '', cost_price: '',
+                                is_unlock: false, imei_sn: '',
+                            });
+                            setShowModal(true);
+                        }}
+                        className="h-14 px-8 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white shadow-xl transition-all active:scale-[0.98] font-inter font-bold"
+                    >
+                        <Plus className="w-5 h-5 mr-3" />
+                        Nouvelle Réparation
+                    </Button>
+                </motion.div>
             </div>
 
-            {/* Search and Filters */}
-            <div className="mb-6 space-y-4">
-                {/* Barre de recherche */}
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            {/* Filters Bar */}
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-8">
+                <div className="lg:col-span-5 relative group">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within:text-primary transition-colors" />
                     <input
                         type="text"
-                        placeholder="Rechercher par code, appareil, client, téléphone ou IMEI..."
+                        placeholder="Rechercher par code, client, IMEI..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-inter"
                     />
                 </div>
-
-                {/* Filtres */}
-                <div className="flex gap-3">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
-                    >
-                        <option value="all">📋 Tous les statuts</option>
-                        <option value="nouveau">🆕 Nouveau</option>
-                        <option value="diagnostic">🔍 Diagnostic</option>
-                        <option value="en_reparation">🔧 En cours</option>
-                        <option value="pret_recup">✅ Prêt</option>
-                        <option value="recupere">📦 Récupéré</option>
-                        <option value="annule">❌ Annulé</option>
-                    </select>
-
+                <div className="lg:col-span-3">
+                    <div className="relative">
+                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 appearance-none bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 font-inter"
+                        >
+                            <option value="all">Tous les statuts</option>
+                            {Object.entries(statusLabels).map(([key, label]) => (
+                                <option key={key} value={key}>{label}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                <div className="lg:col-span-2">
                     <select
                         value={paymentFilter}
                         onChange={(e) => setPaymentFilter(e.target.value)}
-                        className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-sm"
+                        className="w-full px-5 py-4 rounded-2xl border border-neutral-100 appearance-none bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 font-inter"
                     >
-                        <option value="all">💳 Tous les paiements</option>
-                        <option value="paid">✓ Payé</option>
-                        <option value="unpaid">⏳ Non payé</option>
+                        <option value="all">Tout Paiement</option>
+                        <option value="paid">Payé ✅</option>
+                        <option value="unpaid">En attente ⏳</option>
                     </select>
-
-                    {/* Compteur de résultats */}
-                    <div className="flex items-center px-4 py-2 bg-gray-50 rounded-xl text-sm text-neutral-600">
-                        <span className="font-medium">{filteredRepairs.length}</span>
-                        <span className="ml-1">résultat{filteredRepairs.length > 1 ? 's' : ''}</span>
-                    </div>
                 </div>
-            </div>
+                <div className="lg:col-span-2 flex items-center justify-center bg-white rounded-2xl border border-neutral-100 shadow-sm px-4">
+                    <span className="text-xl font-black text-neutral-900 font-inter">{filteredRepairs.length}</span>
+                    <span className="ml-2 text-xs font-bold text-neutral-400 uppercase tracking-widest font-inter">Dossiers</span>
+                </div>
+            </motion.div>
 
-            {/* Table */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                {filteredRepairs.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <p className="text-neutral-500">Aucune réparation trouvée</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="bg-gray-50 text-neutral-500 font-medium">
+            {/* Repairs Table */}
+            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-neutral-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-[#FBFBFD] text-neutral-400 text-[11px] font-black uppercase tracking-widest font-inter">
+                            <tr>
+                                <th className="px-8 py-6">Équipement</th>
+                                <th className="px-8 py-6">Propriétaire</th>
+                                <th className="px-8 py-6">Statut & Suivi</th>
+                                <th className="px-8 py-6">Finance</th>
+                                <th className="px-8 py-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-50 font-inter">
+                            {filteredRepairs.length === 0 ? (
                                 <tr>
-                                    <th className="px-6 py-4 text-left">Code</th>
-                                    <th className="px-6 py-4 text-left">Client</th>
-                                    <th className="px-6 py-4 text-left">Appareil</th>
-                                    <th className="px-6 py-4 text-left">Note</th>
-                                    <th className="px-6 py-4 text-left">Statut</th>
-                                    <th className="px-6 py-4 text-left">Prix</th>
-                                    <th className="px-6 py-4 text-left">Paiement</th>
-                                    <th className="px-6 py-4 text-left">Date</th>
-                                    <th className="px-6 py-4 text-left">Actions</th>
+                                    <td colSpan={5} className="px-8 py-20 text-center">
+                                        <Info className="w-12 h-12 text-neutral-100 mx-auto mb-4" />
+                                        <p className="text-neutral-400 font-bold">Aucune réparation ne correspond à vos critères.</p>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredRepairs.map((repair) => (
-                                    <tr key={repair.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-xs text-neutral-600">
-                                            {repair.code}
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-neutral-900">
-                                            {repair.client?.name || 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 text-neutral-700">
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    {repair.item}
-                                                    {repair.is_unlock && (
-                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                                                            🔓 Déblocage
-                                                        </span>
-                                                    )}
+                            ) : (
+                                filteredRepairs.map((repair) => (
+                                    <tr key={repair.id} className="group hover:bg-[#FBFBFD]/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-neutral-50 rounded-xl flex items-center justify-center text-neutral-400 group-hover:scale-110 transition-transform">
+                                                    <Smartphone size={20} />
                                                 </div>
-                                                {repair.is_unlock && repair.imei_sn && (
-                                                    <p className="text-xs text-neutral-500 font-mono mt-1">
-                                                        IMEI: {repair.imei_sn}
-                                                    </p>
+                                                <div>
+                                                    <div className="font-bold text-neutral-900 text-base">{repair.item}</div>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="font-mono text-[10px] text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded leading-none">#{repair.code}</span>
+                                                        {repair.is_unlock && <span className="text-[10px] font-black text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-tighter leading-none">Unlock</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="font-bold text-neutral-700">{repair.client?.name || 'Client anonyme'}</div>
+                                            <div className="text-neutral-400 text-xs mt-1 font-medium">{repair.client?.phone || 'Pas de contact'}</div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex flex-col gap-2">
+                                                <span className={`${statusColors[repair.status]} px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight w-fit`}>
+                                                    {statusLabels[repair.status]}
+                                                </span>
+                                                <div className="flex items-center gap-1.5 text-neutral-400 text-[10px] font-bold">
+                                                    <Calendar size={12} /> {new Date(repair.created_at).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="font-black text-neutral-900 text-base">
+                                                    {(repair.price || 0).toLocaleString()} <span className="text-[10px] text-neutral-400">DA</span>
+                                                </div>
+                                                {repair.payment_status === 'paid' ? (
+                                                    <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
+                                                        <Check size={10} strokeWidth={3} /> Payé
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedRepair(repair);
+                                                            setPaymentAmount(parseFloat(repair.price) || 0);
+                                                            setShowPaymentModal(true);
+                                                        }}
+                                                        className="text-[10px] font-bold text-primary hover:underline w-fit"
+                                                    >
+                                                        Régler maintenant 💰
+                                                    </button>
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-neutral-600 text-sm max-w-xs">
-                                            {repair.additional_info ? (
-                                                <div className="group relative">
-                                                    <p className="truncate" title={repair.additional_info}>
-                                                        📝 {repair.additional_info}
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <span className="text-neutral-400 text-xs">-</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`${statusColors[repair.status]} px-3 py-1 rounded-lg text-xs font-bold`}>
-                                                {statusLabels[repair.status]}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-neutral-900">
-                                            {repair.payment_status === 'paid' && repair.paid_amount
-                                                ? `${parseFloat(repair.paid_amount).toLocaleString('fr-DZ')} DA`
-                                                : repair.price
-                                                    ? `${parseFloat(repair.price).toLocaleString('fr-DZ')} DA`
-                                                    : '-'
-                                            }
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {repair.payment_status === 'paid' ? (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">
-                                                        ✓ Payé
-                                                    </span>
-                                                    <span className="text-xs text-neutral-500">
-                                                        {repair.payment_method === 'baridimob' ? 'BaridiMob' : 'Cash'}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedRepair(repair);
-                                                        setPaymentAmount(parseFloat(repair.price) || 0);
-                                                        setPaymentNote('');
-                                                        setShowPaymentModal(true);
-                                                    }}
-                                                    className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors"
-                                                    disabled={!repair.price}
-                                                >
-                                                    💰 Payé
-                                                </button>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-neutral-500 text-xs">
-                                            {new Date(repair.created_at).toLocaleDateString('fr-FR')}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex gap-2">
-                                                <select
-                                                    value={repair.status}
-                                                    onChange={(e) => updateStatus(repair.id, e.target.value)}
-                                                    className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white hover:bg-gray-50"
-                                                >
-                                                    <option value="nouveau">Nouveau</option>
-                                                    <option value="diagnostic">Diagnostic</option>
-                                                    <option value="en_reparation">En cours</option>
-                                                    <option value="pret_recup">Prêt</option>
-                                                    <option value="recupere">Récupéré</option>
-                                                    <option value="annule">Annulé</option>
-                                                </select>
-                                                <button
-                                                    onClick={() => {
-                                                        setTicketData(repair);
-                                                        setShowTicket(true);
-                                                    }}
-                                                    className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium hover:bg-gray-50 transition-colors flex items-center gap-1"
-                                                    title="Réimprimer le ticket"
-                                                >
-                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEdit(repair);
-                                                    }}
-                                                    className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-medium hover:bg-primary/10 transition-colors flex items-center gap-1"
-                                                    title="Modifier la réparation"
-                                                >
-                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        deleteRepair(repair.id, repair.code);
-                                                    }}
-                                                    className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors flex items-center gap-1"
-                                                    title="Supprimer la réparation"
-                                                >
-                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => { setTicketData(repair); setShowTicket(true); }} className="p-2.5 bg-white text-neutral-600 rounded-xl border border-neutral-100 hover:bg-neutral-50 shadow-sm transition-all" title="Ticket"><Printer size={18} /></button>
+                                                <button onClick={() => handleEdit(repair)} className="p-2.5 bg-white text-blue-500 rounded-xl border border-neutral-100 hover:bg-blue-50 shadow-sm transition-all" title="Modifier"><Edit3 size={18} /></button>
+                                                <button onClick={() => deleteRepair(repair.id, repair.code)} className="p-2.5 bg-white text-red-500 rounded-xl border border-neutral-100 hover:bg-red-50 shadow-sm transition-all" title="Supprimer"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </motion.div>
 
             {/* Modal */}
             <AnimatePresence>
                 {showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/40 backdrop-blur-md" onClick={() => setShowModal(false)} />
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                            initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                            className="relative bg-white rounded-[3rem] shadow-[0_32px_128px_rgba(0,0,0,0.18)] max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col font-inter"
                         >
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white">
-                                <h2 className="text-xl font-bold text-neutral-900">{editingRepair ? 'Modifier la réparation' : 'Nouvelle Réparation'}</h2>
-                                <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-                                    <X className="w-5 h-5" />
-                                </button>
+                            <div className="p-8 md:p-10 border-b border-neutral-100 flex justify-between items-center bg-[#FBFBFD]/50">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-neutral-900">{editingRepair ? 'Modifier l\'intervention' : 'Nouvelle intervention'}</h2>
+                                    <p className="text-sm text-neutral-400 font-medium">Saisissez les détails techniques et clients.</p>
+                                </div>
+                                <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-white hover:bg-neutral-100 rounded-2xl border border-neutral-100 transition-all active:scale-90"><X className="w-6 h-6 text-neutral-400" /></button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                {/* Client */}
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Client</label>
-                                    <select
-                                        value={formData.clientId}
-                                        onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                    >
-                                        <option value="">Nouveau client</option>
-                                        {clients.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {!formData.clientId && (
-                                    <>
-                                        <div>
-                                            <label className="block text-sm font-medium text-neutral-700 mb-2">Nom du client *</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={formData.clientName}
-                                                onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                                placeholder="Mohamed Benzema"
-                                            />
+                            <form onSubmit={handleSubmit} className="p-8 md:p-10 overflow-y-auto flex-1 custom-scrollbar">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="space-y-8">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 text-primary">
+                                                <User size={18} />
+                                                <label className="text-sm font-black uppercase tracking-widest">Client & Contact</label>
+                                            </div>
+                                            <select
+                                                value={formData.clientId}
+                                                onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 font-medium"
+                                            >
+                                                <option value="">+ Nouveau client</option>
+                                                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-neutral-700 mb-2">Téléphone</label>
-                                            <div className="relative">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">
-                                                    +213
-                                                </span>
+
+                                        {!formData.clientId && (
+                                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4 pt-2">
                                                 <input
-                                                    type="tel"
-                                                    value={formData.clientPhone.replace('+213', '').trim()}
-                                                    onChange={(e) => {
-                                                        const value = e.target.value.replace(/[^0-9]/g, '');
-                                                        setFormData({ ...formData, clientPhone: value ? `+213 ${value}` : '' });
-                                                    }}
-                                                    className="w-full pl-16 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                                    placeholder="550123456"
-                                                    maxLength={9}
+                                                    type="text" required
+                                                    value={formData.clientName}
+                                                    onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium"
+                                                    placeholder="Nom complet"
                                                 />
+                                                <div className="relative">
+                                                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">+213</span>
+                                                    <input
+                                                        type="tel"
+                                                        value={formData.clientPhone.replace('+213', '').trim()}
+                                                        onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value ? `+213 ${e.target.value}` : '' })}
+                                                        className="w-full pl-16 pr-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium"
+                                                        placeholder="555 000 000"
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        )}
+
+                                        <div className="space-y-3 pt-4">
+                                            <div className="flex items-center gap-2 text-indigo-500">
+                                                <Smartphone size={18} />
+                                                <label className="text-sm font-black uppercase tracking-widest">Équipement</label>
                                             </div>
-                                            <p className="text-xs text-neutral-400 mt-1">
-                                                Format: 9 chiffres sans le 0 (ex: 550123456)
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Appareil *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.item}
-                                        onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                        placeholder="iPhone 13 Pro"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Description</label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        rows={3}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                        placeholder="Écran cassé, batterie faible..."
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Informations supplémentaires</label>
-                                    <textarea
-                                        value={formData.additional_info}
-                                        onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
-                                        rows={2}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                        placeholder="Notes, observations, demandes spéciales du client..."
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-neutral-700 mb-2">Statut</label>
-                                        <select
-                                            value={formData.status}
-                                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                        >
-                                            <option value="nouveau">Nouveau</option>
-                                            <option value="diagnostic">Diagnostic</option>
-                                            <option value="en_reparation">En cours</option>
-                                            <option value="pret_recup">Prêt</option>
-                                            <option value="recupere">Récupéré</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Prix et Coût sur la même ligne */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                                Prix de vente (DA)
-                                            </label>
                                             <input
-                                                type="number"
-                                                value={formData.price}
-                                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                                placeholder="5000"
+                                                type="text" required
+                                                value={formData.item}
+                                                onChange={(e) => setFormData({ ...formData, item: e.target.value })}
+                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium"
+                                                placeholder="ex: iPhone 14 Pro Max, Galaxy S23..."
                                             />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                                Prix de revient (DA)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={formData.cost_price}
-                                                onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
-                                                placeholder="3000"
-                                            />
-                                            <p className="text-xs text-neutral-500 mt-1">
-                                                Coût des pièces, déblocage, etc.
-                                            </p>
+                                            <div className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/30">
+                                                <input
+                                                    type="checkbox" id="is_unlock"
+                                                    checked={formData.is_unlock}
+                                                    onChange={(e) => setFormData({ ...formData, is_unlock: e.target.checked })}
+                                                    className="w-5 h-5 rounded-lg border-blue-200 text-blue-500 focus:ring-blue-500"
+                                                />
+                                                <label htmlFor="is_unlock" className="text-sm font-bold text-blue-700 cursor-pointer">S'agit-il d'un déblocage iCloud / Google ?</label>
+                                            </div>
+                                            {formData.is_unlock && (
+                                                <motion.input
+                                                    initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                                                    type="text"
+                                                    value={formData.imei_sn}
+                                                    onChange={(e) => setFormData({ ...formData, imei_sn: e.target.value })}
+                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-mono text-sm"
+                                                    placeholder="Numéro IMEI ou SN"
+                                                />
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Affichage du bénéfice */}
-                                    {formData.price && formData.cost_price && (
-                                        <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-neutral-700">
-                                                    💰 Bénéfice estimé :
-                                                </span>
-                                                <span className={`text-lg font-bold ${(parseFloat(formData.price) - parseFloat(formData.cost_price)) >= 0
-                                                    ? 'text-green-600'
-                                                    : 'text-red-600'
-                                                    }`}>
-                                                    {(parseFloat(formData.price) - parseFloat(formData.cost_price)).toLocaleString('fr-DZ')} DA
-                                                </span>
+                                    <div className="space-y-8">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 text-amber-500">
+                                                <Info size={18} />
+                                                <label className="text-sm font-black uppercase tracking-widest">Diagnostic & Travaux</label>
+                                            </div>
+                                            <textarea
+                                                value={formData.description}
+                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium resize-none px-4 py-3"
+                                                rows={4} placeholder="Détails du problème et travaux à effectuer..."
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix Client (DA)</label>
+                                                <div className="relative">
+                                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                                    <input
+                                                        type="number"
+                                                        value={formData.price}
+                                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-black"
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Coût Pièces (DA)</label>
+                                                <div className="relative">
+                                                    <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                                    <input
+                                                        type="number"
+                                                        value={formData.cost_price}
+                                                        onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
+                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-black text-rose-500 font-inter"
+                                                        placeholder="0.00"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    )}
 
-                                    {/* Checkbox Déblocage */}
-                                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                        <input
-                                            type="checkbox"
-                                            id="is_unlock"
-                                            checked={formData.is_unlock}
-                                            onChange={(e) => setFormData({
-                                                ...formData,
-                                                is_unlock: e.target.checked,
-                                                imei_sn: e.target.checked ? formData.imei_sn : ''
-                                            })}
-                                            className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary/20"
-                                        />
-                                        <label htmlFor="is_unlock" className="text-sm font-medium text-neutral-700 cursor-pointer">
-                                            🔓 Déblocage (IMEI/SN requis)
-                                        </label>
-                                    </div>
-
-                                    {/* Champ IMEI/SN conditionnel */}
-                                    {formData.is_unlock && (
-                                        <div className="animate-in slide-in-from-top-2 duration-200">
-                                            <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                                IMEI / Numéro de série *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.imei_sn}
-                                                onChange={(e) => setFormData({ ...formData, imei_sn: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50 font-mono"
-                                                placeholder="123456789012345"
-                                                required={formData.is_unlock}
-                                            />
-                                            <p className="text-xs text-neutral-500 mt-1">
-                                                Tapez *#06# sur le téléphone pour obtenir l'IMEI
-                                            </p>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 text-indigo-500">
+                                                <Clock size={18} />
+                                                <label className="text-sm font-black uppercase tracking-widest">Étape Actuelle</label>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {Object.entries(statusLabels).map(([key, label]) => (
+                                                    <button
+                                                        key={key} type="button"
+                                                        onClick={() => setFormData({ ...formData, status: key })}
+                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all ${formData.status === key ? 'bg-neutral-900 border-neutral-900 text-white shadow-lg' : 'bg-white border-neutral-100 text-neutral-500 hover:bg-neutral-50 font-inter'}`}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
 
-                                <div className="flex gap-3 pt-4">
-                                    <Button type="button" variant="secondary" onClick={() => setShowModal(false)} className="flex-1">
+                                <div className="mt-12 flex gap-4">
+                                    <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="h-14 flex-1 rounded-2xl text-neutral-400 font-bold hover:bg-neutral-50 font-inter">
                                         Annuler
                                     </Button>
-                                    <Button type="submit" disabled={submitting} className="flex-1">
-                                        {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {editingRepair ? 'Modification...' : 'Création...'}</> : editingRepair ? 'Modifier' : 'Créer la réparation'}
+                                    <Button type="submit" disabled={submitting} className="h-14 flex-[2] rounded-2xl bg-neutral-900 text-white font-black hover:bg-neutral-800 shadow-xl active:scale-[0.98] transition-all font-inter">
+                                        {submitting ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-white" /> : (editingRepair ? 'Enregistrer les modifications' : 'Créer le dossier SAV')}
                                     </Button>
                                 </div>
                             </form>
@@ -880,141 +690,71 @@ export default function RepairsPage() {
                 )}
             </AnimatePresence>
 
-            {/* Ticket d'impression */}
-            {showTicket && ticketData && establishment && (
-                <RepairTicket
-                    repair={ticketData}
-                    establishment={establishment}
-                    onClose={() => setShowTicket(false)}
-                />
-            )}
-
-            {/* Modal de Paiement */}
+            {/* Payment Modal */}
             <AnimatePresence>
-                {showPaymentModal && selectedRepair && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                {showPaymentModal && (
+                    <div className="fixed inset-0 z-[101] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={() => setShowPaymentModal(false)} />
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6"
+                            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                            className="relative bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-8 font-inter"
                         >
-                            <div className="mb-6">
-                                <h2 className="text-xl font-bold text-neutral-900 mb-2">Enregistrer le paiement</h2>
-                                <p className="text-sm text-neutral-500">
-                                    Réparation : {selectedRepair.code}
-                                </p>
-                            </div>
+                            <h3 className="text-2xl font-bold text-neutral-900 mb-2 font-inter">Encaisser le paiement</h3>
+                            <p className="text-sm text-neutral-500 font-medium mb-8 font-inter">Dossier #{selectedRepair?.code} - {selectedRepair?.item}</p>
 
-                            <div className="space-y-4 mb-6">
-                                {/* Montant personnalisable */}
+                            <div className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                        Montant à encaisser
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            value={paymentAmount}
-                                            onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
-                                            className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-lg font-bold"
-                                            step="0.01"
-                                            min="0"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 font-medium">
-                                            DA
-                                        </span>
-                                    </div>
-                                    {selectedRepair.price && parseFloat(selectedRepair.price) !== paymentAmount && (
-                                        <p className="text-xs text-amber-600 mt-1">
-                                            Prix initial : {parseFloat(selectedRepair.price).toLocaleString('fr-DZ')} DA
-                                            {paymentAmount > parseFloat(selectedRepair.price)
-                                                ? ` (+${(paymentAmount - parseFloat(selectedRepair.price)).toLocaleString('fr-DZ')} DA)`
-                                                : ` (${(paymentAmount - parseFloat(selectedRepair.price)).toLocaleString('fr-DZ')} DA)`
-                                            }
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Note optionnelle */}
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                        Note (optionnel)
-                                    </label>
-                                    <textarea
-                                        value={paymentNote}
-                                        onChange={(e) => setPaymentNote(e.target.value)}
-                                        placeholder="Ex: Pièce supplémentaire, frais de déplacement..."
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-                                        rows={2}
-                                        maxLength={200}
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2 block px-1">Montant à régler (DA)</label>
+                                    <input
+                                        type="number"
+                                        value={paymentAmount}
+                                        onChange={(e) => setPaymentAmount(parseFloat(e.target.value))}
+                                        className="w-full px-6 py-5 rounded-3xl border-2 border-neutral-100 focus:border-primary focus:outline-none text-2xl font-black text-center transition-all bg-neutral-50 font-inter"
                                     />
-                                    <p className="text-xs text-neutral-400 mt-1">
-                                        {paymentNote.length}/200 caractères
-                                    </p>
                                 </div>
 
-                                {/* Méthode de paiement */}
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-3">
-                                        Méthode de paiement
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    {['cash', 'baridimob'].map((method) => (
                                         <button
-                                            onClick={() => setPaymentMethod('cash')}
-                                            className={`p-4 rounded-xl border-2 transition-all ${paymentMethod === 'cash'
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-200 hover:border-gray-300'
-                                                }`}
+                                            key={method}
+                                            onClick={() => setPaymentMethod(method)}
+                                            className={`py-4 rounded-2xl border-2 font-bold transition-all font-inter ${paymentMethod === method ? 'border-primary bg-primary/5 text-primary' : 'border-neutral-100 text-neutral-400 hover:bg-neutral-50'}`}
                                         >
-                                            <div className="text-3xl mb-2">💵</div>
-                                            <p className="font-medium text-sm">Espèces</p>
+                                            {method === 'cash' ? '💵 Cash' : '📱 BaridiMob'}
                                         </button>
-                                        <button
-                                            onClick={() => setPaymentMethod('baridimob')}
-                                            className={`p-4 rounded-xl border-2 transition-all ${paymentMethod === 'baridimob'
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-200 hover:border-gray-300'
-                                                }`}
-                                        >
-                                            <div className="text-3xl mb-2">📱</div>
-                                            <p className="font-medium text-sm">BaridiMob</p>
-                                        </button>
-                                    </div>
+                                    ))}
                                 </div>
-                            </div>
 
-                            <div className="flex gap-3">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={() => {
-                                        setShowPaymentModal(false);
-                                        setSelectedRepair(null);
-                                    }}
-                                    className="flex-1"
-                                >
-                                    Annuler
-                                </Button>
+                                <textarea
+                                    value={paymentNote}
+                                    onChange={(e) => setPaymentNote(e.target.value)}
+                                    placeholder="Note interne (facultatif)..."
+                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none bg-neutral-50 font-medium text-sm px-4 py-3 font-inter"
+                                />
+
                                 <Button
                                     onClick={handlePayment}
                                     disabled={submitting}
-                                    className="flex-1"
+                                    className="w-full h-14 rounded-2xl bg-neutral-900 text-white font-black hover:bg-neutral-800 transition-all shadow-xl active:scale-95 font-inter"
                                 >
-                                    {submitting ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Enregistrement...
-                                        </>
-                                    ) : (
-                                        '✓ Confirmer le paiement'
-                                    )}
+                                    {submitting ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-white" /> : 'Confirmer l\'encaissement'}
                                 </Button>
                             </div>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+
+            {/* Printable Ticket */}
+            {showTicket && ticketData && establishment && (
+                <div className="hidden">
+                    <RepairTicket
+                        repair={ticketData}
+                        establishment={establishment}
+                        onClose={() => setShowTicket(false)}
+                    />
+                </div>
+            )}
+        </motion.div>
     );
 }

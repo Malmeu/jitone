@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Plus, Search, Loader2, Edit, Trash2, X } from 'lucide-react';
+import { Plus, Search, Loader2, Edit3, Trash2, X, User, Phone, Mail, Calendar, Info, Users, Smartphone, History } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -63,7 +63,6 @@ export default function ClientsPage() {
         setSubmitting(true);
         try {
             if (editingClient) {
-                // Mise à jour
                 const { error } = await supabase
                     .from('clients')
                     .update({
@@ -74,9 +73,7 @@ export default function ClientsPage() {
                     .eq('id', editingClient.id);
 
                 if (error) throw error;
-                alert('✓ Client modifié avec succès !');
             } else {
-                // Création
                 const { error } = await supabase
                     .from('clients')
                     .insert([{
@@ -87,7 +84,6 @@ export default function ClientsPage() {
                     }]);
 
                 if (error) throw error;
-                alert('✓ Client créé avec succès !');
             }
 
             setShowModal(false);
@@ -113,192 +109,247 @@ export default function ClientsPage() {
     };
 
     const handleDelete = async (clientId: string, clientName: string) => {
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?\n\nCette action est irréversible.`)) {
-            return;
-        }
-
+        if (!confirm(`Supprimer le client "${clientName}" ?`)) return;
         try {
-            const { error } = await supabase
-                .from('clients')
-                .delete()
-                .eq('id', clientId);
-
+            const { error } = await supabase.from('clients').delete().eq('id', clientId);
             if (error) throw error;
-
-            alert('✓ Client supprimé avec succès !');
             await fetchClients();
         } catch (error: any) {
             console.error('Delete error:', error);
-            alert('Erreur lors de la suppression : ' + (error.message || 'Erreur inconnue'));
         }
-    };
-
-    const handleNewClient = () => {
-        setEditingClient(null);
-        setFormData({ name: '', phone: '', email: '' });
-        setShowModal(true);
     };
 
     const filteredClients = clients.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (loading) {
-        return <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        </div>;
+        return (
+            <div className="flex items-center justify-center h-[60vh]">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
     }
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.6, staggerChildren: 0.05 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 15 },
+        visible: { opacity: 1, y: 0 }
+    };
+
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="max-w-[1600px] mx-auto pb-24 px-4 md:px-8 font-inter"
+        >
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
-                    <h1 className="text-2xl font-bold text-neutral-900">Clients</h1>
-                    <p className="text-neutral-500">Gérez votre base de clients</p>
+                    <motion.div variants={itemVariants} className="flex items-center gap-2 mb-4">
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">Base CRM</span>
+                    </motion.div>
+                    <motion.h1
+                        variants={itemVariants}
+                        className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight mb-2 font-inter"
+                    >
+                        Répertoire Clients
+                    </motion.h1>
+                    <motion.p
+                        variants={itemVariants}
+                        className="text-lg text-neutral-500 font-medium font-inter"
+                    >
+                        Gérez vos relations et l'historique de vos interventions par client.
+                    </motion.p>
                 </div>
-                <Button onClick={handleNewClient}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nouveau Client
-                </Button>
+                <motion.div variants={itemVariants}>
+                    <Button
+                        onClick={() => {
+                            setEditingClient(null);
+                            setFormData({ name: '', phone: '', email: '' });
+                            setShowModal(true);
+                        }}
+                        className="h-14 px-8 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white shadow-xl transition-all active:scale-[0.98] font-bold font-inter"
+                    >
+                        <Plus className="w-5 h-5 mr-3" />
+                        Ajouter un Client
+                    </Button>
+                </motion.div>
             </div>
 
-            {/* Search */}
-            <div className="mb-6">
-                <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            {/* Search Bar */}
+            <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-8">
+                <div className="lg:col-span-8 relative group">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 group-focus-within:text-primary transition-colors" />
                     <input
                         type="text"
-                        placeholder="Rechercher un client..."
+                        placeholder="Rechercher par nom, téléphone, email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
+                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-inter"
                     />
                 </div>
-            </div>
+                <div className="lg:col-span-4 flex items-center justify-between bg-white rounded-2xl border border-neutral-100 shadow-sm px-8 py-4">
+                    <div className="flex flex-col">
+                        <span className="text-2xl font-black text-neutral-900 leading-none">{clients.length}</span>
+                        <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mt-1">Total base</span>
+                    </div>
+                    <div className="w-10 h-10 bg-neutral-50 rounded-xl flex items-center justify-center text-neutral-400">
+                        <Users size={20} />
+                    </div>
+                </div>
+            </motion.div>
 
             {/* Table */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                {filteredClients.length === 0 ? (
-                    <div className="p-12 text-center">
-                        <p className="text-neutral-500">Aucun client trouvé</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="bg-gray-50 text-neutral-500 font-medium">
+            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-neutral-100 overflow-hidden font-inter">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-[#FBFBFD] text-neutral-400 text-[11px] font-black uppercase tracking-widest">
+                            <tr>
+                                <th className="px-8 py-6">Propriétaire</th>
+                                <th className="px-8 py-6">Contact</th>
+                                <th className="px-8 py-6">Interventions</th>
+                                <th className="px-8 py-6">Date de création</th>
+                                <th className="px-8 py-6 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-50 font-inter">
+                            {filteredClients.length === 0 ? (
                                 <tr>
-                                    <th className="px-6 py-4 text-left">Nom</th>
-                                    <th className="px-6 py-4 text-left">Téléphone</th>
-                                    <th className="px-6 py-4 text-left">Email</th>
-                                    <th className="px-6 py-4 text-left">Réparations</th>
-                                    <th className="px-6 py-4 text-left">Inscrit le</th>
-                                    <th className="px-6 py-4 text-left">Actions</th>
+                                    <td colSpan={5} className="px-8 py-20 text-center font-inter">
+                                        <Info className="w-12 h-12 text-neutral-100 mx-auto mb-4" />
+                                        <p className="text-neutral-400 font-bold">Aucun client trouvé.</p>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredClients.map((client) => (
-                                    <tr key={client.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-neutral-900">{client.name}</td>
-                                        <td className="px-6 py-4 text-neutral-600">{client.phone || '-'}</td>
-                                        <td className="px-6 py-4 text-neutral-600">{client.email || '-'}</td>
-                                        <td className="px-6 py-4">
-                                            <span className="bg-primary/10 text-primary px-3 py-1 rounded-lg text-xs font-bold">
-                                                {client.repairs?.[0]?.count || 0}
-                                            </span>
+                            ) : (
+                                filteredClients.map((client) => (
+                                    <tr key={client.id} className="group hover:bg-[#FBFBFD]/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-neutral-50 rounded-xl flex items-center justify-center text-neutral-400 group-hover:scale-110 transition-transform">
+                                                    <User size={20} />
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-neutral-900 text-base">{client.name}</div>
+                                                    <div className="text-[10px] text-neutral-400 font-black uppercase tracking-widest mt-0.5">Utilisateur</div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4 text-neutral-500 text-xs">
-                                            {new Date(client.created_at).toLocaleDateString('fr-FR')}
+                                        <td className="px-8 py-6">
+                                            <div className="flex flex-col gap-1.5">
+                                                <div className="flex items-center gap-2 text-neutral-600 font-bold">
+                                                    <Phone size={14} className="text-neutral-300" />
+                                                    {client.phone || '-'}
+                                                </div>
+                                                {client.email && (
+                                                    <div className="flex items-center gap-2 text-neutral-400 text-xs">
+                                                        <Mail size={14} className="text-neutral-200" />
+                                                        {client.email}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleEdit(client)}
-                                                    className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-medium hover:bg-primary/10 transition-colors flex items-center gap-1"
-                                                    title="Modifier"
-                                                >
-                                                    <Edit className="w-3 h-3" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(client.id, client.name)}
-                                                    className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition-colors flex items-center gap-1"
-                                                    title="Supprimer"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
+                                        <td className="px-8 py-6">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-xl">
+                                                <History size={14} className="text-blue-400" />
+                                                <span className="text-xs font-black text-blue-600">{client.repairs?.[0]?.count || 0}</span>
+                                                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-tight">Réparations</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-2 text-neutral-400 text-xs font-medium">
+                                                <Calendar size={14} className="text-neutral-200" />
+                                                {new Date(client.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => handleEdit(client)} className="p-2.5 bg-white text-blue-500 rounded-xl border border-neutral-100 hover:bg-blue-50 shadow-sm transition-all" title="Modifier"><Edit3 size={18} /></button>
+                                                <button onClick={() => handleDelete(client.id, client.name)} className="p-2.5 bg-white text-red-500 rounded-xl border border-neutral-100 hover:bg-red-50 shadow-sm transition-all" title="Supprimer"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </motion.div>
 
             {/* Modal */}
             <AnimatePresence>
                 {showModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/40 backdrop-blur-md" onClick={() => setShowModal(false)} />
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl shadow-2xl max-w-md w-full"
+                            initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                            className="relative bg-white rounded-[3rem] shadow-[0_32px_128px_rgba(0,0,0,0.18)] max-w-md w-full overflow-hidden flex flex-col font-inter"
                         >
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                                <h2 className="text-xl font-bold text-neutral-900">
-                                    {editingClient ? 'Modifier le client' : 'Nouveau client'}
-                                </h2>
-                                <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-                                    <X className="w-5 h-5" />
-                                </button>
+                            <div className="p-8 border-b border-neutral-100 flex justify-between items-center bg-[#FBFBFD]/50">
+                                <div>
+                                    <h2 className="text-xl font-bold text-neutral-900">{editingClient ? 'Modifier le client' : 'Créer un nouveau client'}</h2>
+                                    <p className="text-xs text-neutral-400 font-medium">Prenez soin de remplir les contacts correctly.</p>
+                                </div>
+                                <button onClick={() => setShowModal(false)} className="w-10 h-10 flex items-center justify-center bg-white hover:bg-neutral-100 rounded-xl border border-neutral-100 transition-all active:scale-90"><X className="w-5 h-5 text-neutral-400" /></button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Nom *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        placeholder="Nom du client"
-                                    />
+                            <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prénom & Nom *</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                        <input
+                                            type="text" required
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full pl-11 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white font-medium"
+                                            placeholder="ex: Ahmed Mansouri"
+                                        />
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Téléphone</label>
-                                    <input
-                                        type="tel"
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        placeholder="+213 550123456"
-                                    />
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Téléphone</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className="w-full pl-11 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white font-medium"
+                                            placeholder="ex: 0555 12 34 56"
+                                        />
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-neutral-700 mb-2">Email</label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        placeholder="client@example.com"
-                                    />
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Email</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full pl-11 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white font-medium"
+                                            placeholder="ex: client@email.com"
+                                        />
+                                    </div>
                                 </div>
 
-
-
-                                <div className="flex gap-3 pt-4">
-                                    <Button type="button" variant="secondary" onClick={() => setShowModal(false)} className="flex-1">
-                                        Annuler
-                                    </Button>
-                                    <Button type="submit" disabled={submitting} className="flex-1">
-                                        {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enregistrement...</> : editingClient ? 'Modifier' : 'Créer'}
+                                <div className="pt-4 flex gap-3">
+                                    <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="flex-1 rounded-2xl h-14 font-extrabold text-neutral-400 font-inter">Annuler</Button>
+                                    <Button type="submit" disabled={submitting} className="flex-[2] rounded-2xl h-14 bg-neutral-900 text-white font-black hover:bg-neutral-800 shadow-xl transition-all font-inter">
+                                        {submitting ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-white" /> : (editingClient ? 'Enregistrer' : 'Créer sa fiche')}
                                     </Button>
                                 </div>
                             </form>
@@ -306,6 +357,6 @@ export default function ClientsPage() {
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+        </motion.div>
     );
 }
