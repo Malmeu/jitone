@@ -33,6 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
+    const [userPlan, setUserPlan] = useState<string | null>(null);
 
     useEffect(() => {
         // Nettoyage forcé du thème au cas où
@@ -95,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             if (establishmentId) {
                 const { data: establishment } = await supabase
                     .from('establishments')
-                    .select('subscription_status, trial_ends_at, subscription_ends_at')
+                    .select('subscription_status, trial_ends_at, subscription_ends_at, subscription_plan')
                     .eq('id', establishmentId)
                     .single();
 
@@ -111,6 +112,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         router.push('/subscription-expired');
                         return;
                     }
+
+                    setUserPlan(establishment.subscription_plan);
                 }
             }
 
@@ -199,13 +202,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
                                 {menu.filter(item => !userRole || item.roles.includes(userRole)).map((item) => {
                                     const isActive = pathname === item.href;
+                                    const isPremium = ['Équipe', 'Factures', 'Devis', 'Widget'].includes(item.label);
+
                                     return (
                                         <Link key={item.href} href={item.href} className={`
-                                            flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300
-                                            ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 font-bold' : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-foreground'}
+                                            flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300 relative
+                                            ${isActive ? 'bg-neutral-900 text-white shadow-xl shadow-neutral-200 font-bold' : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-foreground'}
                                         `}>
                                             <item.icon size={22} className={isActive ? 'text-white' : 'text-neutral-400'} />
                                             <span className="text-sm">{item.label}</span>
+                                            {isPremium && userPlan !== 'premium' && (
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded-full">PRO</span>
+                                            )}
                                         </Link>
                                     );
                                 })}
@@ -245,20 +253,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <nav className="flex-1 px-6 space-y-1.5 overflow-y-auto">
                     {menu.filter(item => !userRole || item.roles.includes(userRole)).map((item) => {
                         const isActive = pathname === item.href;
+                        const isPremium = ['Équipe', 'Factures', 'Devis', 'Widget', 'Stock'].includes(item.label);
+
                         return (
                             <Link key={item.href} href={item.href} className={`
-                            flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300 relative group
-                            ${isActive
-                                    ? 'bg-neutral-900 text-white shadow-xl shadow-neutral-200 font-bold'
-                                    : 'text-neutral-500 hover:bg-neutral-50 hover:text-foreground'}
-                        `}>
-                                <item.icon size={20} className={isActive ? 'text-primary' : 'text-neutral-400 group-hover:text-neutral-600 transition-colors'} />
-                                <span className="text-[15px]">{item.label}</span>
+                                flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300 relative group
+                                ${isActive ? 'bg-neutral-900 text-white shadow-xl shadow-neutral-200 font-bold' : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-foreground'}
+                            `}>
+                                <item.icon size={22} className={isActive ? 'text-white' : 'text-neutral-400'} />
+                                <span className="text-sm">{item.label}</span>
+                                {isPremium && userPlan !== 'premium' && (
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded-full scale-0 group-hover:scale-100 transition-transform">PRO</span>
+                                )}
                                 {isActive && (
-                                    <motion.div
-                                        layoutId="active-pill"
-                                        className="absolute left-1.5 w-1 h-6 bg-primary rounded-full"
-                                    />
+                                    <motion.div layoutId="nav-active" className="absolute left-0 w-1.5 h-6 bg-white rounded-r-full" />
                                 )}
                             </Link>
                         );

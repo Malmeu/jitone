@@ -144,7 +144,48 @@ export default function TeamPage() {
         }
     };
 
-    if (loading) return null;
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-[60vh]">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (establishment?.subscription_plan !== 'premium') {
+        return (
+            <div className="max-w-4xl mx-auto py-12 px-4">
+                <div className="bg-neutral-900 rounded-[3rem] p-12 text-white text-center relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px]" />
+                    <div className="relative z-10">
+                        <div className="inline-flex p-4 bg-white/10 rounded-3xl mb-8">
+                            <ShieldCheck size={48} className="text-primary" />
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">Passez au Forfait <span className="text-primary italic">Premium</span></h1>
+                        <p className="text-xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
+                            La gestion d'équipe est une fonctionnalité avancée. Recrutez des techniciens, suivez leur travail et développez votre activité.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 text-left">
+                            {[
+                                { title: 'Multi-comptes', desc: 'Ajoutez votre équipe technique' },
+                                { title: 'Rapports Excel', desc: 'Exports comptables un clic' },
+                                { title: 'Inventaire Pro', desc: 'Gestion avancée des stocks' }
+                            ].map((feat, i) => (
+                                <div key={i} className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                                    <div className="font-bold text-lg mb-1">{feat.title}</div>
+                                    <div className="text-xs text-white/40">{feat.desc}</div>
+                                </div>
+                            ))}
+                        </div>
+                        <Button className="h-16 px-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-sm shadow-xl border-none">
+                            Contacter le support pour activer
+                        </Button>
+                        <p className="mt-6 text-sm text-white/30 font-bold uppercase tracking-widest">Upgradez votre atelier dès aujourd'hui</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },

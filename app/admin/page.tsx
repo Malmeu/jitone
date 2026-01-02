@@ -106,18 +106,8 @@ export default function AdminPage() {
         }
     };
 
-    const updateSubscription = async (id: string, status: string, days?: number) => {
+    const updateSubscription = async (id: string, updates: any) => {
         try {
-            const updates: any = { subscription_status: status };
-
-            if (status === 'active' && days) {
-                updates.subscription_ends_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-            }
-
-            if (status === 'trial') {
-                updates.trial_ends_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-            }
-
             // Récupérer le token
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
@@ -299,6 +289,8 @@ export default function AdminPage() {
                                 <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Établissement</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Email</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Statut</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Forfait</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Limite Rép.</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Expire dans</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Créé le</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Actions</th>
@@ -324,6 +316,24 @@ export default function AdminPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
+                                            <select
+                                                value={establishment.subscription_plan || 'standard'}
+                                                onChange={(e) => updateSubscription(establishment.id, { subscription_plan: e.target.value })}
+                                                className={`text-xs font-bold px-2 py-1 rounded-lg border-none focus:ring-0 ${establishment.subscription_plan === 'premium' ? 'bg-indigo-100 text-indigo-700' : 'bg-neutral-100 text-neutral-600'}`}
+                                            >
+                                                <option value="standard">Standard</option>
+                                                <option value="premium">Premium 👑</option>
+                                            </select>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <input
+                                                type="number"
+                                                value={establishment.max_repairs || 100}
+                                                onChange={(e) => updateSubscription(establishment.id, { max_repairs: parseInt(e.target.value) })}
+                                                className="w-20 px-2 py-1 text-xs font-bold bg-neutral-50 border border-neutral-100 rounded-lg text-center focus:ring-primary focus:border-primary"
+                                            />
+                                        </td>
+                                        <td className="px-6 py-4">
                                             {daysRemaining !== null ? (
                                                 <span className={`text-sm ${daysRemaining <= 7 ? 'text-red-600 font-medium' : 'text-neutral-700'}`}>
                                                     {daysRemaining} jour{daysRemaining > 1 ? 's' : ''}
@@ -339,7 +349,10 @@ export default function AdminPage() {
                                             <div className="flex gap-2">
                                                 {establishment.subscription_status !== 'active' && (
                                                     <button
-                                                        onClick={() => updateSubscription(establishment.id, 'active', 365)}
+                                                        onClick={() => updateSubscription(establishment.id, {
+                                                            subscription_status: 'active',
+                                                            subscription_ends_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+                                                        })}
                                                         className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 transition-colors font-medium"
                                                     >
                                                         Activer 1 an
@@ -347,7 +360,9 @@ export default function AdminPage() {
                                                 )}
                                                 {establishment.subscription_status === 'trial' && (
                                                     <button
-                                                        onClick={() => updateSubscription(establishment.id, 'trial')}
+                                                        onClick={() => updateSubscription(establishment.id, {
+                                                            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                                                        })}
                                                         className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors font-medium"
                                                     >
                                                         Prolonger essai
@@ -355,7 +370,7 @@ export default function AdminPage() {
                                                 )}
                                                 {establishment.subscription_status === 'active' && (
                                                     <button
-                                                        onClick={() => updateSubscription(establishment.id, 'expired')}
+                                                        onClick={() => updateSubscription(establishment.id, { subscription_status: 'expired' })}
                                                         className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition-colors font-medium"
                                                     >
                                                         Expirer
@@ -370,6 +385,6 @@ export default function AdminPage() {
                     </table>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

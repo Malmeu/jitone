@@ -9,6 +9,19 @@ import { RepairTicket } from '@/components/ui/RepairTicket';
 import { IconRenderer } from '@/components/ui/IconRenderer';
 import { RepairLabel } from '@/components/ui/RepairLabel';
 
+const FAULT_TYPES = [
+    { id: 'ecran', label: 'Écran / Tactile', icon: 'Smartphone' },
+    { id: 'batterie', label: 'Batterie', icon: 'Battery' },
+    { id: 'connecteur', label: 'Connecteur de Charge', icon: 'Zap' },
+    { id: 'reseau', label: 'Réseau / Wifi', icon: 'Wifi' },
+    { id: 'camera', label: 'Caméra / Lentille', icon: 'Camera' },
+    { id: 'boutons', label: 'Boutons / Micro / HP', icon: 'Mic' },
+    { id: 'logiciel', label: 'Déblocage / Logiciel', icon: 'Lock' },
+    { id: 'eau', label: 'Dégât des eaux', icon: 'Droplets' },
+    { id: 'carte_mere', label: 'Micro-Soudure / Carte Mère', icon: 'Cpu' },
+    { id: 'autre', label: 'Autre panne', icon: 'HelpCircle' }
+];
+
 export default function RepairsPage() {
     const [repairs, setRepairs] = useState<any[]>([]);
     const [clients, setClients] = useState<any[]>([]);
@@ -41,6 +54,7 @@ export default function RepairsPage() {
         item: '',
         description: '',
         additional_info: '',
+        fault_type: '',
         status: 'nouveau',
         price: '',
         cost_price: '',
@@ -157,6 +171,7 @@ export default function RepairsPage() {
                     item: formData.item,
                     description: formData.description,
                     additional_info: formData.additional_info || null,
+                    fault_type: formData.fault_type || null,
                     status: formData.status,
                     price: formData.price ? parseFloat(formData.price) : null,
                     cost_price: costPrice,
@@ -200,6 +215,7 @@ export default function RepairsPage() {
                     item: formData.item,
                     description: formData.description,
                     additional_info: formData.additional_info || null,
+                    fault_type: formData.fault_type || null,
                     status: formData.status,
                     price: formData.price ? parseFloat(formData.price) : null,
                     cost_price: costPrice,
@@ -251,6 +267,7 @@ export default function RepairsPage() {
                 item: '',
                 description: '',
                 additional_info: '',
+                fault_type: '',
                 status: 'nouveau',
                 price: '',
                 cost_price: '',
@@ -389,6 +406,7 @@ export default function RepairsPage() {
             item: repair.item,
             description: repair.description || '',
             additional_info: repair.additional_info || '',
+            fault_type: repair.fault_type || '',
             status: repair.status,
             price: repair.price?.toString() || '',
             cost_price: repair.cost_price?.toString() || '',
@@ -469,7 +487,7 @@ export default function RepairsPage() {
                             setEditingRepair(null);
                             setFormData({
                                 clientId: '', clientName: '', clientPhone: '', item: '', description: '',
-                                additional_info: '', status: 'nouveau', price: '', cost_price: '',
+                                additional_info: '', fault_type: '', status: 'nouveau', price: '', cost_price: '',
                                 is_unlock: false, imei_sn: '',
                                 assigned_to: userProfile?.role === 'technician' ? userProfile.id : '',
                             });
@@ -569,6 +587,16 @@ export default function RepairsPage() {
                                         <td className="px-8 py-6">
                                             <div className="font-bold text-neutral-700 dark:text-neutral-300">{repair.client?.name || 'Client anonyme'}</div>
                                             <div className="text-neutral-400 text-xs mt-1 font-medium">{repair.client?.phone || 'Pas de contact'}</div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${statusColors[repair.status]}`}>
+                                                {statusLabels[repair.status]}
+                                            </span>
+                                            {repair.fault_type && (
+                                                <div className="text-[10px] text-neutral-400 font-bold mt-1 uppercase tracking-tighter italic">
+                                                    {FAULT_TYPES.find(f => f.id === repair.fault_type)?.label}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-2">
@@ -685,6 +713,21 @@ export default function RepairsPage() {
                                                 <Smartphone size={18} />
                                                 <label className="text-sm font-black uppercase tracking-widest">Équipement</label>
                                             </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Type de Panne</label>
+                                                <select
+                                                    required
+                                                    value={formData.fault_type}
+                                                    onChange={(e) => setFormData({ ...formData, fault_type: e.target.value })}
+                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-bold text-foreground"
+                                                >
+                                                    <option value="">Sélectionner la panne...</option>
+                                                    {FAULT_TYPES.map(type => (
+                                                        <option key={type.id} value={type.id}>{type.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
                                             <input
                                                 type="text" required
                                                 value={formData.item}
