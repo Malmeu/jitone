@@ -42,18 +42,19 @@ export default function InvoicesPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: establishmentData } = await supabase
-                .from('establishments')
-                .select('id')
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('establishment_id')
                 .eq('user_id', user.id)
                 .single();
 
-            if (!establishmentData) return;
+            if (!profile) return;
+            const currentEstId = profile.establishment_id;
 
             const { data: repairsData } = await supabase
                 .from('repairs')
                 .select('id')
-                .eq('establishment_id', establishmentData.id);
+                .eq('establishment_id', currentEstId);
 
             if (!repairsData || repairsData.length === 0) {
                 setLoading(false);

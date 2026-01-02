@@ -56,23 +56,23 @@ export default function CalendarPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: establishment } = await supabase
-                .from('establishments')
-                .select('id')
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('establishment_id')
                 .eq('user_id', user.id)
                 .single();
 
-            if (establishment) {
-                setEstablishmentId(establishment.id);
+            if (profile) {
+                setEstablishmentId(profile.establishment_id);
 
                 const { data: clientsData } = await supabase
                     .from('clients')
                     .select('*')
-                    .eq('establishment_id', establishment.id)
+                    .eq('establishment_id', profile.establishment_id)
                     .order('name');
 
                 setClients(clientsData || []);
-                await fetchAppointments(establishment.id);
+                await fetchAppointments(profile.establishment_id);
             }
         } catch (error) {
             console.error('Error:', error);

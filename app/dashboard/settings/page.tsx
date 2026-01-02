@@ -28,10 +28,18 @@ export default function SettingsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('establishment_id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (!profile) return;
+
             const { data } = await supabase
                 .from('establishments')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('id', profile.establishment_id)
                 .single();
 
             if (data) {

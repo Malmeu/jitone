@@ -31,6 +31,8 @@ export default function RepairsPage() {
     const [paymentNote, setPaymentNote] = useState('');
     const [inventory, setInventory] = useState<any[]>([]);
     const [selectedParts, setSelectedParts] = useState<any[]>([]);
+    const [teamMembers, setTeamMembers] = useState<any[]>([]);
+    const [userProfile, setUserProfile] = useState<any>(null);
 
     const [formData, setFormData] = useState({
         clientId: '',
@@ -44,6 +46,7 @@ export default function RepairsPage() {
         cost_price: '',
         is_unlock: false,
         imei_sn: '',
+        assigned_to: '',
     });
 
     useEffect(() => {
@@ -55,39 +58,54 @@ export default function RepairsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: establishmentData } = await supabase
-                .from('establishments')
-                .select('*')
+            // Fetch current user profile to get establishment_id and role
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*, establishment:establishments(*)')
                 .eq('user_id', user.id)
                 .single();
 
-            if (!establishmentData) return;
-            setEstablishmentId(establishmentData.id);
-            setEstablishment(establishmentData);
+            if (!profile) return;
+            setUserProfile(profile);
+            setEstablishmentId(profile.establishment_id);
+            setEstablishment(profile.establishment);
 
-            const { data: repairsData } = await supabase
+            let query = supabase
                 .from('repairs')
                 .select(`
-          *,
-          client:clients(name, phone)
-        `)
-                .eq('establishment_id', establishmentData.id)
-                .order('created_at', { ascending: false });
+                  *,
+                  client:clients(name, phone),
+                  technician:profiles!repairs_assigned_to_fkey(name)
+                `)
+                .eq('establishment_id', profile.establishment_id);
+
+            if (profile.role === 'technician') {
+                query = query.eq('assigned_to', profile.id);
+            }
+
+            const { data: repairsData } = await query.order('created_at', { ascending: false });
 
             if (repairsData) setRepairs(repairsData);
 
             const { data: clientsData } = await supabase
                 .from('clients')
                 .select('*')
-                .eq('establishment_id', establishmentData.id)
+                .eq('establishment_id', profile.establishment_id)
                 .order('name');
 
             if (clientsData) setClients(clientsData);
 
+            const { data: teamData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('establishment_id', profile.establishment_id)
+                .eq('status', 'active');
+            if (teamData) setTeamMembers(teamData);
+
             const { data: inventoryData } = await supabase
                 .from('inventory')
                 .select('*')
-                .eq('establishment_id', establishmentData.id)
+                .eq('establishment_id', profile.establishment_id)
                 .order('name');
             if (inventoryData) setInventory(inventoryData);
         } catch (error) {
@@ -134,7 +152,7 @@ export default function RepairsPage() {
             const costPrice = formData.cost_price ? parseFloat(formData.cost_price) : 0;
 
             if (editingRepair) {
-                const updateData = {
+                const updateData: any = {
                     client_id: clientId,
                     item: formData.item,
                     description: formData.description,
@@ -144,8 +162,16 @@ export default function RepairsPage() {
                     cost_price: costPrice,
                     is_unlock: formData.is_unlock,
                     imei_sn: formData.is_unlock ? formData.imei_sn : null,
+                    assigned_to: formData.assigned_to || null,
                     updated_at: new Date().toISOString(),
                 };
+
+                // Add performance timestamps if status changed
+                if (formData.status !== editingRepair.status) {
+                    if (formData.status === 'diagnostic') updateData.diagnostic_at = new Date().toISOString();
+                    if (formData.status === 'en_reparation') updateData.started_at = new Date().toISOString();
+                    if (formData.status === 'pret_recup') updateData.completed_at = new Date().toISOString();
+                }
 
                 const { error: repairError } = await supabase
                     .from('repairs')
@@ -167,7 +193,7 @@ export default function RepairsPage() {
                     await supabase.from('repair_parts').insert(partsToInsert);
                 }
             } else {
-                const repairData = {
+                const repairData: any = {
                     establishment_id: establishmentId,
                     client_id: clientId,
                     code: generateCode(),
@@ -179,7 +205,12 @@ export default function RepairsPage() {
                     cost_price: costPrice,
                     is_unlock: formData.is_unlock,
                     imei_sn: formData.is_unlock ? formData.imei_sn : null,
+                    assigned_to: formData.assigned_to || null,
                 };
+
+                if (formData.status === 'diagnostic') repairData.diagnostic_at = new Date().toISOString();
+                if (formData.status === 'en_reparation') repairData.started_at = new Date().toISOString();
+                if (formData.status === 'pret_recup') repairData.completed_at = new Date().toISOString();
 
                 const { data: repairResult, error: repairError } = await supabase
                     .from('repairs')
@@ -225,6 +256,7 @@ export default function RepairsPage() {
                 cost_price: '',
                 is_unlock: false,
                 imei_sn: '',
+                assigned_to: '',
             });
             setShowModal(false);
             setEditingRepair(null);
@@ -273,15 +305,21 @@ export default function RepairsPage() {
         annule: 'Annulé',
     };
 
-    const updateStatus = async (repairId: string, newStatus: string) => {
+    const updateStatus = async (repair: any, newStatus: string) => {
         try {
+            const updateData: any = {
+                status: newStatus,
+                updated_at: new Date().toISOString(),
+            };
+
+            if (newStatus === 'diagnostic') updateData.diagnostic_at = new Date().toISOString();
+            if (newStatus === 'en_reparation') updateData.started_at = new Date().toISOString();
+            if (newStatus === 'pret_recup') updateData.completed_at = new Date().toISOString();
+
             const { error } = await supabase
                 .from('repairs')
-                .update({
-                    status: newStatus,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', repairId);
+                .update(updateData)
+                .eq('id', repair.id);
 
             if (error) throw error;
             await fetchData();
@@ -356,6 +394,7 @@ export default function RepairsPage() {
             cost_price: repair.cost_price?.toString() || '',
             is_unlock: repair.is_unlock || false,
             imei_sn: repair.imei_sn || '',
+            assigned_to: repair.assigned_to || '',
         });
         setShowModal(true);
 
@@ -432,6 +471,7 @@ export default function RepairsPage() {
                                 clientId: '', clientName: '', clientPhone: '', item: '', description: '',
                                 additional_info: '', status: 'nouveau', price: '', cost_price: '',
                                 is_unlock: false, imei_sn: '',
+                                assigned_to: userProfile?.role === 'technician' ? userProfile.id : '',
                             });
                             setShowModal(true);
                         }}
@@ -496,6 +536,7 @@ export default function RepairsPage() {
                                 <th className="px-8 py-6">Équipement</th>
                                 <th className="px-8 py-6">Propriétaire</th>
                                 <th className="px-8 py-6">Statut & Suivi</th>
+                                <th className="px-8 py-6">Intervenant</th>
                                 <th className="px-8 py-6">Finance</th>
                                 <th className="px-8 py-6 text-right">Actions</th>
                             </tr>
@@ -530,12 +571,14 @@ export default function RepairsPage() {
                                             <div className="text-neutral-400 text-xs mt-1 font-medium">{repair.client?.phone || 'Pas de contact'}</div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="flex flex-col gap-2">
-                                                <span className={`${statusColors[repair.status]} dark:bg-opacity-20 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight w-fit`}>
-                                                    {statusLabels[repair.status]}
-                                                </span>
-                                                <div className="flex items-center gap-1.5 text-neutral-400 text-[10px] font-bold">
-                                                    <Calendar size={12} /> {new Date(repair.created_at).toLocaleDateString()}
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-black text-neutral-500 border border-neutral-200 dark:border-neutral-700">
+                                                    {repair.technician?.name?.charAt(0) || <User size={14} />}
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
+                                                        {repair.technician?.name || 'Non assigné'}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -550,14 +593,16 @@ export default function RepairsPage() {
                                                     </span>
                                                 ) : (
                                                     <button
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setSelectedRepair(repair);
                                                             setPaymentAmount(parseFloat(repair.price) || 0);
                                                             setShowPaymentModal(true);
                                                         }}
                                                         className="text-[10px] font-bold text-primary hover:underline w-fit"
+                                                        disabled={userProfile?.role === 'technician'}
                                                     >
-                                                        Régler maintenant 💰
+                                                        {userProfile?.role === 'technician' ? 'En attente ⏳' : 'Régler maintenant 💰'}
                                                     </button>
                                                 )}
                                             </div>
@@ -741,7 +786,7 @@ export default function RepairsPage() {
                                             )}
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix Client (DA)</label>
                                                 <div className="relative">
@@ -755,25 +800,46 @@ export default function RepairsPage() {
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Coût Pièces (DA)</label>
-                                                <div className="relative">
-                                                    <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
-                                                    <input
-                                                        type="number"
-                                                        value={formData.cost_price}
-                                                        onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
-                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-black text-rose-500"
-                                                        placeholder="0.00"
-                                                    />
+                                            {userProfile?.role !== 'technician' && (
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Coût Pièces (DA)</label>
+                                                    <div className="relative">
+                                                        <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                                        <input
+                                                            type="number"
+                                                            value={formData.cost_price}
+                                                            onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
+                                                            className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-black text-rose-500"
+                                                            placeholder="0.00"
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </div>
 
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 text-indigo-500">
-                                                <Clock size={18} />
-                                                <label className="text-sm font-black uppercase tracking-widest">Étape Actuelle</label>
+                                                <User size={18} />
+                                                <label className="text-sm font-black uppercase tracking-widest">Assignation & Statut</label>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Intervenant</label>
+                                                <select
+                                                    value={formData.assigned_to}
+                                                    onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
+                                                    disabled={userProfile?.role === 'technician'}
+                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-bold text-foreground disabled:opacity-50"
+                                                >
+                                                    <option value="">Non assigné</option>
+                                                    {teamMembers.map(member => (
+                                                        <option key={member.id} value={member.id}>{member.name || member.email} ({member.role})</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Étape Actuelle</label>
                                             </div>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {Object.entries(statusLabels).map(([key, label]) => (

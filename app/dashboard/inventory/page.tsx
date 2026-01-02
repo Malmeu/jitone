@@ -45,6 +45,7 @@ export default function InventoryPage() {
     const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [establishmentId, setEstablishmentId] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -67,66 +68,19 @@ export default function InventoryPage() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
 
-            if (userError || !user) {
-                console.error('Erreur Auth:', userError);
-                return;
-            }
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role, establishment_id')
+                .eq('user_id', user.id)
+                .single();
 
-            console.log('Utilisateur connecté:', user.email, user.id);
-
-            // 1. Tenter de trouver l'établissement lié à ce user_id
-            const { data: ests, error: estError } = await supabase
-                .from('establishments')
-                .select('*')
-                .eq('user_id', user.id);
-
-            if (estError) {
-                console.error('Erreur lors de la récupération de l\'établissement:', estError);
-                // Si on a une 406, c'est souvent un problème de headers ou de format attendu.
-                // En utilisant une requête simple (sans .single()), on devrait récupérer un tableau.
-            }
-
-            let activeEstId = null;
-
-            if (ests && ests.length > 0) {
-                activeEstId = ests[0].id;
-                console.log('Établissement trouvé via user_id:', activeEstId);
-            } else {
-                console.warn('Aucun établissement lié directement à ce user_id, tentative via email...');
-                // 1.5 Tenter de trouver via email
-                const { data: estByEmail } = await supabase
-                    .from('establishments')
-                    .select('*')
-                    .eq('owner_email', user.email);
-
-                if (estByEmail && estByEmail.length > 0) {
-                    activeEstId = estByEmail[0].id;
-                    console.log('Établissement trouvé via email:', activeEstId);
-                } else {
-                    // 2. Fallback pour les admins ou comptes configurés par email
-                    const { data: allEsts, error: allEstError } = await supabase
-                        .from('establishments')
-                        .select('*')
-                        .limit(1);
-
-                    if (allEsts && allEsts.length > 0) {
-                        activeEstId = allEsts[0].id;
-                        console.log('Utilisation de l\'établissement par défaut (Fallback):', activeEstId);
-                    } else if (allEstError) {
-                        console.error('Erreur lors du fallback:', allEstError);
-                    }
-                }
-            }
-
-            if (activeEstId) {
-                setEstablishmentId(activeEstId);
-                await loadInventoryData(activeEstId);
-            } else {
-                console.error('Impossible de déterminer l\'ID de l\'établissement');
-            }
-
+            if (!profile) return;
+            setUserRole(profile.role);
+            setEstablishmentId(profile.establishment_id);
+            await loadInventoryData(profile.establishment_id);
         } catch (error) {
             console.error('Exception dans fetchData:', error);
         } finally {
@@ -135,21 +89,25 @@ export default function InventoryPage() {
     };
 
     const loadInventoryData = async (estId: string) => {
-        const [itemsRes, catsRes] = await Promise.all([
-            supabase
-                .from('inventory')
-                .select('*, category:inventory_categories(name)')
-                .eq('establishment_id', estId)
-                .order('name'),
-            supabase
-                .from('inventory_categories')
-                .select('id, name')
-                .eq('establishment_id', estId)
-                .order('name')
-        ]);
+        try {
+            const [itemsRes, catsRes] = await Promise.all([
+                supabase
+                    .from('inventory')
+                    .select('*, category:inventory_categories(name)')
+                    .eq('establishment_id', estId)
+                    .order('name'),
+                supabase
+                    .from('inventory_categories')
+                    .select('id, name')
+                    .eq('establishment_id', estId)
+                    .order('name')
+            ]);
 
-        if (itemsRes.data) setItems(itemsRes.data);
-        if (catsRes.data) setCategories(catsRes.data);
+            if (itemsRes.data) setItems(itemsRes.data);
+            if (catsRes.data) setCategories(catsRes.data);
+        } catch (error) {
+            console.error('Error loading inventory:', error);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -379,7 +337,7 @@ export default function InventoryPage() {
                                 <th className="px-8 py-6">Catégorie</th>
                                 <th className="px-8 py-6">Stock</th>
                                 <th className="px-8 py-6">Fournisseur</th>
-                                <th className="px-8 py-6">Prix (DA)</th>
+                                {userRole !== 'technician' && <th className="px-8 py-6">Prix (DA)</th>}
                                 <th className="px-8 py-6 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -428,10 +386,12 @@ export default function InventoryPage() {
                                         <td className="px-8 py-6">
                                             <div className="text-neutral-500 font-medium">{item.supplier || 'N/A'}</div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="text-foreground font-bold">{item.selling_price.toLocaleString()} DA</div>
-                                            <div className="text-[10px] text-neutral-400 mt-1">Coût: {item.cost_price.toLocaleString()} DA</div>
-                                        </td>
+                                        {userRole !== 'technician' && (
+                                            <td className="px-8 py-6">
+                                                <div className="text-foreground font-bold">{item.selling_price.toLocaleString()} DA</div>
+                                                <div className="text-[10px] text-neutral-400 mt-1">Coût: {item.cost_price.toLocaleString()} DA</div>
+                                            </td>
+                                        )}
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                                 <button
@@ -530,32 +490,34 @@ export default function InventoryPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix d'Achat (Coût) *</label>
-                                            <div className="relative">
-                                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
-                                                <input
-                                                    type="number" required
-                                                    value={formData.cost_price}
-                                                    onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) })}
-                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                />
+                                    {userRole !== 'technician' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix d'Achat (Coût) *</label>
+                                                <div className="relative">
+                                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                                    <input
+                                                        type="number" required
+                                                        value={formData.cost_price}
+                                                        onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) })}
+                                                        className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix de Vente *</label>
+                                                <div className="relative">
+                                                    <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                                    <input
+                                                        type="number" required
+                                                        value={formData.selling_price}
+                                                        onChange={(e) => setFormData({ ...formData, selling_price: parseFloat(e.target.value) })}
+                                                        className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix de Vente *</label>
-                                            <div className="relative">
-                                                <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
-                                                <input
-                                                    type="number" required
-                                                    value={formData.selling_price}
-                                                    onChange={(e) => setFormData({ ...formData, selling_price: parseFloat(e.target.value) })}
-                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+                                    )}
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">

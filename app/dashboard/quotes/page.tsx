@@ -21,13 +21,13 @@ export default function QuotesPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: establishment } = await supabase
-                .from('establishments')
-                .select('id')
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('establishment_id')
                 .eq('user_id', user.id)
                 .single();
 
-            if (!establishment) return;
+            if (!profile) return;
 
             const { data, error } = await supabase
                 .from('quotes')
@@ -36,7 +36,7 @@ export default function QuotesPage() {
                     client:clients(name, phone, email),
                     quote_items(*)
                 `)
-                .eq('establishment_id', establishment.id)
+                .eq('establishment_id', profile.establishment_id)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;

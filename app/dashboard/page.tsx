@@ -19,6 +19,7 @@ export default function DashboardPage() {
     const [recentRepairs, setRecentRepairs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [establishmentId, setEstablishmentId] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
     const [revenueFilter, setRevenueFilter] = useState<'today' | 'month' | 'custom'>('today');
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
@@ -29,23 +30,31 @@ export default function DashboardPage() {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) return;
 
-                const { data: establishment } = await supabase
-                    .from('establishments')
-                    .select('id')
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id, role, establishment_id')
                     .eq('user_id', user.id)
                     .single();
 
-                if (!establishment) return;
-                setEstablishmentId(establishment.id);
+                if (!profile) return;
+                setEstablishmentId(profile.establishment_id);
+                setUserRole(profile.role);
+                const currentEstId = profile.establishment_id;
+                const isTechnician = profile.role === 'technician';
 
-                const { data: repairs } = await supabase
+                let query = supabase
                     .from('repairs')
                     .select(`
-            *,
-            client:clients(name)
-          `)
-                    .eq('establishment_id', establishment.id)
-                    .order('created_at', { ascending: false });
+                        *,
+                        client:clients(name)
+                    `)
+                    .eq('establishment_id', currentEstId);
+
+                if (isTechnician) {
+                    query = query.eq('assigned_to', profile.id);
+                }
+
+                const { data: repairs } = await query.order('created_at', { ascending: false });
 
                 if (repairs) {
                     const today = new Date();
@@ -264,12 +273,14 @@ export default function DashboardPage() {
                     </h3>
                     <p className="text-xs text-neutral-500 font-medium">Paiements confirmés encaissés.</p>
 
-                    <button
-                        onClick={() => router.push('/dashboard/invoices')}
-                        className="mt-8 py-3 w-full bg-white/5 dark:bg-black/5 hover:bg-white/10 dark:hover:bg-black/10 rounded-xl text-sm font-bold transition-all border border-white/5 dark:border-black/5"
-                    >
-                        Afficher les rapports financiers
-                    </button>
+                    {userRole !== 'technician' && (
+                        <button
+                            onClick={() => router.push('/dashboard/invoices')}
+                            className="mt-8 py-3 w-full bg-white/5 dark:bg-black/5 hover:bg-white/10 dark:hover:bg-black/10 rounded-xl text-sm font-bold transition-all border border-white/5 dark:border-black/5"
+                        >
+                            Afficher les rapports financiers
+                        </button>
+                    )}
                 </motion.div>
             </div>
 

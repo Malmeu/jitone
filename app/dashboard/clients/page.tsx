@@ -30,14 +30,15 @@ export default function ClientsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: establishment } = await supabase
-                .from('establishments')
-                .select('id')
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('establishment_id')
                 .eq('user_id', user.id)
                 .single();
 
-            if (!establishment) return;
-            setEstablishmentId(establishment.id);
+            if (!profile) return;
+            setEstablishmentId(profile.establishment_id);
+            const currentEstId = profile.establishment_id;
 
             const { data } = await supabase
                 .from('clients')
@@ -45,7 +46,7 @@ export default function ClientsPage() {
           *,
           repairs:repairs(count)
         `)
-                .eq('establishment_id', establishment.id)
+                .eq('establishment_id', currentEstId)
                 .order('name');
 
             if (data) setClients(data);

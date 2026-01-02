@@ -8,16 +8,17 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const menu = [
-    { icon: Home, label: 'Accueil', href: '/dashboard' },
-    { icon: Briefcase, label: 'Réparations', href: '/dashboard/repairs' },
-    { icon: Users, label: 'Clients', href: '/dashboard/clients' },
-    { icon: Package, label: 'Stock', href: '/dashboard/inventory' },
-    { icon: Calendar, label: 'Calendrier', href: '/dashboard/calendar' },
-    { icon: FileText, label: 'Devis', href: '/dashboard/quotes' },
-    { icon: FileText, label: 'Factures', href: '/dashboard/invoices' },
-    { icon: Smartphone, label: 'iCloud Check', href: '/dashboard/icloud-check' },
-    { icon: Code, label: 'Widget', href: '/dashboard/widget-config' },
-    { icon: Settings, label: 'Paramètres', href: '/dashboard/settings' },
+    { icon: Home, label: 'Accueil', href: '/dashboard', roles: ['owner', 'manager', 'technician'] },
+    { icon: Briefcase, label: 'Réparations', href: '/dashboard/repairs', roles: ['owner', 'manager', 'technician'] },
+    { icon: Users, label: 'Clients', href: '/dashboard/clients', roles: ['owner', 'manager', 'technician'] },
+    { icon: Users, label: 'Équipe', href: '/dashboard/team', roles: ['owner', 'manager'] },
+    { icon: Package, label: 'Stock', href: '/dashboard/inventory', roles: ['owner', 'manager', 'technician'] },
+    { icon: Calendar, label: 'Calendrier', href: '/dashboard/calendar', roles: ['owner', 'manager', 'technician'] },
+    { icon: FileText, label: 'Devis', href: '/dashboard/quotes', roles: ['owner', 'manager'] },
+    { icon: FileText, label: 'Factures', href: '/dashboard/invoices', roles: ['owner', 'manager'] },
+    { icon: Smartphone, label: 'iCloud Check', href: '/dashboard/icloud-check', roles: ['owner', 'manager', 'technician'] },
+    { icon: Code, label: 'Widget', href: '/dashboard/widget-config', roles: ['owner', 'manager'] },
+    { icon: Settings, label: 'Paramètres', href: '/dashboard/settings', roles: ['owner', 'manager'] },
 ];
 
 const ADMIN_EMAILS = [
@@ -31,6 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [loading, setLoading] = useState(true);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
     useEffect(() => {
         // Nettoyage forcé du thème au cas où
@@ -53,23 +55,62 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 return;
             }
 
-            const { data: establishment } = await supabase
-                .from('establishments')
-                .select('subscription_status, trial_ends_at, subscription_ends_at')
-                .eq('user_id', user.id)
-                .single();
+            // Récupérer tous les profils associés à cet utilisateur
+            let { data: profiles, error: profileError } = await supabase
+                .from('profiles')
+                .select('role, establishment_id, user_id')
+                .eq('user_id', user.id);
 
-            if (establishment) {
-                const now = new Date();
-                const isExpired =
-                    establishment.subscription_status === 'expired' ||
-                    establishment.subscription_status === 'cancelled' ||
-                    (establishment.subscription_status === 'trial' && new Date(establishment.trial_ends_at) < now) ||
-                    (establishment.subscription_status === 'active' && establishment.subscription_ends_at && new Date(establishment.subscription_ends_at) < now);
+            // Prioriser le profil de technicien s'il en a plusieurs (cas du technicien qui a créé son propre shop par erreur)
+            let activeProfile = profiles?.find(p => p.role === 'technician') || profiles?.[0];
 
-                if (isExpired) {
-                    router.push('/subscription-expired');
-                    return;
+            // Si pas de profil lié, tenter de le lier par email
+            if (!activeProfile) {
+                const { data: profilesByEmail } = await supabase
+                    .from('profiles')
+                    .select('id, role, establishment_id, user_id')
+                    .eq('email', user.email)
+                    .is('user_id', null);
+
+                const profileToLink = profilesByEmail?.[0];
+
+                if (profileToLink) {
+                    // Lier automatiquement le compte
+                    const { data: updated } = await supabase
+                        .from('profiles')
+                        .update({ user_id: user.id })
+                        .eq('id', profileToLink.id)
+                        .select()
+                        .single();
+                    activeProfile = updated;
+                }
+            }
+
+            if (activeProfile) {
+                setUserRole(activeProfile.role);
+            }
+
+            const establishmentId = activeProfile?.establishment_id;
+
+            if (establishmentId) {
+                const { data: establishment } = await supabase
+                    .from('establishments')
+                    .select('subscription_status, trial_ends_at, subscription_ends_at')
+                    .eq('id', establishmentId)
+                    .single();
+
+                if (establishment) {
+                    const now = new Date();
+                    const isExpired =
+                        establishment.subscription_status === 'expired' ||
+                        establishment.subscription_status === 'cancelled' ||
+                        (establishment.subscription_status === 'trial' && new Date(establishment.trial_ends_at) < now) ||
+                        (establishment.subscription_status === 'active' && establishment.subscription_ends_at && new Date(establishment.subscription_ends_at) < now);
+
+                    if (isExpired) {
+                        router.push('/subscription-expired');
+                        return;
+                    }
                 }
             }
 
@@ -156,7 +197,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
 
                             <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
-                                {menu.map((item) => {
+                                {menu.filter(item => !userRole || item.roles.includes(userRole)).map((item) => {
                                     const isActive = pathname === item.href;
                                     return (
                                         <Link key={item.href} href={item.href} className={`
@@ -202,7 +243,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
 
                 <nav className="flex-1 px-6 space-y-1.5 overflow-y-auto">
-                    {menu.map((item) => {
+                    {menu.filter(item => !userRole || item.roles.includes(userRole)).map((item) => {
                         const isActive = pathname === item.href;
                         return (
                             <Link key={item.href} href={item.href} className={`

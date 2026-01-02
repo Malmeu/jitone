@@ -51,23 +51,38 @@ export default function RegisterPage() {
             if (authError) throw authError;
 
             if (authData.user) {
-                // 2. Créer l'établissement dans la base de données
-                const trialEndsAt = new Date();
-                trialEndsAt.setDate(trialEndsAt.getDate() + 14); // 14 jours d'essai
+                // Vérifier si un profil existe déjà pour cet email (invitation technicien)
+                const { data: existingProfile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('email', formData.email)
+                    .single();
 
-                const { error: establishmentError } = await supabase
-                    .from('establishments')
-                    .insert([
-                        {
-                            user_id: authData.user.id,
-                            name: formData.establishmentName,
-                            owner_email: formData.email,
-                            subscription_status: 'trial',
-                            trial_ends_at: trialEndsAt.toISOString(),
-                        },
-                    ]);
+                if (!existingProfile) {
+                    // 2. Créer l'établissement uniquement si c'est un nouveau compte "Owner"
+                    const trialEndsAt = new Date();
+                    trialEndsAt.setDate(trialEndsAt.getDate() + 14); // 14 jours d'essai
 
-                if (establishmentError) throw establishmentError;
+                    const { error: establishmentError } = await supabase
+                        .from('establishments')
+                        .insert([
+                            {
+                                user_id: authData.user.id,
+                                name: formData.establishmentName,
+                                owner_email: formData.email,
+                                subscription_status: 'trial',
+                                trial_ends_at: trialEndsAt.toISOString(),
+                            },
+                        ]);
+
+                    if (establishmentError) throw establishmentError;
+                } else {
+                    // Si le profil existe, on le lie directement à l'auth
+                    await supabase
+                        .from('profiles')
+                        .update({ user_id: authData.user.id })
+                        .eq('id', existingProfile.id);
+                }
 
                 setSuccess(true);
 

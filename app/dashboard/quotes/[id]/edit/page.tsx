@@ -48,20 +48,21 @@ export default function EditQuotePage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: establishment } = await supabase
-                .from('establishments')
-                .select('id')
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('establishment_id')
                 .eq('user_id', user.id)
                 .single();
 
-            if (establishment) {
-                setEstablishmentId(establishment.id);
+            if (profile) {
+                setEstablishmentId(profile.establishment_id);
+                const currentEstId = profile.establishment_id;
 
                 // Récupérer les clients
                 const { data: clientsData } = await supabase
                     .from('clients')
                     .select('*')
-                    .eq('establishment_id', establishment.id)
+                    .eq('establishment_id', currentEstId)
                     .order('name');
 
                 setClients(clientsData || []);
