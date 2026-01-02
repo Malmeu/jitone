@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Calendar as BigCalendar, dateFnsLocalizer, View } from 'react-big-calendar';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Plus, Calendar as CalendarIcon, Clock, User, X, Check, MoreHorizontal, Info, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 
 const locales = {
     'fr': fr,
@@ -20,6 +23,8 @@ const localizer = dateFnsLocalizer({
     getDay,
     locales,
 });
+
+const DnDCalendar = withDragAndDrop(BigCalendar);
 
 export default function CalendarPage() {
     const [appointments, setAppointments] = useState<any[]>([]);
@@ -124,6 +129,34 @@ export default function CalendarPage() {
         setShowModal(true);
     };
 
+    const moveEvent = async ({ event, start, end }: any) => {
+        const updatedStart = format(new Date(start), "yyyy-MM-dd'T'HH:mm:ss");
+        const updatedEnd = format(new Date(end), "yyyy-MM-dd'T'HH:mm:ss");
+
+        // Optimistic update
+        setAppointments(prev => prev.map(a =>
+            a.id === event.id
+                ? { ...a, start_time: updatedStart, end_time: updatedEnd }
+                : a
+        ));
+
+        try {
+            const { error } = await supabase
+                .from('appointments')
+                .update({
+                    start_time: updatedStart,
+                    end_time: updatedEnd
+                })
+                .eq('id', event.id);
+
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error moving event:', error);
+            alert('Erreur lors du déplacement du rendez-vous');
+            fetchAppointments(establishmentId); // Revert on error
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -207,6 +240,7 @@ export default function CalendarPage() {
         const style = statusColors[status as keyof typeof statusColors] || statusColors.scheduled;
 
         return {
+            className: 'transition-all duration-200 hover:scale-[1.02]',
             style: {
                 ...style,
                 borderRadius: '8px',
@@ -220,7 +254,10 @@ export default function CalendarPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-[60vh]">
-                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <div className="relative">
+                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                    <div className="absolute inset-0 blur-xl opacity-20 bg-primary animate-pulse" />
+                </div>
             </div>
         );
     }
@@ -242,24 +279,24 @@ export default function CalendarPage() {
     return (
         <motion.div
             initial="hidden" animate="visible" variants={containerVariants}
-            className="max-w-[1600px] mx-auto pb-24 px-4 md:px-8 font-inter font-inter"
+            className="max-w-[1600px] mx-auto pb-24 px-4 md:px-8 font-inter"
         >
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
                     <motion.div variants={itemVariants} className="flex items-center gap-2 mb-4">
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full font-inter">Planning & Agendas</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">Planning & Agendas</span>
                     </motion.div>
                     <motion.h1
                         variants={itemVariants}
-                        className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight mb-2 font-inter"
+                        className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-2"
                     >
                         Mon Calendrier
                     </motion.h1>
                     <motion.p
                         variants={itemVariants}
-                        className="text-lg text-neutral-500 font-medium font-inter"
+                        className="text-lg text-neutral-500 font-medium"
                     >
-                        Visualisez vos rendez-vous clients et organisez votre journée.
+                        Gérez vos rendez-vous en les déplaçant directement sur le planning.
                     </motion.p>
                 </div>
                 <motion.div variants={itemVariants}>
@@ -275,7 +312,7 @@ export default function CalendarPage() {
                             });
                             setShowModal(true);
                         }}
-                        className="h-14 px-8 rounded-2xl bg-neutral-900 border-none hover:bg-neutral-800 text-white shadow-xl transition-all active:scale-[0.98] font-bold flex items-center gap-3 font-inter"
+                        className="h-14 px-8 rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100 shadow-xl transition-all active:scale-[0.98] font-bold flex items-center gap-3"
                     >
                         <Plus size={20} />
                         Planifier un RDV
@@ -284,11 +321,11 @@ export default function CalendarPage() {
             </div>
 
             {/* Quick Stats */}
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 font-inter">
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: 'Programmés', val: appointments.filter(a => a.status === 'scheduled').length, color: 'text-blue-600', bg: 'bg-blue-50', icon: CalendarIcon },
-                    { label: 'Confirmés', val: appointments.filter(a => a.status === 'confirmed').length, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: Check },
-                    { label: 'Aujourd\'hui', val: appointments.filter(a => format(new Date(a.start_time), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')).length, color: 'text-indigo-600', bg: 'bg-indigo-50', icon: Clock },
+                    { label: 'Programmés', val: appointments.filter(a => a.status === 'scheduled').length, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/10', icon: CalendarIcon },
+                    { label: 'Confirmés', val: appointments.filter(a => a.status === 'confirmed').length, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/10', icon: Check },
+                    { label: 'Aujourd\'hui', val: appointments.filter(a => format(new Date(a.start_time), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')).length, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/10', icon: Clock },
                     {
                         label: 'Cette semaine', val: appointments.filter(a => {
                             const aptDate = new Date(a.start_time);
@@ -296,31 +333,34 @@ export default function CalendarPage() {
                             const weekEnd = new Date(weekStart);
                             weekEnd.setDate(weekEnd.getDate() + 7);
                             return aptDate >= weekStart && aptDate < weekEnd;
-                        }).length, color: 'text-amber-600', bg: 'bg-amber-50', icon: MoreHorizontal
+                        }).length, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/10', icon: MoreHorizontal
                     }
                 ].map((stat, i) => (
-                    <div key={i} className="bg-white rounded-3xl border border-neutral-100 shadow-sm p-6 flex items-center gap-5 group hover:shadow-md transition-all font-inter">
+                    <div key={i} className="bg-card rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm p-6 flex items-center gap-5 group hover:shadow-md transition-all">
                         <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
                             <stat.icon size={24} />
                         </div>
                         <div>
-                            <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 font-inter">{stat.label}</div>
-                            <div className="text-2xl font-black text-neutral-900 font-inter font-inter">{stat.val}</div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{stat.label}</div>
+                            <div className="text-2xl font-black text-foreground">{stat.val}</div>
                         </div>
                     </div>
                 ))}
             </motion.div>
 
             {/* Calendar Container */}
-            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-neutral-100 p-8">
+            <motion.div variants={itemVariants} className="bg-card rounded-[2.5rem] shadow-soft border border-neutral-100 dark:border-neutral-800 p-8">
                 <div style={{ height: '750px' }} className="calendar-apple-style font-inter">
-                    <BigCalendar
+                    <DnDCalendar
                         localizer={localizer}
                         events={events}
-                        startAccessor="start"
-                        endAccessor="end"
+                        startAccessor={(event: any) => event.start}
+                        endAccessor={(event: any) => event.end}
                         onSelectSlot={handleSelectSlot}
                         onSelectEvent={handleSelectEvent}
+                        onEventDrop={moveEvent}
+                        onEventResize={moveEvent}
+                        resizable
                         selectable
                         view={view}
                         onView={setView}
@@ -344,20 +384,20 @@ export default function CalendarPage() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/40 backdrop-blur-md" onClick={() => setShowModal(false)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                            className="relative bg-white rounded-[3rem] shadow-[0_32px_128px_rgba(0,0,0,0.18)] max-w-2xl w-full max-h-[95vh] overflow-hidden flex flex-col font-inter"
+                            className="relative bg-card rounded-[3rem] shadow-heavy max-w-2xl w-full max-h-[95vh] overflow-hidden flex flex-col border border-neutral-100 dark:border-neutral-800"
                         >
-                            <div className="p-8 border-b border-neutral-100 flex justify-between items-center bg-[#FBFBFD]/50 font-inter">
+                            <div className="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-neutral-900">{selectedEvent ? 'Modifier le rendez-vous' : 'Planifier un rendez-vous'}</h2>
-                                    <p className="text-sm text-neutral-400 font-medium font-inter">Synchronisez votre planning avec vos clients.</p>
+                                    <h2 className="text-2xl font-bold text-foreground">{selectedEvent ? 'Modifier le rendez-vous' : 'Nouveau rendez-vous'}</h2>
+                                    <p className="text-sm text-neutral-400 font-medium">Planifiez votre efficacité.</p>
                                 </div>
-                                <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-white hover:bg-neutral-100 rounded-2xl border border-neutral-100 transition-all active:scale-90 font-inter"><X className="w-6 h-6 text-neutral-400" /></button>
+                                <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-800 transition-all active:scale-90"><X className="w-6 h-6 text-neutral-400" /></button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto font-inter">
+                            <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto">
                                 <div className="space-y-4">
-                                    <div className="space-y-2 font-inter">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Objet du rendez-vous *</label>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Objet du rendez-vous *</label>
                                         <input
                                             type="text" required
                                             value={selectedEvent ? selectedEvent.title : formData.title}
@@ -365,35 +405,35 @@ export default function CalendarPage() {
                                                 ? setSelectedEvent({ ...selectedEvent, title: e.target.value })
                                                 : setFormData({ ...formData, title: e.target.value })
                                             }
-                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             placeholder="ex: Récupération iPhone 13 Pro"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-inter">
-                                        <div className="space-y-2 font-inter">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Client concerné</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Client concerné</label>
                                             <select
                                                 value={selectedEvent ? selectedEvent.client_id || '' : formData.client_id}
                                                 onChange={(e) => selectedEvent
                                                     ? setSelectedEvent({ ...selectedEvent, client_id: e.target.value })
                                                     : setFormData({ ...formData, client_id: e.target.value })
                                                 }
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             >
                                                 <option value="">Sélectionner un client</option>
                                                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                             </select>
                                         </div>
-                                        <div className="space-y-2 font-inter">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Catégorie</label>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Catégorie</label>
                                             <select
                                                 value={selectedEvent ? selectedEvent.appointment_type : formData.appointment_type}
                                                 onChange={(e) => selectedEvent
                                                     ? setSelectedEvent({ ...selectedEvent, appointment_type: e.target.value })
                                                     : setFormData({ ...formData, appointment_type: e.target.value })
                                                 }
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             >
                                                 <option value="repair">🛠 Réparation</option>
                                                 <option value="pickup">📦 Récupération</option>
@@ -403,9 +443,9 @@ export default function CalendarPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-inter">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Début *</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Début *</label>
                                             <input
                                                 type="datetime-local" required
                                                 value={selectedEvent ? format(new Date(selectedEvent.start_time), "yyyy-MM-dd'T'HH:mm") : formData.start_time}
@@ -413,11 +453,11 @@ export default function CalendarPage() {
                                                     ? setSelectedEvent({ ...selectedEvent, start_time: e.target.value })
                                                     : setFormData({ ...formData, start_time: e.target.value })
                                                 }
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Fin *</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Fin *</label>
                                             <input
                                                 type="datetime-local" required
                                                 value={selectedEvent ? format(new Date(selectedEvent.end_time), "yyyy-MM-dd'T'HH:mm") : formData.end_time}
@@ -425,33 +465,33 @@ export default function CalendarPage() {
                                                     ? setSelectedEvent({ ...selectedEvent, end_time: e.target.value })
                                                     : setFormData({ ...formData, end_time: e.target.value })
                                                 }
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter font-inter"
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Détails & Notes</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Notes</label>
                                         <textarea
                                             value={selectedEvent ? selectedEvent.description || '' : formData.description}
                                             onChange={(e) => selectedEvent
                                                 ? setSelectedEvent({ ...selectedEvent, description: e.target.value })
                                                 : setFormData({ ...formData, description: e.target.value })
                                             }
-                                            rows={4}
-                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold resize-none font-inter"
-                                            placeholder="Informations complémentaires sur le rendez-vous..."
+                                            rows={3}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold resize-none text-foreground"
+                                            placeholder="Détails supplémentaires..."
                                         />
                                     </div>
                                 </div>
 
-                                <div className="flex gap-4 pt-4 font-inter">
-                                    <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-14 rounded-2xl text-neutral-400 font-bold hover:bg-neutral-50 transition-all font-inter">Annuler</button>
-                                    <button type="submit" className="flex-[2] h-14 bg-neutral-900 text-white font-black rounded-2xl hover:bg-neutral-800 shadow-xl transition-all active:scale-95 font-inter">
-                                        {selectedEvent ? 'Enregistrer les modifications' : 'Confirmer le rendez-vous'}
+                                <div className="flex gap-4 pt-4">
+                                    <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-14 rounded-2xl text-neutral-400 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">Annuler</button>
+                                    <button type="submit" className="flex-[2] h-14 bg-neutral-900 dark:bg-white text-white dark:text-black font-black rounded-2xl hover:bg-neutral-800 dark:hover:bg-neutral-100 shadow-xl transition-all active:scale-95">
+                                        {selectedEvent ? 'Mettre à jour' : 'Confirmer'}
                                     </button>
                                     {selectedEvent && (
-                                        <button type="button" onClick={handleDelete} className="w-14 h-14 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center hover:bg-rose-100 transition-all font-inter font-inter"><X size={24} /></button>
+                                        <button type="button" onClick={handleDelete} className="w-14 h-14 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-2xl flex items-center justify-center hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all"><X size={24} /></button>
                                     )}
                                 </div>
                             </form>
@@ -469,18 +509,27 @@ export default function CalendarPage() {
                     letter-spacing: 0.1em !important;
                     color: #9CA3AF !important;
                     border-bottom: 1px solid #F3F4F6 !important;
-                    background: #FBFBFD !important;
+                    background: transparent !important;
                 }
+                .dark .calendar-apple-style .rbc-header { border-bottom-color: #262626 !important; }
+
                 .calendar-apple-style .rbc-calendar { font-family: 'Inter', sans-serif !important; border: none !important; }
                 .calendar-apple-style .rbc-month-view { border: none !important; }
                 .calendar-apple-style .rbc-day-bg { border-left: 1px solid #F3F4F6 !important; }
+                .dark .calendar-apple-style .rbc-day-bg { border-left-color: #262626 !important; }
+
                 .calendar-apple-style .rbc-month-row { border-top: 1px solid #F3F4F6 !important; }
-                .calendar-apple-style .rbc-today { background-color: #F0F7FF !important; }
+                .dark .calendar-apple-style .rbc-month-row { border-top-color: #262626 !important; }
+
+                .calendar-apple-style .rbc-today { background-color: rgba(0, 122, 255, 0.05) !important; }
+                .dark .calendar-apple-style .rbc-today { background-color: rgba(0, 122, 255, 0.1) !important; }
+
                 .calendar-apple-style .rbc-off-range-bg { background: transparent !important; opacity: 0.3 !important; }
                 .calendar-apple-style .rbc-event { border: none !important; padding: 0 !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important; }
                 .calendar-apple-style .rbc-show-more { color: #1056BB !important; font-weight: 800 !important; font-size: 10px !important; text-transform: uppercase !important; }
-                .calendar-apple-style .rbc-toolbar { border-bottom: none !important; margin-bottom: 20px !important; }
-                .calendar-apple-style .rbc-toolbar-label { font-size: 1.25rem !important; font-weight: 800 !important; color: #111827 !important; }
+                .calendar-apple-style .rbc-toolbar { border-bottom: none !important; margin-bottom: 24px !important; }
+                .calendar-apple-style .rbc-toolbar-label { font-size: 1.5rem !important; font-weight: 800 !important; color: var(--foreground) !important; }
+                
                 .calendar-apple-style .rbc-btn-group button { 
                     border: 1px solid #F3F4F6 !important; 
                     background: white !important; 
@@ -492,8 +541,23 @@ export default function CalendarPage() {
                     margin: 2px !important; 
                     transition: all 0.2s !important;
                 }
+                .dark .calendar-apple-style .rbc-btn-group button { 
+                    border-color: #262626 !important; 
+                    background: #171717 !important; 
+                    color: #A3A3A3 !important; 
+                }
                 .calendar-apple-style .rbc-btn-group button:hover { background: #F9FAFB !important; color: #111827 !important; }
+                .dark .calendar-apple-style .rbc-btn-group button:hover { background: #262626 !important; color: white !important; }
+                
                 .calendar-apple-style .rbc-btn-group button.rbc-active { background: #111827 !important; color: white !important; border-color: #111827 !important; }
+                .dark .calendar-apple-style .rbc-btn-group button.rbc-active { background: white !important; color: black !important; border-color: white !important; }
+
+                .rbc-time-view, .rbc-agenda-view { border: none !important; }
+                .rbc-time-header-content { border-left: 1px solid #F3F4F6 !important; }
+                .dark .rbc-time-header-content { border-left-color: #262626 !important; }
+                .rbc-timeslot-group { border-bottom: 1px solid #F3F4F6 !important; }
+                .dark .rbc-timeslot-group { border-bottom-color: #262626 !important; }
+                .rbc-day-slot .rbc-events-container { margin-right: 10px !important; }
             `}</style>
         </motion.div>
     );

@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RepairTrack DZ - Suivi de Réparation",
-  description: "Suivez vos réparations en temps réel. Simple, rapide et transparent.",
+  title: "Fixwave - Votre Service Après-Vente Premium",
+  description: "La solution ultime de suivi de réparation en Algérie. Performance, transparence et satisfaction client.",
 };
 
 export default function RootLayout({

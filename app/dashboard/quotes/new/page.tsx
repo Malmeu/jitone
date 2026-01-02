@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Save, Send } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Send, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -178,80 +178,92 @@ export default function NewQuotePage() {
     const { subtotal, tax_amount, total } = calculateTotals();
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-[1600px] mx-auto pb-24 px-4 md:px-8 font-inter">
             {/* Header */}
-            <div className="mb-8">
+            <div className="mb-12">
                 <Link
                     href="/dashboard/quotes"
-                    className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900 mb-4"
+                    className="inline-flex items-center gap-2 text-neutral-500 hover:text-foreground mb-6 transition-colors font-bold uppercase text-[10px] tracking-widest"
                 >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={14} />
                     Retour aux devis
                 </Link>
-                <h1 className="text-2xl font-bold text-neutral-900 mb-2">Nouveau Devis</h1>
-                <p className="text-neutral-500">Créez un devis professionnel pour votre client</p>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">Nouveau Document</span>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight mb-2">Éditer un Devis</h1>
+                        <p className="text-lg text-neutral-500 font-medium">Structurez vos offres commerciales avec précision et élégance.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Formulaire principal */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-8 space-y-8">
                     {/* Informations générales */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                        <h2 className="text-lg font-bold text-neutral-900 mb-4">Informations</h2>
+                    <div className="bg-card rounded-[2.5rem] border border-neutral-100 dark:border-neutral-800 shadow-soft p-8">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl flex items-center justify-center text-neutral-400">
+                                <FileText size={18} />
+                            </div>
+                            <h2 className="text-xl font-bold text-foreground tracking-tight">Configuration Document</h2>
+                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                    Client *
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2 px-1">
+                                    Client Distinataire
                                 </label>
                                 <select
                                     value={formData.client_id}
                                     onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    className="w-full px-5 py-4 bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-foreground"
                                     required
                                 >
                                     <option value="">Sélectionner un client</option>
                                     {clients.map(client => (
-                                        <option key={client.id} value={client.id}>
-                                            {client.name} - {client.phone}
+                                        <option key={client.id} value={client.id} className="bg-white dark:bg-neutral-900">
+                                            {client.name} ({client.phone})
                                         </option>
                                     ))}
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2 px-1">
                                     Date d'émission
                                 </label>
                                 <input
                                     type="date"
                                     value={formData.issue_date}
                                     onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    className="w-full px-5 py-4 bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-foreground"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                    Valide jusqu'au
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2 px-1">
+                                    Échéance Validité
                                 </label>
                                 <input
                                     type="date"
                                     value={formData.valid_until}
                                     onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    className="w-full px-5 py-4 bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-foreground"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                    TVA (%)
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2 px-1">
+                                    Taux de Taxe (%)
                                 </label>
                                 <input
                                     type="number"
                                     value={formData.tax_rate}
                                     onChange={(e) => setFormData({ ...formData, tax_rate: parseFloat(e.target.value) || 0 })}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    className="w-full px-5 py-4 bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-foreground"
                                     min="0"
                                     step="0.01"
                                 />
@@ -260,83 +272,81 @@ export default function NewQuotePage() {
                     </div>
 
                     {/* Lignes du devis */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-bold text-neutral-900">Articles / Services</h2>
+                    <div className="bg-card rounded-[2.5rem] border border-neutral-100 dark:border-neutral-800 shadow-soft p-8">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-xl font-bold text-foreground tracking-tight">Postes & Prestations</h2>
                             <button
                                 onClick={addItem}
-                                className="flex items-center gap-2 text-primary hover:text-primary/80 font-medium text-sm"
+                                className="flex items-center gap-2 text-primary hover:text-primary/80 font-black text-[10px] uppercase tracking-widest"
                             >
-                                <Plus size={18} />
-                                Ajouter une ligne
+                                <Plus size={16} />
+                                Nouveau Poste
                             </button>
                         </div>
 
                         <div className="space-y-4">
                             {items.map((item, index) => (
-                                <div key={item.id} className="border border-gray-200 rounded-xl p-4">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-1 space-y-3">
-                                            <div>
-                                                <label className="block text-xs font-medium text-neutral-600 mb-1">
-                                                    Description *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={item.description}
-                                                    onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                                                    placeholder="Ex: Réparation écran iPhone 13"
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-                                                />
-                                            </div>
+                                <div key={item.id} className="group relative bg-neutral-50/50 dark:bg-neutral-900/30 border border-neutral-100 dark:border-neutral-800 rounded-[2rem] p-6 transition-all hover:bg-white dark:hover:bg-neutral-900/50 hover:shadow-soft">
+                                    <div className="flex items-start gap-6">
+                                        <div className="flex-1 space-y-4">
+                                            <div className="grid grid-cols-12 gap-4">
+                                                <div className="col-span-12 md:col-span-7">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-1.5 px-1">
+                                                        Description du service
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.description}
+                                                        onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                                                        placeholder="Ex: Main d'oeuvre spécialisée"
+                                                        className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold text-foreground"
+                                                    />
+                                                </div>
 
-                                            <div className="grid grid-cols-3 gap-3">
-                                                <div>
-                                                    <label className="block text-xs font-medium text-neutral-600 mb-1">
-                                                        Quantité
+                                                <div className="col-span-12 md:col-span-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-1.5 px-1">
+                                                        Qté
                                                     </label>
                                                     <input
                                                         type="number"
                                                         value={item.quantity}
                                                         onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                                                        className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold text-foreground text-center"
                                                         min="0"
                                                         step="0.01"
                                                     />
                                                 </div>
 
-                                                <div>
-                                                    <label className="block text-xs font-medium text-neutral-600 mb-1">
-                                                        Prix unitaire (DA)
+                                                <div className="col-span-12 md:col-span-3">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-1.5 px-1 text-right">
+                                                        Unit. (DA)
                                                     </label>
                                                     <input
                                                         type="number"
                                                         value={item.unit_price}
                                                         onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                                                        className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold text-foreground text-right"
                                                         min="0"
                                                         step="0.01"
                                                     />
                                                 </div>
+                                            </div>
 
-                                                <div>
-                                                    <label className="block text-xs font-medium text-neutral-600 mb-1">
-                                                        Total (DA)
-                                                    </label>
-                                                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold text-neutral-900">
-                                                        {item.total.toLocaleString('fr-DZ')}
-                                                    </div>
-                                                </div>
+                                            <div className="flex items-center justify-between pt-2 border-t border-dashed border-neutral-200 dark:border-neutral-800">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Total ligne</span>
+                                                <span className="font-black text-foreground">
+                                                    {item.total.toLocaleString('fr-DZ')} <span className="text-[10px] text-neutral-400">DA</span>
+                                                </span>
                                             </div>
                                         </div>
 
                                         {items.length > 1 && (
                                             <button
                                                 onClick={() => removeItem(item.id)}
-                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-6"
+                                                className="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all self-start mt-6 group-hover:scale-110"
                                                 title="Supprimer"
                                             >
-                                                <Trash2 size={18} />
+                                                <Trash2 size={16} />
                                             </button>
                                         )}
                                     </div>
@@ -346,33 +356,38 @@ export default function NewQuotePage() {
                     </div>
 
                     {/* Notes et conditions */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
-                        <h2 className="text-lg font-bold text-neutral-900 mb-4">Notes et Conditions</h2>
+                    <div className="bg-card rounded-[2.5rem] border border-neutral-100 dark:border-neutral-800 shadow-soft p-8">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl flex items-center justify-center text-neutral-400">
+                                <Plus size={18} />
+                            </div>
+                            <h2 className="text-xl font-bold text-foreground tracking-tight">Mentions Obligatoires & Notes</h2>
+                        </div>
 
-                        <div className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                    Notes internes
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2 px-1">
+                                    Notes Internes (privé)
                                 </label>
                                 <textarea
                                     value={formData.notes}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    rows={3}
-                                    placeholder="Notes visibles uniquement par vous..."
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                                    rows={4}
+                                    placeholder="Précisions techniques, contexte..."
+                                    className="w-full px-5 py-4 bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all text-sm font-medium text-foreground resize-none"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                    Conditions générales
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-2 px-1">
+                                    Conditions de Vente (public)
                                 </label>
                                 <textarea
                                     value={formData.terms_conditions}
                                     onChange={(e) => setFormData({ ...formData, terms_conditions: e.target.value })}
                                     rows={4}
-                                    placeholder="Conditions qui apparaîtront sur le devis..."
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                                    placeholder="Validité, Garanties, Paiement..."
+                                    className="w-full px-5 py-4 bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all text-sm font-medium text-foreground resize-none"
                                 />
                             </div>
                         </div>
@@ -380,83 +395,79 @@ export default function NewQuotePage() {
                 </div>
 
                 {/* Résumé */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sticky top-6">
-                        <h2 className="text-lg font-bold text-neutral-900 mb-4">Résumé</h2>
+                <div className="lg:col-span-4">
+                    <div className="bg-neutral-900 dark:bg-white rounded-[2.5rem] shadow-heavy p-8 text-white dark:text-black sticky top-8">
+                        <h2 className="text-xl font-bold mb-8 tracking-tight">Résumé de l'offre</h2>
 
-                        <div className="space-y-3 mb-6">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-neutral-600">Sous-total</span>
-                                <span className="font-medium text-neutral-900">
+                        <div className="space-y-5 mb-8">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-neutral-400 dark:text-neutral-500 font-bold uppercase tracking-widest text-[10px]">Total Hors Taxes</span>
+                                <span className="font-bold">
                                     {subtotal.toLocaleString('fr-DZ')} DA
                                 </span>
                             </div>
 
                             {formData.tax_rate > 0 && (
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-neutral-600">TVA ({formData.tax_rate}%)</span>
-                                    <span className="font-medium text-neutral-900">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-neutral-400 dark:text-neutral-500 font-bold uppercase tracking-widest text-[10px]">Taxe collectée ({formData.tax_rate}%)</span>
+                                    <span className="font-bold">
                                         {tax_amount.toLocaleString('fr-DZ')} DA
                                     </span>
                                 </div>
                             )}
 
-                            {formData.discount_amount > 0 && (
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-neutral-600">Remise</span>
-                                    <span className="font-medium text-red-600">
-                                        -{formData.discount_amount.toLocaleString('fr-DZ')} DA
-                                    </span>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-neutral-400 dark:text-neutral-500 font-bold uppercase tracking-widest text-[10px]">Geste Commercial</span>
+                                <div className="w-32">
+                                    <input
+                                        type="number"
+                                        value={formData.discount_amount}
+                                        onChange={(e) => setFormData({ ...formData, discount_amount: parseFloat(e.target.value) || 0 })}
+                                        className="w-full bg-white/10 dark:bg-neutral-100 border-none rounded-lg px-2 py-1 text-right font-bold text-rose-400 dark:text-rose-600 focus:ring-2 focus:ring-rose-500/50"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </div>
-                            )}
+                            </div>
 
-                            <div className="pt-3 border-t border-gray-200">
-                                <div className="flex justify-between">
-                                    <span className="font-bold text-neutral-900">Total TTC</span>
-                                    <span className="font-bold text-xl text-primary">
-                                        {total.toLocaleString('fr-DZ')} DA
-                                    </span>
+                            <div className="pt-8 border-t border-neutral-800 dark:border-neutral-100 mt-6">
+                                <div className="flex justify-between items-end">
+                                    <span className="font-black uppercase tracking-widest text-[11px] mb-1">Montant TTC</span>
+                                    <div className="text-right">
+                                        <p className="text-4xl font-black text-blue-400 dark:text-blue-600 tracking-tighter leading-none">
+                                            {total.toLocaleString('fr-DZ')}
+                                        </p>
+                                        <span className="text-[10px] font-black uppercase text-neutral-500 mt-2 block tracking-widest">Dinars Algériens</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-neutral-700 mb-2">
-                                Remise (DA)
-                            </label>
-                            <input
-                                type="number"
-                                value={formData.discount_amount}
-                                onChange={(e) => setFormData({ ...formData, discount_amount: parseFloat(e.target.value) || 0 })}
-                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary mb-4"
-                                min="0"
-                                step="0.01"
-                            />
-                        </div>
-
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <button
                                 onClick={() => handleSubmit('draft')}
                                 disabled={loading}
-                                className="w-full flex items-center justify-center gap-2 bg-gray-100 text-neutral-700 px-6 py-3 rounded-xl hover:bg-gray-200 transition-colors font-medium disabled:opacity-50"
+                                className="w-full flex items-center justify-center gap-3 h-14 bg-white/10 dark:bg-neutral-100 text-white dark:text-black hover:bg-white/20 dark:hover:bg-neutral-200 transition-all rounded-2xl font-black text-xs uppercase tracking-widest disabled:opacity-50"
                             >
-                                <Save size={20} />
-                                {loading ? 'Enregistrement...' : 'Enregistrer brouillon'}
+                                <Save size={18} />
+                                {loading ? 'Traitement...' : 'Enregistrer Brouillon'}
                             </button>
 
                             <button
                                 onClick={() => handleSubmit('sent')}
                                 disabled={loading}
-                                className="w-full flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors font-medium disabled:opacity-50"
+                                className="w-full flex items-center justify-center gap-3 h-14 bg-blue-500 hover:bg-blue-600 text-white transition-all rounded-2xl font-black text-xs uppercase tracking-widest disabled:opacity-50 shadow-xl shadow-blue-500/20"
                             >
-                                <Send size={20} />
-                                {loading ? 'Envoi...' : 'Enregistrer et envoyer'}
+                                <Send size={18} />
+                                {loading ? 'Envoi...' : 'Enregistrer & Finaliser'}
                             </button>
                         </div>
 
-                        <p className="text-xs text-neutral-500 mt-4 text-center">
-                            Le numéro de devis sera généré automatiquement
-                        </p>
+                        <div className="mt-8 p-4 bg-white/5 dark:bg-neutral-50 rounded-2xl border border-white/5 dark:border-neutral-100">
+                            <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-bold tracking-tight leading-relaxed text-center">
+                                Le numéro de référence unique sera alloué automatiquement lors de la finalisation du document.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

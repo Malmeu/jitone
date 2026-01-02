@@ -3,102 +3,129 @@
 import { Button } from '@/components/ui/Button';
 import { Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const plans = [
     {
-        name: "Starter",
+        name: "Essentiel",
         price: "2000",
         currency: "DA",
-        period: "/mois",
-        description: "Pour les petits ateliers indépendants.",
+        period: "/ mois",
+        description: "Idéal pour les techniciens indépendants qui débutent.",
         features: [
-            "Jusqu'à 50 réparations / mois",
-            "Gestion clients basique",
-            "Tableau de bord standard",
-            "Support par email"
+            "50 réparations / mois",
+            "Suivi client temps réel",
+            "Gestion clients standard",
+            "Support par email",
+            "Tickets de dépôt PDF"
         ],
-        cta: "Commencer l'essai",
+        cta: "Lancer l'aventure",
         popular: false
     },
     {
-        name: "Pro",
+        name: "Pro Performance",
         price: "5000",
         currency: "DA",
-        period: "/mois",
-        description: "Pour les boutiques en croissance.",
+        period: "/ mois",
+        description: "La puissance totale pour les ateliers ambitieux.",
         features: [
-            "Réparations illimitées",
-            "Notifications SMS auto",
-            "Multi-comptes (3 employés)",
-            "Statistiques avancées",
-            "Support prioritaire 7/7",
-            "Impression tickets"
+            "Réparations Illimitées",
+            "SMS & WhatsApp automatiques",
+            "Gestion de stock avancée",
+            "Multi-techniciens (3 accès)",
+            "Statistiques de revenus live",
+            "Support prioritaire 24/7"
         ],
-        cta: "Essayer gratuitement",
+        cta: "Commencer Gratuitement",
         popular: true
     }
 ];
 
 export function Pricing() {
     return (
-        <section id="pricing" className="py-24 relative overflow-hidden bg-neutral-50/50">
+        <section id="pricing" className="py-40 bg-white relative overflow-hidden">
             <div className="container mx-auto px-6 md:px-12 relative z-10">
-                <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-5xl font-bold text-neutral-900 mb-6">
-                        Tarifs simples et transparents
+                <div className="text-center max-w-3xl mx-auto mb-24">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="inline-block px-4 py-1.5 bg-neutral-100 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 mb-6"
+                    >
+                        Investissement Rentable
+                    </motion.div>
+                    <h2 className="text-4xl md:text-6xl font-black text-neutral-900 mb-8 tracking-tight">
+                        Une tarification qui <br />
+                        <span className="text-primary italic">respecte votre croissance.</span>
                     </h2>
-                    <p className="text-lg text-neutral-600">
-                        Commencez gratuitement pendant 14 jours. Pas de carte bancaire requise.
+                    <p className="text-lg md:text-xl text-neutral-500 font-medium leading-relaxed">
+                        Testez gratuitement pendant 14 jours, sans engagement et sans carte bancaire.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto items-center">
                     {plans.map((plan, idx) => (
                         <motion.div
                             key={idx}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1 }}
-                            className={`relative p-8 rounded-[2rem] border transition-all duration-300 ${plan.popular
-                                    ? 'bg-neutral-900 text-white border-neutral-900 shadow-2xl scale-105 z-10'
-                                    : 'bg-white text-neutral-900 border-gray-200 hover:border-gray-300 hover:shadow-xl'
+                            transition={{ delay: idx * 0.1, duration: 0.8 }}
+                            className={`relative p-12 rounded-[3.5rem] border transition-all duration-700 overflow-hidden ${plan.popular
+                                ? 'bg-neutral-900 text-white border-neutral-800 shadow-heavy py-16'
+                                : 'bg-white text-neutral-900 border-neutral-100 hover:border-primary/20 hover:shadow-medium'
                                 }`}
                         >
                             {plan.popular && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg shadow-primary/30">
-                                    Le plus populaire
-                                </div>
+                                <>
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px] -mr-32 -mt-32" />
+                                    <div className="absolute top-8 right-8 bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
+                                        Recommandé
+                                    </div>
+                                </>
                             )}
 
-                            <div className="mb-8">
-                                <h3 className={`text-xl font-medium mb-2 ${plan.popular ? 'text-gray-300' : 'text-neutral-500'}`}>{plan.name}</h3>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
-                                    <span className={`text-xl font-medium ${plan.popular ? 'text-gray-400' : 'text-neutral-400'}`}>{plan.currency}</span>
-                                    <span className="text-gray-500">{plan.period}</span>
+                            <div className="mb-12">
+                                <h3 className={`text-sm font-black uppercase tracking-[0.2em] mb-6 ${plan.popular ? 'text-primary' : 'text-neutral-400'}`}>
+                                    {plan.name}
+                                </h3>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-6xl font-black tracking-tighter">{plan.price}</span>
+                                    <span className={`text-xl font-bold ${plan.popular ? 'text-white/40' : 'text-neutral-300'}`}>
+                                        {plan.currency}
+                                    </span>
+                                    <span className={`text-lg font-medium ${plan.popular ? 'text-white/20' : 'text-neutral-300'}`}>
+                                        {plan.period}
+                                    </span>
                                 </div>
-                                <p className={`mt-4 ${plan.popular ? 'text-gray-400' : 'text-neutral-500'}`}>{plan.description}</p>
+                                <p className={`mt-6 font-medium ${plan.popular ? 'text-white/50' : 'text-neutral-500'}`}>
+                                    {plan.description}
+                                </p>
                             </div>
 
-                            <ul className="space-y-4 mb-8">
+                            <ul className="space-y-5 mb-12">
                                 {plan.features.map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-3">
-                                        <div className={`p-1 rounded-full ${plan.popular ? 'bg-primary/20 text-primary' : 'bg-green-100 text-green-600'}`}>
-                                            <Check size={14} strokeWidth={3} />
+                                    <li key={i} className="flex items-center gap-4">
+                                        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${plan.popular ? 'bg-primary/20 text-primary' : 'bg-primary/10 text-primary'}`}>
+                                            <Check size={12} strokeWidth={4} />
                                         </div>
-                                        <span className={plan.popular ? 'text-gray-300' : 'text-neutral-700'}>{feature}</span>
+                                        <span className={`text-sm font-medium ${plan.popular ? 'text-white/80' : 'text-neutral-600'}`}>
+                                            {feature}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>
 
-                            <Button
-                                className="w-full"
-                                variant={plan.popular ? 'primary' : 'outline'}
-                                size="lg"
-                            >
-                                {plan.cta}
-                            </Button>
+                            <Link href="/register" className="block">
+                                <Button
+                                    className={`w-full h-16 rounded-[1.5rem] font-black text-lg transition-all active:scale-95 ${plan.popular
+                                        ? 'bg-primary hover:bg-primary-hover text-white border-transparent shadow-xl shadow-primary/20'
+                                        : 'bg-white hover:bg-neutral-50 text-neutral-900 border-neutral-100 shadow-soft'}`}
+                                    variant={plan.popular ? 'primary' : 'outline'}
+                                >
+                                    {plan.cta}
+                                </Button>
+                            </Link>
                         </motion.div>
                     ))}
                 </div>

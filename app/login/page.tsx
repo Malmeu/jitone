@@ -41,13 +41,8 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
 
-            <Link href="/" className="mb-8 flex items-center gap-2 group">
-                <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                    <Wrench className="w-6 h-6 text-primary" />
-                </div>
-                <span className="font-bold text-2xl tracking-tight text-neutral-900">
-                    Repair<span className="text-primary">Track</span>
-                </span>
+            <Link href="/" className="mb-10 flex items-center justify-center group active:scale-95 transition-transform">
+                <img src="/logoFixwave.webp" alt="Fixwave" className="h-8 w-auto" />
             </Link>
 
             <motion.div

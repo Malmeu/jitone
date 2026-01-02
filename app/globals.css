@@ -5,16 +5,17 @@
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
+  --color-card: var(--card);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-neutral: var(--neutral);
-  --color-card: var(--card);
+  --color-border: var(--border);
 
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --shadow-heavy: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
 }
 
 :root {
@@ -26,35 +27,26 @@
   --success: #34C759;
   --warning: #FF9500;
   --neutral: #8E8E93;
+  --border: #F2F2F7;
 }
 
-/* Optional Dark Mode - keeping it minimal for now to focus on the requested light aesthetic */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* --background: #000000;
-    --foreground: #EDEDED;
-    --card: #1C1C1E; */
+@layer base {
+  body {
+    @apply bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300;
+    font-family: var(--font-sans);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-}
-
-/* Utility classes for Glassmorphism */
+/* Glassmorphism improvements */
 .glass {
+  @apply backdrop-blur-md;
   background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .glass-card {
+  @apply backdrop-blur-xl shadow-[var(--shadow-glass)];
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow-glass);
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 

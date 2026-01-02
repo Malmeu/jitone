@@ -36,13 +36,8 @@ export function Navbar() {
                     isScrolled ? "bg-white/70 backdrop-blur-xl shadow-glass border border-white/40" : "bg-transparent"
                 )}>
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                            <Wrench className="w-5 h-5 text-primary" />
-                        </div>
-                        <span className="font-bold text-xl tracking-tight text-neutral-900">
-                            Repair<span className="text-primary">Track</span>
-                        </span>
+                    <Link href="/" className="flex items-center gap-2 group transition-transform active:scale-95">
+                        <img src="/logoFixwave.webp" alt="Fixwave" className="h-7 w-auto" />
                     </Link>
 
                     {/* Desktop Nav */}

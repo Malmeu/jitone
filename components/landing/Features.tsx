@@ -7,63 +7,92 @@ const features = [
     {
         icon: Clock,
         title: "Suivi en Temps Réel",
-        description: "Vos clients suivent chaque étape de la réparation sans vous appeler."
-    },
-    {
-        icon: Smartphone,
-        title: "Notifications SMS",
-        description: "Envoi automatique de SMS ( et WhatsApp ) à chaque changement de statut."
-    },
-    {
-        icon: ShieldCheck,
-        title: "Espace Sécurisé",
-        description: "Données cryptées et sauvegardées. Accès protégé pour chaque boutique."
+        description: "Offrez à vos clients une visibilité totale sur l'avancement technique de leur matériel.",
+        color: "bg-blue-500",
+        light: "bg-blue-50"
     },
     {
         icon: Zap,
-        title: "QR Code Instantané",
-        description: "Générez un code unique pour chaque réparation. Scan rapide pour le client."
+        title: "Rapidité Fixwave",
+        description: "Encaissez, générez des tickets et gérez vos stocks en quelques secondes seulement.",
+        color: "bg-amber-500",
+        light: "bg-amber-50"
+    },
+    {
+        icon: Smartphone,
+        title: "Notifications Smart",
+        description: "Envoyez des alertes automatiques par SMS et WhatsApp dès que l'appareil est prêt.",
+        color: "bg-emerald-500",
+        light: "bg-emerald-50"
+    },
+    {
+        icon: ShieldCheck,
+        title: "Sécurité Maximale",
+        description: "Vos données et celles de vos clients sont protégées par les standards bancaires.",
+        color: "bg-indigo-500",
+        light: "bg-indigo-50"
     },
     {
         icon: PieChart,
-        title: "Statistiques Claires",
-        description: "Suivez votre chiffre d&apos;affaires, nombre de réparations et performance."
+        title: "Analytique Premium",
+        description: "Visualisez vos revenus et vos performances avec des tableaux de bord élégants.",
+        color: "bg-rose-500",
+        light: "bg-rose-50"
     },
     {
         icon: Users,
-        title: "Gestion Clients",
-        description: "Historique complet des réparations par client. Fidélisation simplifiée."
+        title: "Expérience Client",
+        description: "Fidélisez votre clientèle avec une interface de suivi digne des plus grandes marques.",
+        color: "bg-sky-500",
+        light: "bg-sky-50"
     }
 ];
 
 export function Features() {
     return (
-        <section id="features" className="py-24 bg-white relative">
-            <div className="container mx-auto px-6 md:px-12">
-                <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-5xl font-bold text-neutral-900 mb-6">
-                        Tout ce dont vous avez besoin pour gérer votre atelier
+        <section id="features" className="py-32 bg-[#FAFAFA] relative overflow-hidden">
+            <div className="container mx-auto px-6 md:px-12 relative z-10">
+                <div className="text-center max-w-3xl mx-auto mb-24">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="inline-block px-4 py-1.5 bg-neutral-100 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 mb-6"
+                    >
+                        Performance & Élégance
+                    </motion.div>
+                    <h2 className="text-4xl md:text-6xl font-black text-neutral-900 mb-8 tracking-tight">
+                        L'art de gérer votre <br />
+                        <span className="text-primary italic">atelier de réparation.</span>
                     </h2>
-                    <p className="text-lg text-neutral-600">
-                        Une suite d'outils puissants conçus pour simplifier votre quotidien et impressionner vos clients.
+                    <p className="text-lg md:text-xl text-neutral-500 font-medium leading-relaxed">
+                        Chaque aspect de Fixwave a été pensé pour transformer la complexité technique en une simplicité visuelle rafraîchissante.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
                     {features.map((feature, idx) => (
                         <motion.div
                             key={idx}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="group p-8 rounded-3xl bg-neutral-50 hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-xl transition-all duration-300"
+                            transition={{ delay: idx * 0.1, duration: 0.8 }}
+                            className="group p-10 rounded-[2.5rem] bg-white border border-neutral-100 hover:border-primary/20 hover:shadow-heavy transition-all duration-700 relative overflow-hidden"
                         >
-                            <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300 text-primary">
-                                <feature.icon className="w-7 h-7" />
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[60px] translate-x-16 -translate-y-16 group-hover:scale-150 transition-transform duration-1000" />
+
+                            <div className={`w-16 h-16 rounded-2xl ${feature.light} flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                                <feature.icon className={`w-8 h-8 ${feature.color.replace('bg-', 'text-')}`} />
                             </div>
-                            <h3 className="text-xl font-semibold text-neutral-900 mb-3">{feature.title}</h3>
-                            <p className="text-neutral-600 leading-relaxed">{feature.description}</p>
+
+                            <h3 className="text-2xl font-black text-neutral-900 mb-4 tracking-tight group-hover:text-primary transition-colors">{feature.title}</h3>
+                            <p className="text-neutral-500 font-medium leading-relaxed">{feature.description}</p>
+
+                            <div className="mt-8 pt-8 border-t border-neutral-50 flex items-center gap-2 text-[10px] font-black text-neutral-300 uppercase tracking-widest group-hover:text-primary transition-colors">
+                                <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                                Inclus dans la solution
+                            </div>
                         </motion.div>
                     ))}
                 </div>

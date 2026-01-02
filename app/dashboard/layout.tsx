@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone, Package } from 'lucide-react';
+import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone, Package, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -31,6 +31,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [loading, setLoading] = useState(true);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        // Nettoyage forcé du thème au cas où
+        document.documentElement.classList.remove('dark');
+        localStorage.removeItem('theme');
+    }, []);
 
     useEffect(() => {
         const checkUser = async () => {
@@ -102,27 +108,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     return (
-        <div className="flex h-screen bg-[#FBFBFD] text-neutral-900 font-sans selection:bg-primary/10 selection:text-primary">
+        <div className="flex h-screen bg-background text-foreground font-sans selection:bg-primary/10 selection:text-primary">
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-neutral-100 z-30 px-6 py-4 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2">
-                    <div className="bg-primary/10 p-2 rounded-2xl">
-                        <Wrench className="w-5 h-5 text-primary" />
-                    </div>
-                    <span className="font-bold text-lg tracking-tight">
-                        Repair<span className="text-primary">Track</span>
-                    </span>
+                    <img src="/logoFixwave.webp" alt="Fixwave" className="h-7 w-auto" />
                 </Link>
-                <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="p-2.5 bg-neutral-50 hover:bg-neutral-100 rounded-2xl transition-all active:scale-95"
-                >
-                    {mobileMenuOpen ? (
-                        <X className="w-6 h-6 text-neutral-900" />
-                    ) : (
-                        <Menu className="w-6 h-6 text-neutral-900" />
-                    )}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="p-2.5 bg-neutral-50 hover:bg-neutral-100 rounded-2xl transition-all active:scale-95"
+                    >
+                        {mobileMenuOpen ? (
+                            <X className="w-6 h-6 text-neutral-900" />
+                        ) : (
+                            <Menu className="w-6 h-6 text-neutral-900" />
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Sidebars/Menus */}
@@ -133,7 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+                            className="md:hidden fixed inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-sm z-40"
                             onClick={() => setMobileMenuOpen(false)}
                         />
                         <motion.aside
@@ -141,16 +144,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             animate={{ x: 0 }}
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="md:hidden fixed inset-y-0 left-0 w-72 bg-white z-50 flex flex-col shadow-2xl"
+                            className="md:hidden fixed inset-y-0 left-0 w-72 bg-card z-50 flex flex-col shadow-2xl"
                         >
                             <div className="p-8 flex items-center justify-between">
                                 <Link href="/" className="flex items-center gap-2">
-                                    <div className="bg-primary/10 p-2 rounded-2xl">
-                                        <Wrench className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <span className="font-bold text-xl tracking-tight">RepairTrack</span>
+                                    <img src="/logoFixwave.webp" alt="Fixwave" className="h-7 w-auto" />
                                 </Link>
-                                <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-xl bg-neutral-50">
+                                <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-foreground">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     return (
                                         <Link key={item.href} href={item.href} className={`
                                             flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300
-                                            ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 font-bold' : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900'}
+                                            ${isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 font-bold' : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:text-foreground'}
                                         `}>
                                             <item.icon size={22} className={isActive ? 'text-white' : 'text-neutral-400'} />
                                             <span className="text-sm">{item.label}</span>
@@ -170,11 +170,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 })}
                             </nav>
 
-                            <div className="p-6 border-t border-neutral-100 space-y-3">
+                            <div className="p-6 border-t border-neutral-100 dark:border-neutral-800 space-y-3">
                                 {isAdmin && (
                                     <Link
                                         href="/admin"
-                                        className="flex items-center gap-3.5 px-5 py-4 w-full bg-red-50 text-red-600 rounded-2xl transition-all text-sm font-bold"
+                                        className="flex items-center gap-3.5 px-5 py-4 w-full bg-red-50 dark:bg-red-900/10 text-red-600 rounded-2xl transition-all text-sm font-bold"
                                     >
                                         <Shield size={22} />
                                         Admin Panel
@@ -182,7 +182,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 )}
                                 <button
                                     onClick={handleLogout}
-                                    className="flex items-center gap-3.5 px-5 py-4 w-full text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all text-sm font-bold"
+                                    className="flex items-center gap-3.5 px-5 py-4 w-full text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl transition-all text-sm font-bold"
                                 >
                                     <LogOut size={22} />
                                     Déconnexion
@@ -194,15 +194,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </AnimatePresence>
 
             {/* Desktop Sidebar */}
-            <aside className="w-72 bg-white border-r border-neutral-100 hidden md:flex flex-col fixed inset-y-0 z-20">
-                <div className="p-10">
+            <aside className="w-72 bg-card border-r border-neutral-100 dark:border-neutral-800 hidden md:flex flex-col fixed inset-y-0 z-20">
+                <div className="p-10 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="bg-primary/10 p-2.5 rounded-[1.25rem] group-hover:scale-110 transition-transform duration-500">
-                            <Wrench className="w-6 h-6 text-primary" />
-                        </div>
-                        <span className="font-black text-xl tracking-tight text-neutral-900">
-                            Repair<span className="text-primary italic">Track</span>
-                        </span>
+                        <img src="/logoFixwave.webp" alt="Fixwave" className="h-8 w-auto group-hover:scale-110 transition-transform duration-500" />
                     </Link>
                 </div>
 
@@ -211,11 +206,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         const isActive = pathname === item.href;
                         return (
                             <Link key={item.href} href={item.href} className={`
-                                flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300 relative group
-                                ${isActive
+                            flex items-center gap-3.5 px-5 py-4 rounded-2xl transition-all duration-300 relative group
+                            ${isActive
                                     ? 'bg-neutral-900 text-white shadow-xl shadow-neutral-200 font-bold'
-                                    : 'text-neutral-500 hover:bg-[#FBFBFD] hover:text-neutral-900'}
-                            `}>
+                                    : 'text-neutral-500 hover:bg-neutral-50 hover:text-foreground'}
+                        `}>
                                 <item.icon size={20} className={isActive ? 'text-primary' : 'text-neutral-400 group-hover:text-neutral-600 transition-colors'} />
                                 <span className="text-[15px]">{item.label}</span>
                                 {isActive && (
@@ -230,10 +225,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </nav>
 
                 <div className="p-8 border-t border-neutral-100 space-y-3">
+
                     {isAdmin && (
                         <Link
                             href="/admin"
-                            className="flex items-center gap-3.5 px-5 py-4 w-full bg-red-50/50 text-red-600 hover:bg-red-50 rounded-2xl transition-all text-[13px] font-black uppercase tracking-widest"
+                            className="flex items-center gap-3.5 px-5 py-4 w-full bg-red-50 dark:bg-red-900/10 text-red-600 hover:bg-red-50 rounded-2xl transition-all text-[13px] font-black uppercase tracking-widest"
                         >
                             <Shield size={20} />
                             Admin Space
@@ -241,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     )}
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3.5 px-5 py-4 w-full text-neutral-400 hover:text-red-500 hover:bg-red-50/50 rounded-2xl transition-all text-sm font-bold group"
+                        className="flex items-center gap-3.5 px-5 py-4 w-full text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl transition-all text-sm font-bold group"
                     >
                         <LogOut size={20} className="group-hover:rotate-12 transition-transform" />
                         Déconnexion
@@ -250,7 +246,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto md:ml-72 bg-[#FBFBFD]">
+            <main className="flex-1 overflow-y-auto md:ml-72 bg-background">
                 <div className="max-w-[1600px] mx-auto p-6 md:p-12 md:pt-16 pt-24">
                     {children}
                 </div>

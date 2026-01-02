@@ -67,11 +67,11 @@ export default function QuotesPage() {
 
     const getStatusBadge = (status: string) => {
         const badges = {
-            draft: { label: 'Brouillon', color: 'bg-neutral-100 text-neutral-500' },
-            sent: { label: 'Envoyé', color: 'bg-blue-50 text-blue-500' },
-            accepted: { label: 'Accepté', color: 'bg-emerald-50 text-emerald-500' },
-            rejected: { label: 'Refusé', color: 'bg-rose-50 text-rose-500' },
-            expired: { label: 'Expiré', color: 'bg-amber-50 text-amber-500' },
+            draft: { label: 'Brouillon', color: 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400' },
+            sent: { label: 'Envoyé', color: 'bg-blue-50 text-blue-500 dark:bg-blue-900/20 dark:text-blue-400' },
+            accepted: { label: 'Accepté', color: 'bg-emerald-50 text-emerald-500 dark:bg-emerald-900/20 dark:text-emerald-400' },
+            rejected: { label: 'Refusé', color: 'bg-rose-50 text-rose-500 dark:bg-rose-900/20 dark:text-rose-400' },
+            expired: { label: 'Expiré', color: 'bg-amber-50 text-amber-500 dark:bg-amber-900/20 dark:text-amber-400' },
         };
         const badge = badges[status as keyof typeof badges] || badges.draft;
         return (
@@ -125,7 +125,7 @@ export default function QuotesPage() {
                     </motion.div>
                     <motion.h1
                         variants={itemVariants}
-                        className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight mb-2 font-inter"
+                        className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-2 font-inter"
                     >
                         Devis & Offres
                     </motion.h1>
@@ -139,7 +139,7 @@ export default function QuotesPage() {
                 <motion.div variants={itemVariants}>
                     <Link
                         href="/dashboard/quotes/new"
-                        className="inline-flex items-center h-14 px-8 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white shadow-xl transition-all active:scale-[0.98] font-bold font-inter"
+                        className="inline-flex items-center h-14 px-8 rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100 shadow-xl transition-all active:scale-[0.98] font-bold font-inter"
                     >
                         <Plus className="w-5 h-5 mr-3" />
                         Nouveau Devis
@@ -156,7 +156,7 @@ export default function QuotesPage() {
                         placeholder="Rechercher par numéro de devis, client..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-inter"
+                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-card shadow-sm font-medium text-foreground placeholder-neutral-400"
                     />
                 </div>
                 <div className="lg:col-span-3">
@@ -165,7 +165,7 @@ export default function QuotesPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 appearance-none bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 font-inter"
+                            className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 appearance-none bg-card shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 dark:text-neutral-400 font-inter"
                         >
                             <option value="all">Tous les statuts</option>
                             <option value="draft">Brouillon</option>
@@ -176,24 +176,24 @@ export default function QuotesPage() {
                         </select>
                     </div>
                 </div>
-                <div className="lg:col-span-2 flex items-center justify-center bg-white rounded-2xl border border-neutral-100 shadow-sm px-4 py-4">
-                    <span className="text-xl font-black text-neutral-900 font-inter">{filteredQuotes.length}</span>
+                <div className="lg:col-span-2 flex items-center justify-center bg-card rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm px-4 py-4">
+                    <span className="text-xl font-black text-foreground font-inter">{filteredQuotes.length}</span>
                     <span className="ml-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-inter">Émis</span>
                 </div>
             </motion.div>
 
             {/* List */}
-            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-neutral-100 overflow-hidden font-inter">
+            <motion.div variants={itemVariants} className="bg-card rounded-[2.5rem] shadow-soft border border-neutral-100 dark:border-neutral-800 overflow-hidden font-inter">
                 {filteredQuotes.length === 0 ? (
                     <div className="py-24 text-center">
-                        <div className="w-20 h-20 bg-neutral-50 rounded-[2.5rem] flex items-center justify-center text-neutral-200 mx-auto mb-6">
+                        <div className="w-20 h-20 bg-neutral-50 dark:bg-neutral-900/50 rounded-[2.5rem] flex items-center justify-center text-neutral-200 mx-auto mb-6">
                             <FileText size={40} />
                         </div>
-                        <h3 className="text-xl font-bold text-neutral-900 mb-2">Aucun devis généré</h3>
+                        <h3 className="text-xl font-bold text-foreground mb-2">Aucun devis généré</h3>
                         <p className="text-neutral-400 font-medium mb-8 max-w-md mx-auto">Créez des offres professionnelles et envoyez-les directement à vos clients en quelques clics.</p>
                         <Link
                             href="/dashboard/quotes/new"
-                            className="inline-flex items-center gap-2 bg-neutral-50 text-neutral-900 px-8 py-4 rounded-2xl hover:bg-neutral-100 border border-neutral-100 transition-all font-bold"
+                            className="inline-flex items-center gap-2 bg-neutral-50 dark:bg-neutral-800 text-foreground px-8 py-4 rounded-2xl hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-neutral-100 dark:border-neutral-700 transition-all font-bold"
                         >
                             Créer mon premier devis
                             <ArrowRight size={18} />
@@ -202,7 +202,7 @@ export default function QuotesPage() {
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-[#FBFBFD] text-neutral-400 text-[11px] font-black uppercase tracking-widest">
+                            <thead className="bg-[#FBFBFD] dark:bg-neutral-900/50 text-neutral-400 text-[11px] font-black uppercase tracking-widest">
                                 <tr>
                                     <th className="px-8 py-6">Référence</th>
                                     <th className="px-8 py-6">Propriétaire</th>
@@ -212,38 +212,38 @@ export default function QuotesPage() {
                                     <th className="px-8 py-6 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-neutral-50 font-inter font-inter">
+                            <tbody className="divide-y divide-neutral-50 dark:divide-neutral-800 font-inter font-inter">
                                 {filteredQuotes.map((quote) => (
-                                    <tr key={quote.id} className="group hover:bg-[#FBFBFD]/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
+                                    <tr key={quote.id} className="group hover:bg-[#FBFBFD]/50 dark:hover:bg-neutral-900/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-neutral-50 rounded-xl flex items-center justify-center text-neutral-400 group-hover:scale-110 transition-transform">
+                                                <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl flex items-center justify-center text-neutral-400 group-hover:scale-110 transition-transform">
                                                     <FileText size={20} />
                                                 </div>
                                                 <div>
-                                                    <div className="font-mono text-sm font-black text-neutral-900">{quote.quote_number}</div>
+                                                    <div className="font-mono text-sm font-black text-foreground">{quote.quote_number}</div>
                                                     <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-0.5">Offre technique</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="font-bold text-neutral-700">{quote.client?.name}</div>
+                                            <div className="font-bold text-neutral-700 dark:text-neutral-300">{quote.client?.name}</div>
                                             <div className="text-neutral-400 text-xs mt-1 font-medium">{quote.client?.phone}</div>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1.5 font-medium text-xs">
-                                                <div className="flex items-center gap-2 text-neutral-600">
+                                                <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                                                     Émis: {new Date(quote.issue_date).toLocaleDateString('fr-FR')}
                                                 </div>
                                                 <div className="flex items-center gap-2 text-neutral-400">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-neutral-200" />
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700" />
                                                     Expire: {new Date(quote.valid_until).toLocaleDateString('fr-FR')}
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="font-black text-neutral-900 text-base">
+                                            <div className="font-black text-foreground text-base">
                                                 {quote.total.toLocaleString('fr-DZ')} <span className="text-[10px] text-neutral-400">DA</span>
                                             </div>
                                             <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-0.5">TTC</div>
@@ -255,27 +255,27 @@ export default function QuotesPage() {
                                             <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                                 <Link
                                                     href={`/dashboard/quotes/${quote.id}`}
-                                                    className="p-2.5 bg-white text-neutral-600 rounded-xl border border-neutral-100 hover:bg-neutral-50 shadow-sm transition-all"
+                                                    className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900 shadow-sm transition-all"
                                                     title="Visualiser"
                                                 >
                                                     <Eye size={18} />
                                                 </Link>
                                                 <Link
                                                     href={`/dashboard/quotes/${quote.id}/edit`}
-                                                    className="p-2.5 bg-white text-blue-500 rounded-xl border border-neutral-100 hover:bg-blue-50 shadow-sm transition-all"
+                                                    className="p-2.5 bg-card text-blue-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 shadow-sm transition-all"
                                                     title="Modifier"
                                                 >
                                                     <Edit3 size={18} />
                                                 </Link>
                                                 <button
-                                                    className="p-2.5 bg-white text-emerald-500 rounded-xl border border-neutral-100 hover:bg-emerald-50 shadow-sm transition-all"
+                                                    className="p-2.5 bg-card text-emerald-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shadow-sm transition-all"
                                                     title="Télécharger"
                                                 >
                                                     <Download size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(quote.id, quote.quote_number)}
-                                                    className="p-2.5 bg-white text-red-500 rounded-xl border border-neutral-100 hover:bg-red-50 shadow-sm transition-all"
+                                                    className="p-2.5 bg-card text-red-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm transition-all"
                                                     title="Supprimer"
                                                 >
                                                     <Trash2 size={18} />

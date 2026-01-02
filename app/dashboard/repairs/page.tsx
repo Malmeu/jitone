@@ -406,17 +406,17 @@ export default function RepairsPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <div>
                     <motion.div variants={itemVariants} className="flex items-center gap-2 mb-4">
-                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full font-inter">SAV & Maintenance</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">SAV & Maintenance</span>
                     </motion.div>
                     <motion.h1
                         variants={itemVariants}
-                        className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight mb-2 font-inter"
+                        className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-2"
                     >
                         Réparations
                     </motion.h1>
                     <motion.p
                         variants={itemVariants}
-                        className="text-lg text-neutral-500 font-medium font-inter"
+                        className="text-lg text-neutral-500 font-medium"
                     >
                         Gérez le cycle de vie complet de vos interventions techniques.
                     </motion.p>
@@ -432,7 +432,7 @@ export default function RepairsPage() {
                             });
                             setShowModal(true);
                         }}
-                        className="h-14 px-8 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white shadow-xl transition-all active:scale-[0.98] font-inter font-bold"
+                        className="h-14 px-8 rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100 shadow-xl transition-all active:scale-[0.98] font-bold"
                     >
                         <Plus className="w-5 h-5 mr-3" />
                         Nouvelle Réparation
@@ -449,7 +449,7 @@ export default function RepairsPage() {
                         placeholder="Rechercher par code, client, IMEI..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-inter"
+                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-card shadow-sm font-medium text-foreground placeholder-neutral-400"
                     />
                 </div>
                 <div className="lg:col-span-3">
@@ -458,7 +458,7 @@ export default function RepairsPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 appearance-none bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 font-inter"
+                            className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 appearance-none bg-card shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 dark:text-neutral-400"
                         >
                             <option value="all">Tous les statuts</option>
                             {Object.entries(statusLabels).map(([key, label]) => (
@@ -471,24 +471,24 @@ export default function RepairsPage() {
                     <select
                         value={paymentFilter}
                         onChange={(e) => setPaymentFilter(e.target.value)}
-                        className="w-full px-5 py-4 rounded-2xl border border-neutral-100 appearance-none bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 font-inter"
+                        className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 appearance-none bg-card shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/5 font-medium text-neutral-600 dark:text-neutral-400"
                     >
                         <option value="all">Tout Paiement</option>
                         <option value="paid">Payé ✅</option>
                         <option value="unpaid">En attente ⏳</option>
                     </select>
                 </div>
-                <div className="lg:col-span-2 flex items-center justify-center bg-white rounded-2xl border border-neutral-100 shadow-sm px-4">
-                    <span className="text-xl font-black text-neutral-900 font-inter">{filteredRepairs.length}</span>
-                    <span className="ml-2 text-xs font-bold text-neutral-400 uppercase tracking-widest font-inter">Dossiers</span>
+                <div className="lg:col-span-2 flex items-center justify-center bg-card rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm px-4">
+                    <span className="text-xl font-black text-foreground">{filteredRepairs.length}</span>
+                    <span className="ml-2 text-xs font-bold text-neutral-400 uppercase tracking-widest">Dossiers</span>
                 </div>
             </motion.div>
 
             {/* Repairs Table */}
-            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-neutral-100 overflow-hidden">
+            <motion.div variants={itemVariants} className="bg-card rounded-[2.5rem] shadow-soft border border-neutral-100 dark:border-neutral-800 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-[#FBFBFD] text-neutral-400 text-[11px] font-black uppercase tracking-widest font-inter">
+                        <thead className="bg-[#FBFBFD] dark:bg-neutral-900/50 text-neutral-400 text-[11px] font-black uppercase tracking-widest">
                             <tr>
                                 <th className="px-8 py-6">Équipement</th>
                                 <th className="px-8 py-6">Propriétaire</th>
@@ -497,38 +497,38 @@ export default function RepairsPage() {
                                 <th className="px-8 py-6 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-neutral-50 font-inter">
+                        <tbody className="divide-y divide-neutral-50 dark:divide-neutral-800">
                             {filteredRepairs.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-20 text-center">
-                                        <Info className="w-12 h-12 text-neutral-100 mx-auto mb-4" />
+                                        <Info className="w-12 h-12 text-neutral-100 dark:text-neutral-800 mx-auto mb-4" />
                                         <p className="text-neutral-400 font-bold">Aucune réparation ne correspond à vos critères.</p>
                                     </td>
                                 </tr>
                             ) : (
                                 filteredRepairs.map((repair) => (
-                                    <tr key={repair.id} className="group hover:bg-[#FBFBFD]/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
+                                    <tr key={repair.id} className="group hover:bg-[#FBFBFD]/50 dark:hover:bg-neutral-900/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-neutral-50 rounded-xl flex items-center justify-center text-neutral-400 group-hover:scale-110 transition-transform">
+                                                <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl flex items-center justify-center text-neutral-400 group-hover:scale-110 transition-transform">
                                                     <Smartphone size={20} />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-neutral-900 text-base">{repair.item}</div>
+                                                    <div className="font-bold text-foreground text-base">{repair.item}</div>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <span className="font-mono text-[10px] text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded leading-none">#{repair.code}</span>
-                                                        {repair.is_unlock && <span className="text-[10px] font-black text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-tighter leading-none">Unlock</span>}
+                                                        <span className="font-mono text-[10px] text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded leading-none">#{repair.code}</span>
+                                                        {repair.is_unlock && <span className="text-[10px] font-black text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded uppercase tracking-tighter leading-none">Unlock</span>}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="font-bold text-neutral-700">{repair.client?.name || 'Client anonyme'}</div>
+                                            <div className="font-bold text-neutral-700 dark:text-neutral-300">{repair.client?.name || 'Client anonyme'}</div>
                                             <div className="text-neutral-400 text-xs mt-1 font-medium">{repair.client?.phone || 'Pas de contact'}</div>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-2">
-                                                <span className={`${statusColors[repair.status]} px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight w-fit`}>
+                                                <span className={`${statusColors[repair.status]} dark:bg-opacity-20 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight w-fit`}>
                                                     {statusLabels[repair.status]}
                                                 </span>
                                                 <div className="flex items-center gap-1.5 text-neutral-400 text-[10px] font-bold">
@@ -538,7 +538,7 @@ export default function RepairsPage() {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1">
-                                                <div className="font-black text-neutral-900 text-base">
+                                                <div className="font-black text-foreground text-base">
                                                     {(repair.price || 0).toLocaleString()} <span className="text-[10px] text-neutral-400">DA</span>
                                                 </div>
                                                 {repair.payment_status === 'paid' ? (
@@ -561,9 +561,9 @@ export default function RepairsPage() {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => { setTicketData(repair); setShowTicket(true); }} className="p-2.5 bg-white text-neutral-600 rounded-xl border border-neutral-100 hover:bg-neutral-50 shadow-sm transition-all" title="Ticket"><Printer size={18} /></button>
-                                                <button onClick={() => handleEdit(repair)} className="p-2.5 bg-white text-blue-500 rounded-xl border border-neutral-100 hover:bg-blue-50 shadow-sm transition-all" title="Modifier"><Edit3 size={18} /></button>
-                                                <button onClick={() => deleteRepair(repair.id, repair.code)} className="p-2.5 bg-white text-red-500 rounded-xl border border-neutral-100 hover:bg-red-50 shadow-sm transition-all" title="Supprimer"><Trash2 size={18} /></button>
+                                                <button onClick={() => { setTicketData(repair); setShowTicket(true); }} className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all" title="Ticket"><Printer size={18} /></button>
+                                                <button onClick={() => handleEdit(repair)} className="p-2.5 bg-card text-blue-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 shadow-sm transition-all" title="Modifier"><Edit3 size={18} /></button>
+                                                <button onClick={() => deleteRepair(repair.id, repair.code)} className="p-2.5 bg-card text-red-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm transition-all" title="Supprimer"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -581,14 +581,14 @@ export default function RepairsPage() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/40 backdrop-blur-md" onClick={() => setShowModal(false)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                            className="relative bg-white rounded-[3rem] shadow-[0_32px_128px_rgba(0,0,0,0.18)] max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col font-inter"
+                            className="relative bg-card rounded-[3rem] shadow-heavy max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col border border-neutral-100 dark:border-neutral-800"
                         >
-                            <div className="p-8 md:p-10 border-b border-neutral-100 flex justify-between items-center bg-[#FBFBFD]/50">
+                            <div className="p-8 md:p-10 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-neutral-900">{editingRepair ? 'Modifier l\'intervention' : 'Nouvelle intervention'}</h2>
+                                    <h2 className="text-2xl font-bold text-foreground">{editingRepair ? 'Modifier l\'intervention' : 'Nouvelle intervention'}</h2>
                                     <p className="text-sm text-neutral-400 font-medium">Saisissez les détails techniques et clients.</p>
                                 </div>
-                                <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-white hover:bg-neutral-100 rounded-2xl border border-neutral-100 transition-all active:scale-90"><X className="w-6 h-6 text-neutral-400" /></button>
+                                <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-800 transition-all active:scale-90"><X className="w-6 h-6 text-neutral-400" /></button>
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-8 md:p-10 overflow-y-auto flex-1 custom-scrollbar">
@@ -602,7 +602,7 @@ export default function RepairsPage() {
                                             <select
                                                 value={formData.clientId}
                                                 onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 font-medium"
+                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 font-medium text-foreground"
                                             >
                                                 <option value="">+ Nouveau client</option>
                                                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -615,7 +615,7 @@ export default function RepairsPage() {
                                                     type="text" required
                                                     value={formData.clientName}
                                                     onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium"
+                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-medium text-foreground"
                                                     placeholder="Nom complet"
                                                 />
                                                 <div className="relative">
@@ -624,7 +624,7 @@ export default function RepairsPage() {
                                                         type="tel"
                                                         value={formData.clientPhone.replace('+213', '').trim()}
                                                         onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value ? `+213 ${e.target.value}` : '' })}
-                                                        className="w-full pl-16 pr-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium"
+                                                        className="w-full pl-16 pr-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-medium text-foreground"
                                                         placeholder="555 000 000"
                                                     />
                                                 </div>
@@ -640,17 +640,17 @@ export default function RepairsPage() {
                                                 type="text" required
                                                 value={formData.item}
                                                 onChange={(e) => setFormData({ ...formData, item: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium"
+                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-medium text-foreground"
                                                 placeholder="ex: iPhone 14 Pro Max, Galaxy S23..."
                                             />
-                                            <div className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/30">
+                                            <div className="flex items-center gap-3 p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl border border-blue-100/30">
                                                 <input
                                                     type="checkbox" id="is_unlock"
                                                     checked={formData.is_unlock}
                                                     onChange={(e) => setFormData({ ...formData, is_unlock: e.target.checked })}
                                                     className="w-5 h-5 rounded-lg border-blue-200 text-blue-500 focus:ring-blue-500"
                                                 />
-                                                <label htmlFor="is_unlock" className="text-sm font-bold text-blue-700 cursor-pointer">S'agit-il d'un déblocage iCloud / Google ?</label>
+                                                <label htmlFor="is_unlock" className="text-sm font-bold text-blue-700 dark:text-blue-400 cursor-pointer">S'agit-il d'un déblocage iCloud / Google ?</label>
                                             </div>
                                             {formData.is_unlock && (
                                                 <motion.input
@@ -658,7 +658,7 @@ export default function RepairsPage() {
                                                     type="text"
                                                     value={formData.imei_sn}
                                                     onChange={(e) => setFormData({ ...formData, imei_sn: e.target.value })}
-                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-mono text-sm"
+                                                    className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-medium font-mono text-sm text-foreground"
                                                     placeholder="Numéro IMEI ou SN"
                                                 />
                                             )}
@@ -674,7 +674,7 @@ export default function RepairsPage() {
                                             <textarea
                                                 value={formData.description}
                                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium resize-none px-4 py-3"
+                                                className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-medium resize-none text-foreground px-4 py-3"
                                                 rows={4} placeholder="Détails du problème et travaux à effectuer..."
                                             />
                                         </div>
@@ -685,7 +685,7 @@ export default function RepairsPage() {
                                             </div>
                                             <div className="flex gap-2">
                                                 <select
-                                                    className="flex-1 px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-white shadow-sm font-medium font-inter"
+                                                    className="flex-1 px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-medium text-foreground"
                                                     onChange={(e) => {
                                                         const item = inventory.find(i => i.id === e.target.value);
                                                         if (item && !selectedParts.find(p => p.id === item.id)) {
@@ -707,15 +707,15 @@ export default function RepairsPage() {
                                             </div>
 
                                             {selectedParts.length > 0 && (
-                                                <div className="bg-neutral-50 rounded-2xl p-4 space-y-3 font-inter">
+                                                <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl p-4 space-y-3">
                                                     {selectedParts.map((part, idx) => (
                                                         <div key={idx} className="flex items-center justify-between text-sm">
                                                             <div className="flex items-center gap-2">
                                                                 <Check className="text-emerald-500" size={14} />
-                                                                <span className="font-bold text-neutral-700">{part.name}</span>
+                                                                <span className="font-bold text-neutral-700 dark:text-neutral-300">{part.name}</span>
                                                             </div>
                                                             <div className="flex items-center gap-4">
-                                                                <span className="font-mono text-[10px] bg-white px-2 py-1 rounded-lg border border-neutral-100">{part.cost_price} DA</span>
+                                                                <span className="font-mono text-[10px] bg-card px-2 py-1 rounded-lg border border-neutral-100 dark:border-neutral-800 text-foreground">{part.cost_price} DA</span>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => {
@@ -724,7 +724,7 @@ export default function RepairsPage() {
                                                                         const totalCost = newParts.reduce((acc, p) => acc + (p.cost_price * p.quantity), 0);
                                                                         setFormData(f => ({ ...f, cost_price: totalCost.toString() }));
                                                                     }}
-                                                                    className="text-rose-500 hover:text-rose-600 font-inter"
+                                                                    className="text-rose-500 hover:text-rose-600"
                                                                 >
                                                                     <X size={16} />
                                                                 </button>
@@ -744,7 +744,7 @@ export default function RepairsPage() {
                                                         type="number"
                                                         value={formData.price}
                                                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-black font-inter"
+                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-black text-foreground"
                                                         placeholder="0.00"
                                                     />
                                                 </div>
@@ -757,7 +757,7 @@ export default function RepairsPage() {
                                                         type="number"
                                                         value={formData.cost_price}
                                                         onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
-                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-black text-rose-500 font-inter"
+                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-black text-rose-500"
                                                         placeholder="0.00"
                                                     />
                                                 </div>
@@ -774,7 +774,7 @@ export default function RepairsPage() {
                                                     <button
                                                         key={key} type="button"
                                                         onClick={() => setFormData({ ...formData, status: key })}
-                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all font-inter ${formData.status === key ? 'bg-neutral-900 border-neutral-900 text-white shadow-lg' : 'bg-white border-neutral-100 text-neutral-500 hover:bg-neutral-50'}`}
+                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all ${formData.status === key ? 'bg-neutral-900 dark:bg-white border-neutral-900 dark:border-white text-white dark:text-black shadow-lg' : 'bg-card border-neutral-100 dark:border-neutral-800 text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800'}`}
                                                     >
                                                         {label}
                                                     </button>
@@ -785,11 +785,11 @@ export default function RepairsPage() {
                                 </div>
 
                                 <div className="mt-12 flex gap-4">
-                                    <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="h-14 flex-1 rounded-2xl text-neutral-400 font-bold hover:bg-neutral-50 font-inter">
+                                    <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="h-14 flex-1 rounded-2xl text-neutral-400 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800">
                                         Annuler
                                     </Button>
-                                    <Button type="submit" disabled={submitting} className="h-14 flex-[2] rounded-2xl bg-neutral-900 text-white font-black hover:bg-neutral-800 shadow-xl active:scale-[0.98] transition-all font-inter">
-                                        {submitting ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-white" /> : (editingRepair ? 'Enregistrer les modifications' : 'Créer le dossier SAV')}
+                                    <Button type="submit" disabled={submitting} className="h-14 flex-[2] rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-black font-black hover:bg-neutral-800 dark:hover:bg-neutral-100 shadow-xl active:scale-[0.98] transition-all">
+                                        {submitting ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : (editingRepair ? 'Enregistrer les modifications' : 'Créer le dossier SAV')}
                                     </Button>
                                 </div>
                             </form>

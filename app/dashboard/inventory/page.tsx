@@ -285,7 +285,7 @@ export default function InventoryPage() {
                     </motion.div>
                     <motion.h1
                         variants={itemVariants}
-                        className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight mb-2 font-inter"
+                        className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-2 font-inter"
                     >
                         Stock & Inventaire
                     </motion.h1>
@@ -308,7 +308,7 @@ export default function InventoryPage() {
                             });
                             setShowModal(true);
                         }}
-                        className="h-14 px-8 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white shadow-xl transition-all active:scale-[0.98] font-bold flex items-center gap-3 font-inter"
+                        className="h-14 px-8 rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-100 shadow-xl transition-all active:scale-[0.98] font-bold flex items-center gap-3 font-inter"
                     >
                         <Plus size={20} />
                         Nouvel Article
@@ -319,18 +319,18 @@ export default function InventoryPage() {
             {/* Quick Stats */}
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 font-inter">
                 {[
-                    { label: 'Articles Totaux', val: stats.totalItems, color: 'text-blue-600', bg: 'bg-blue-50', icon: Box },
-                    { label: 'Stock Faible', val: stats.lowStock, color: 'text-amber-600', bg: 'bg-amber-50', icon: AlertTriangle },
-                    { label: 'Rupture de Stock', val: stats.outOfStock, color: 'text-rose-600', bg: 'bg-rose-50', icon: Trash2 },
-                    { label: 'Valeur du Stock', val: `${stats.totalValue.toLocaleString()} DA`, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: TrendingUp }
+                    { label: 'Articles Totaux', val: stats.totalItems, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/10', icon: Box },
+                    { label: 'Stock Faible', val: stats.lowStock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/10', icon: AlertTriangle },
+                    { label: 'Rupture de Stock', val: stats.outOfStock, color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/10', icon: Trash2 },
+                    { label: 'Valeur du Stock', val: `${stats.totalValue.toLocaleString()} DA`, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/10', icon: TrendingUp }
                 ].map((stat, i) => (
-                    <div key={i} className="bg-white rounded-[2.5rem] border border-neutral-100 shadow-sm p-8 flex items-center gap-6 group hover:shadow-md transition-all">
+                    <div key={i} className="bg-card rounded-[2.5rem] border border-neutral-100 dark:border-neutral-800 shadow-sm p-8 flex items-center gap-6 group hover:shadow-md transition-all">
                         <div className={`w-16 h-16 ${stat.bg} ${stat.color} rounded-[1.5rem] flex items-center justify-center group-hover:scale-110 transition-transform`}>
                             <stat.icon size={28} />
                         </div>
                         <div>
                             <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 font-inter">{stat.label}</div>
-                            <div className="text-2xl font-black text-neutral-900 font-inter">{stat.val}</div>
+                            <div className="text-2xl font-black text-foreground font-inter">{stat.val}</div>
                         </div>
                     </div>
                 ))}
@@ -345,7 +345,7 @@ export default function InventoryPage() {
                         placeholder="Rechercher par nom, SKU..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-inter"
+                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-card shadow-sm font-medium text-foreground placeholder-neutral-400"
                     />
                 </div>
                 <div className="lg:col-span-4 relative group">
@@ -353,7 +353,7 @@ export default function InventoryPage() {
                     <select
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-medium font-inter appearance-none"
+                        className="w-full pl-14 pr-6 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-card shadow-sm font-medium text-neutral-600 dark:text-neutral-400 appearance-none"
                     >
                         <option value="all">Toutes les catégories</option>
                         {categories.map(cat => (
@@ -364,10 +364,10 @@ export default function InventoryPage() {
             </motion.div>
 
             {/* Inventory Table */}
-            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-neutral-100 overflow-hidden">
+            <motion.div variants={itemVariants} className="bg-card rounded-[2.5rem] shadow-soft border border-neutral-100 dark:border-neutral-800 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-[#FBFBFD] text-neutral-400 text-[11px] font-black uppercase tracking-widest font-inter">
+                        <thead className="bg-[#FBFBFD] dark:bg-neutral-900/50 text-neutral-400 text-[11px] font-black uppercase tracking-widest font-inter">
                             <tr>
                                 <th className="px-8 py-6">Article</th>
                                 <th className="px-8 py-6">Catégorie</th>
@@ -376,7 +376,7 @@ export default function InventoryPage() {
                                 <th className="px-8 py-6 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-neutral-50 font-inter">
+                        <tbody className="divide-y divide-neutral-50 dark:divide-neutral-800 font-inter">
                             {filteredItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-20 text-center text-neutral-400 font-medium">
@@ -385,10 +385,10 @@ export default function InventoryPage() {
                                 </tr>
                             ) : (
                                 filteredItems.map((item) => (
-                                    <tr key={item.id} className="group hover:bg-[#FBFBFD]/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
+                                    <tr key={item.id} className="group hover:bg-[#FBFBFD]/50 dark:hover:bg-neutral-900/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-neutral-50 rounded-xl flex items-center justify-center text-neutral-300 overflow-hidden">
+                                                <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl flex items-center justify-center text-neutral-300 overflow-hidden">
                                                     {item.image_url ? (
                                                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                                                     ) : (
@@ -396,19 +396,19 @@ export default function InventoryPage() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-neutral-900 text-base">{item.name}</div>
+                                                    <div className="font-bold text-foreground text-base">{item.name}</div>
                                                     <div className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-0.5">SKU: {item.sku || 'N/A'}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className="px-3 py-1 bg-neutral-50 text-neutral-500 rounded-full text-[10px] font-black uppercase tracking-tight">
+                                            <span className="px-3 py-1 bg-neutral-50 dark:bg-neutral-900/50 text-neutral-500 rounded-full text-[10px] font-black uppercase tracking-tight">
                                                 {item.category?.name || 'Général'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1">
-                                                <div className={`text-lg font-black ${item.current_stock === 0 ? 'text-rose-500' : item.current_stock <= item.low_stock_threshold ? 'text-amber-500' : 'text-neutral-900'}`}>
+                                                <div className={`text-lg font-black ${item.current_stock === 0 ? 'text-rose-500' : item.current_stock <= item.low_stock_threshold ? 'text-amber-500' : 'text-foreground'}`}>
                                                     {item.current_stock}
                                                 </div>
                                                 {item.current_stock <= item.low_stock_threshold && (
@@ -419,7 +419,7 @@ export default function InventoryPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="text-neutral-900 font-bold">{item.selling_price.toLocaleString()} DA</div>
+                                            <div className="text-foreground font-bold">{item.selling_price.toLocaleString()} DA</div>
                                             <div className="text-[10px] text-neutral-400 mt-1">Coût: {item.cost_price.toLocaleString()} DA</div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
@@ -435,13 +435,13 @@ export default function InventoryPage() {
                                                         });
                                                         setShowModal(true);
                                                     }}
-                                                    className="p-2.5 bg-white text-blue-500 rounded-xl border border-neutral-100 hover:bg-blue-50 shadow-sm transition-all"
+                                                    className="p-2.5 bg-card text-blue-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 shadow-sm transition-all"
                                                 >
                                                     <Edit3 size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(item.id, item.name)}
-                                                    className="p-2.5 bg-white text-red-500 rounded-xl border border-neutral-100 hover:bg-red-50 shadow-sm transition-all"
+                                                    className="p-2.5 bg-card text-red-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm transition-all"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -462,47 +462,47 @@ export default function InventoryPage() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/40 backdrop-blur-md" onClick={() => setShowModal(false)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                            className="relative bg-white rounded-[3rem] shadow-[0_32px_128px_rgba(0,0,0,0.18)] max-w-2xl w-full max-h-[95vh] overflow-hidden flex flex-col font-inter"
+                            className="relative bg-card rounded-[3rem] shadow-heavy max-w-2xl w-full max-h-[95vh] overflow-hidden flex flex-col font-inter border border-neutral-100 dark:border-neutral-800"
                         >
-                            <div className="p-8 border-b border-neutral-100 flex justify-between items-center bg-[#FBFBFD]/50 font-inter">
+                            <div className="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50 font-inter">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-neutral-900">{editingItem ? 'Modifier l\'article' : 'Nouvel Article'}</h2>
+                                    <h2 className="text-2xl font-bold text-foreground">{editingItem ? 'Modifier l\'article' : 'Nouvel Article'}</h2>
                                     <p className="text-sm text-neutral-400 font-medium font-inter">Tous les champs marqués d'une étoile (*) sont requis.</p>
                                 </div>
-                                <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-white hover:bg-neutral-100 rounded-2xl border border-neutral-100 transition-all active:scale-90 font-inter"><X className="w-6 h-6 text-neutral-400" /></button>
+                                <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-800 transition-all active:scale-90"><X className="w-6 h-6 text-neutral-400" /></button>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto font-inter">
+                            <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto">
                                 <div className="space-y-4">
-                                    <div className="space-y-2 font-inter">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Nom de l'article *</label>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Nom de l'article *</label>
                                         <input
                                             type="text" required
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             placeholder="ex: Écran iPhone 13 Pro Max"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-inter">
-                                        <div className="space-y-2 font-inter">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Référence / SKU</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Référence / SKU</label>
                                             <input
                                                 type="text"
                                                 value={formData.sku}
                                                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                                 placeholder="ex: SCR-I13PM-BLK"
                                             />
                                         </div>
-                                        <div className="space-y-2 font-inter">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Catégorie</label>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Catégorie</label>
                                             <div className="flex gap-2">
                                                 <select
                                                     value={formData.category_id}
                                                     onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                                                    className="flex-1 px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                    className="flex-1 px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                                 >
                                                     <option value="">Aucune catégorie</option>
                                                     {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
@@ -510,7 +510,7 @@ export default function InventoryPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowCategoryModal(true)}
-                                                    className="w-14 h-14 bg-neutral-50 hover:bg-neutral-100 rounded-2xl flex items-center justify-center text-neutral-400 border border-neutral-100 transition-all font-inter"
+                                                    className="w-14 h-14 bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl flex items-center justify-center text-neutral-400 border border-neutral-100 dark:border-neutral-800 transition-all font-inter"
                                                     title="Gérer les catégories"
                                                 >
                                                     <Plus size={20} />
@@ -519,69 +519,69 @@ export default function InventoryPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-inter">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Prix d'Achat (Coût) *</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix d'Achat (Coût) *</label>
                                             <div className="relative">
                                                 <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
                                                 <input
                                                     type="number" required
                                                     value={formData.cost_price}
                                                     onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) })}
-                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                                 />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Prix de Vente *</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix de Vente *</label>
                                             <div className="relative">
                                                 <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
                                                 <input
                                                     type="number" required
                                                     value={formData.selling_price}
                                                     onChange={(e) => setFormData({ ...formData, selling_price: parseFloat(e.target.value) })}
-                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-inter">
-                                        <div className="space-y-2 font-inter">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Stock Actuel *</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Stock Actuel *</label>
                                             <input
                                                 type="number" required
                                                 value={formData.current_stock}
                                                 onChange={(e) => setFormData({ ...formData, current_stock: parseInt(e.target.value) })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             />
                                         </div>
-                                        <div className="space-y-2 font-inter">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Seuil d'Alerte *</label>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Seuil d'Alerte *</label>
                                             <input
                                                 type="number" required
                                                 value={formData.low_stock_threshold}
                                                 onChange={(e) => setFormData({ ...formData, low_stock_threshold: parseInt(e.target.value) })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Localisation (Rayon / Tiroir)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Localisation (Rayon / Tiroir)</label>
                                         <input
                                             type="text"
                                             value={formData.location}
                                             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             placeholder="ex: Étagère SAV-01"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="flex gap-4 pt-4 font-inter">
-                                    <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-14 rounded-2xl text-neutral-400 font-bold hover:bg-neutral-50 transition-all font-inter">Annuler</button>
-                                    <button type="submit" disabled={submitting} className="flex-[2] h-14 bg-neutral-900 text-white font-black rounded-2xl hover:bg-neutral-800 shadow-xl transition-all active:scale-95 flex items-center justify-center font-inter">
+                                <div className="flex gap-4 pt-4">
+                                    <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-14 rounded-2xl text-neutral-400 font-bold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">Annuler</button>
+                                    <button type="submit" disabled={submitting} className="flex-[2] h-14 bg-neutral-900 dark:bg-white text-white dark:text-black font-black rounded-2xl hover:bg-neutral-800 dark:hover:bg-neutral-100 shadow-xl transition-all active:scale-95 flex items-center justify-center font-inter">
                                         {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (editingItem ? 'Mettre à jour l\'article' : 'Ajouter à l\'inventaire')}
                                     </button>
                                 </div>
@@ -597,24 +597,24 @@ export default function InventoryPage() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/40 backdrop-blur-md" onClick={() => setShowCategoryModal(false)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                            className="relative bg-white rounded-[2.5rem] shadow-[0_32px_128px_rgba(0,0,0,0.18)] max-w-md w-full p-8 font-inter"
+                            className="relative bg-card rounded-[2.5rem] shadow-heavy max-w-md w-full p-8 border border-neutral-100 dark:border-neutral-800"
                         >
-                            <div className="flex justify-between items-center mb-6 font-inter">
-                                <h2 className="text-xl font-bold text-neutral-900">Nouvelle Catégorie</h2>
-                                <button onClick={() => setShowCategoryModal(false)} className="text-neutral-400 hover:text-neutral-600 font-inter"><X size={24} /></button>
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-bold text-foreground">Nouvelle Catégorie</h2>
+                                <button onClick={() => setShowCategoryModal(false)} className="text-neutral-400 hover:text-neutral-600"><X size={24} /></button>
                             </div>
-                            <form onSubmit={handleAddCategory} className="space-y-6 font-inter">
-                                <div className="space-y-2 font-inter">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 font-inter">Nom de la catégorie</label>
+                            <form onSubmit={handleAddCategory} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Nom de la catégorie</label>
                                     <input
                                         type="text" required autoFocus
                                         value={newCategoryName}
                                         onChange={(e) => setNewCategoryName(e.target.value)}
-                                        className="w-full px-5 py-4 rounded-3xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-[#FBFBFD] font-bold font-inter"
+                                        className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                         placeholder="ex: Écrans, Batteries..."
                                     />
                                 </div>
-                                <Button type="submit" disabled={submitting} className="w-full h-14 bg-neutral-900 text-white rounded-2xl shadow-xl font-bold font-inter">
+                                <Button type="submit" disabled={submitting} className="w-full h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl shadow-xl font-bold">
                                     {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Créer la catégorie'}
                                 </Button>
                             </form>
