@@ -1,25 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Users, CheckCircle, XCircle, Clock, Lock } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
+import { Shield, Users, CreditCard, Clock, CheckCircle2, AlertCircle, Search, Filter, ArrowUpRight, Check, X, Smartphone, Mail, Phone, Calendar } from 'lucide-react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Liste des emails admin autorisés
 const ADMIN_EMAILS = [
     'admin@repairtrack.dz',
     'contact@repairtrack.dz',
-    // Ajoutez vos emails admin ici
 ];
 
 export default function AdminPage() {
-    const router = useRouter();
     const [establishments, setEstablishments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [adminPassword, setAdminPassword] = useState('');
-    const [showPasswordPrompt, setShowPasswordPrompt] = useState(true);
+    const [authorized, setAuthorized] = useState(false);
     const [stats, setStats] = useState({
         total: 0,
         trial: 0,
@@ -27,80 +22,46 @@ export default function AdminPage() {
         expired: 0,
     });
 
-    // Mot de passe admin (à stocker en variable d'environnement en production)
-    const ADMIN_PASSWORD = 'Malmeu@2026'; // Changez ceci !
-
     useEffect(() => {
-        checkAdminAccess();
+        checkAdmin();
     }, []);
 
-    const checkAdminAccess = async () => {
+    const checkAdmin = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-
-        // Vérifier si l'utilisateur est admin
-        if (ADMIN_EMAILS.includes(user.email || '')) {
-            setIsAdmin(true);
-            setShowPasswordPrompt(false);
+        if (user && ADMIN_EMAILS.includes(user.email || '')) {
+            setAuthorized(true);
             fetchEstablishments();
         } else {
             setLoading(false);
         }
     };
 
-    const handlePasswordSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (adminPassword === ADMIN_PASSWORD) {
-            setShowPasswordPrompt(false);
-            fetchEstablishments();
-        } else {
-            alert('Mot de passe incorrect');
-        }
-    };
-
     const fetchEstablishments = async () => {
         try {
-            // Récupérer le token d'authentification
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                console.error('No session found');
-                return;
-            }
+            if (!session) return;
 
-            // Appeler l'API admin
             const response = await fetch('/api/admin/establishments', {
                 headers: {
                     'Authorization': `Bearer ${session.access_token}`
                 }
             });
+            const result = await response.json();
 
-            if (!response.ok) {
-                const error = await response.json();
-                console.error('API Error:', error);
-                throw new Error(error.error || 'Erreur de récupération');
-            }
+            // Sécurité: extraire le tableau d'établissements depuis l'objet retourné
+            const establishmentsArray = result.establishments || [];
 
-            const { establishments: data } = await response.json();
-            console.log('Establishments fetched:', data?.length);
+            setEstablishments(establishmentsArray);
 
-            if (data) {
-                setEstablishments(data);
-
-                // Calculer les stats
-                const stats = {
-                    total: data.length,
-                    trial: data.filter((e: any) => e.subscription_status === 'trial').length,
-                    active: data.filter((e: any) => e.subscription_status === 'active').length,
-                    expired: data.filter((e: any) => e.subscription_status === 'expired' || e.subscription_status === 'cancelled').length,
-                };
-                setStats(stats);
-            }
+            // Calculate stats
+            setStats({
+                total: establishmentsArray.length,
+                trial: establishmentsArray.filter((e: any) => e.subscription_status === 'trial').length,
+                active: establishmentsArray.filter((e: any) => e.subscription_status === 'active').length,
+                expired: establishmentsArray.filter((e: any) => e.subscription_status === 'expired').length,
+            });
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetching establishments:', error);
         } finally {
             setLoading(false);
         }
@@ -108,11 +69,9 @@ export default function AdminPage() {
 
     const updateSubscription = async (id: string, updates: any) => {
         try {
-            // Récupérer le token
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
 
-            // Appeler l'API admin pour la mise à jour
             const response = await fetch('/api/admin/establishments', {
                 method: 'PATCH',
                 headers: {
@@ -122,269 +81,209 @@ export default function AdminPage() {
                 body: JSON.stringify({ id, updates })
             });
 
-            if (!response.ok) {
-                const error = await response.json();
-                console.error('Update Error:', error);
-                throw new Error(error.error || 'Erreur de mise à jour');
-            }
-
+            if (!response.ok) throw new Error('Erreur de mise à jour');
             await fetchEstablishments();
         } catch (error) {
             console.error('Error:', error);
+            alert('Erreur lors de la mise à jour');
         }
     };
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'trial': return 'bg-blue-100 text-blue-700';
-            case 'active': return 'bg-green-100 text-green-700';
-            case 'expired': return 'bg-red-100 text-red-700';
-            case 'cancelled': return 'bg-gray-100 text-gray-700';
-            default: return 'bg-gray-100 text-gray-700';
+            case 'active': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            case 'trial': return 'bg-blue-50 text-blue-600 border-blue-100';
+            case 'expired': return 'bg-red-50 text-red-600 border-red-100';
+            default: return 'bg-neutral-50 text-neutral-600 border-neutral-100';
         }
     };
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'trial': return 'Essai';
             case 'active': return 'Actif';
+            case 'trial': return 'Essai';
             case 'expired': return 'Expiré';
             case 'cancelled': return 'Annulé';
             default: return status;
         }
     };
 
-    const getDaysRemaining = (endDate: string | null) => {
-        if (!endDate) return null;
-        const days = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-        return days > 0 ? days : 0;
+    const getDaysRemaining = (date: string) => {
+        if (!date) return null;
+        const remaining = new Date(date).getTime() - Date.now();
+        return Math.ceil(remaining / (1000 * 60 * 60 * 24));
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
 
-    // Écran de mot de passe pour les admins
-    if (showPasswordPrompt && isAdmin) {
+    if (!authorized) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                    <div className="text-center mb-6">
-                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Lock className="w-8 h-8 text-primary" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-neutral-900 mb-2">
-                            Accès Admin
-                        </h2>
-                        <p className="text-neutral-600">
-                            Entrez le mot de passe administrateur
-                        </p>
+            <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+                <div className="bg-white p-8 rounded-[2rem] shadow-xl max-w-md w-full text-center">
+                    <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <Shield className="w-10 h-10 text-red-500" />
                     </div>
-                    <form onSubmit={handlePasswordSubmit}>
-                        <input
-                            type="password"
-                            value={adminPassword}
-                            onChange={(e) => setAdminPassword(e.target.value)}
-                            placeholder="Mot de passe"
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-4"
-                            autoFocus
-                        />
-                        <button
-                            type="submit"
-                            className="w-full bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors"
-                        >
-                            Accéder
-                        </button>
-                    </form>
-                </div>
-            </div>
-        );
-    }
-
-    // Écran d'accès refusé pour les non-admins
-    if (!isAdmin) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-red-100 p-8 text-center">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <XCircle className="w-8 h-8 text-red-600" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-neutral-900 mb-2">
-                        Accès Refusé
-                    </h2>
-                    <p className="text-neutral-600 mb-6">
-                        Vous n'avez pas les permissions nécessaires pour accéder à cette page.
-                    </p>
-                    <button
-                        onClick={() => router.push('/dashboard')}
-                        className="bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary/90 transition-colors"
-                    >
+                    <h1 className="text-2xl font-bold text-neutral-900 mb-2">Accès Refusé</h1>
+                    <p className="text-neutral-500 mb-8 font-medium">Vous n'avez pas les autorisations nécessaires pour accéder à cet espace.</p>
+                    <Link href="/dashboard" className="inline-flex items-center justify-center w-full h-14 bg-neutral-900 text-white rounded-2xl font-bold hover:bg-neutral-800 transition-all">
                         Retour au Dashboard
-                    </button>
+                    </Link>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-neutral-900 mb-2">Administration</h1>
-                <p className="text-neutral-500">Gérez les abonnements et les comptes</p>
-            </div>
-
-            {/* Statistiques */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                            <Users className="w-5 h-5 text-primary" />
+        <div className="min-h-screen bg-[#FBFBFD] pb-24">
+            {/* Header */}
+            <header className="bg-white border-b border-neutral-100 sticky top-0 z-30">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-neutral-900 rounded-xl flex items-center justify-center text-white">
+                            <Shield size={20} />
                         </div>
-                        <p className="text-sm font-medium text-neutral-600">Total</p>
+                        <div>
+                            <h1 className="text-xl font-bold text-neutral-900">Admin Control</h1>
+                            <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest">Gestion des Établissements</p>
+                        </div>
                     </div>
-                    <p className="text-3xl font-bold text-neutral-900">{stats.total}</p>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-6 pt-12">
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                    {[
+                        { label: 'Total', value: stats.total, icon: Users, color: 'text-neutral-900', bg: 'bg-white' },
+                        { label: 'En Essai', value: stats.trial, icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50/50' },
+                        { label: 'Actifs', value: stats.active, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50/50' },
+                        { label: 'Expirés', value: stats.expired, icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50/50' },
+                    ].map((stat, i) => (
+                        <div key={i} className={`${stat.bg} p-8 rounded-[2rem] border border-neutral-100 shadow-sm`}>
+                            <div className="flex items-center justify-between mb-4">
+                                <stat.icon className={stat.color} size={24} />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Statistiques</span>
+                            </div>
+                            <div className="text-3xl font-black text-neutral-900">{stat.value}</div>
+                            <div className="text-sm font-bold text-neutral-400 mt-1">{stat.label}</div>
+                        </div>
+                    ))}
                 </div>
 
-                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-100 rounded-xl">
-                            <Clock className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <p className="text-sm font-medium text-neutral-600">Essai</p>
-                    </div>
-                    <p className="text-3xl font-bold text-neutral-900">{stats.trial}</p>
-                </div>
+                {/* Table */}
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-neutral-100 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-[#FBFBFD] border-b border-neutral-100">
+                                <tr>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Boutique</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Propriétaire</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Statut</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Forfait</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400 text-center">Limite</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Expire</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-neutral-50 text-sm">
+                                {establishments.map((est) => {
+                                    const endDate = est.subscription_status === 'trial' ? est.trial_ends_at : est.subscription_ends_at;
+                                    const daysRemaining = getDaysRemaining(endDate);
 
-                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-green-100 rounded-xl">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                        </div>
-                        <p className="text-sm font-medium text-neutral-600">Actifs</p>
-                    </div>
-                    <p className="text-3xl font-bold text-neutral-900">{stats.active}</p>
-                </div>
-
-                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-red-100 rounded-xl">
-                            <XCircle className="w-5 h-5 text-red-600" />
-                        </div>
-                        <p className="text-sm font-medium text-neutral-600">Expirés</p>
-                    </div>
-                    <p className="text-3xl font-bold text-neutral-900">{stats.expired}</p>
-                </div>
-            </div>
-
-            {/* Liste des établissements */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Établissement</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Email</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Statut</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Forfait</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Limite Rép.</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Expire dans</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Créé le</th>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-neutral-600">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {establishments.map((establishment) => {
-                                const endDate = establishment.subscription_status === 'trial'
-                                    ? establishment.trial_ends_at
-                                    : establishment.subscription_ends_at;
-                                const daysRemaining = getDaysRemaining(endDate);
-
-                                return (
-                                    <tr key={establishment.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4">
-                                            <p className="font-medium text-neutral-900">{establishment.name}</p>
-                                            <p className="text-sm text-neutral-500">{establishment.phone}</p>
-                                        </td>
-                                        <td className="px-6 py-4 text-neutral-700">{establishment.owner_email}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(establishment.subscription_status)}`}>
-                                                {getStatusLabel(establishment.subscription_status)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <select
-                                                value={establishment.subscription_plan || 'standard'}
-                                                onChange={(e) => updateSubscription(establishment.id, { subscription_plan: e.target.value })}
-                                                className={`text-xs font-bold px-2 py-1 rounded-lg border-none focus:ring-0 ${establishment.subscription_plan === 'premium' ? 'bg-indigo-100 text-indigo-700' : 'bg-neutral-100 text-neutral-600'}`}
-                                            >
-                                                <option value="standard">Standard</option>
-                                                <option value="premium">Premium 👑</option>
-                                            </select>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <input
-                                                type="number"
-                                                value={establishment.max_repairs || 100}
-                                                onChange={(e) => updateSubscription(establishment.id, { max_repairs: parseInt(e.target.value) })}
-                                                className="w-20 px-2 py-1 text-xs font-bold bg-neutral-50 border border-neutral-100 rounded-lg text-center focus:ring-primary focus:border-primary"
-                                            />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {daysRemaining !== null ? (
-                                                <span className={`text-sm ${daysRemaining <= 7 ? 'text-red-600 font-medium' : 'text-neutral-700'}`}>
-                                                    {daysRemaining} jour{daysRemaining > 1 ? 's' : ''}
+                                    return (
+                                        <tr key={est.id} className="hover:bg-neutral-50/50 transition-colors">
+                                            <td className="px-8 py-6">
+                                                <div className="font-bold text-neutral-900">{est.name}</div>
+                                                <div className="text-xs text-neutral-400 font-medium">ID: {est.id.slice(0, 8)}</div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2 text-neutral-700 font-bold">
+                                                        <Mail size={12} className="text-neutral-300" />
+                                                        {est.owner_email}
+                                                    </div>
+                                                    {est.phone && (
+                                                        <div className="flex items-center gap-2 text-neutral-400 text-xs">
+                                                            <Phone size={12} className="text-neutral-300" />
+                                                            {est.phone}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <span className={`px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest ${getStatusColor(est.subscription_status)}`}>
+                                                    {getStatusLabel(est.subscription_status)}
                                                 </span>
-                                            ) : (
-                                                <span className="text-sm text-neutral-400">-</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-neutral-600">
-                                            {new Date(establishment.created_at).toLocaleDateString('fr-FR')}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex gap-2">
-                                                {establishment.subscription_status !== 'active' && (
-                                                    <button
-                                                        onClick={() => updateSubscription(establishment.id, {
-                                                            subscription_status: 'active',
-                                                            subscription_ends_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-                                                        })}
-                                                        className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-lg hover:bg-green-200 transition-colors font-medium"
-                                                    >
-                                                        Activer 1 an
-                                                    </button>
-                                                )}
-                                                {establishment.subscription_status === 'trial' && (
-                                                    <button
-                                                        onClick={() => updateSubscription(establishment.id, {
-                                                            trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                                                        })}
-                                                        className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors font-medium"
-                                                    >
-                                                        Prolonger essai
-                                                    </button>
-                                                )}
-                                                {establishment.subscription_status === 'active' && (
-                                                    <button
-                                                        onClick={() => updateSubscription(establishment.id, { subscription_status: 'expired' })}
-                                                        className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition-colors font-medium"
-                                                    >
-                                                        Expirer
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <select
+                                                    value={est.subscription_plan || 'standard'}
+                                                    onChange={(e) => updateSubscription(est.id, { subscription_plan: e.target.value })}
+                                                    className={`text-xs font-bold px-3 py-1.5 rounded-xl border-none focus:ring-0 appearance-none cursor-pointer ${est.subscription_plan === 'premium' ? 'bg-indigo-100 text-indigo-700' : 'bg-neutral-100 text-neutral-600'}`}
+                                                >
+                                                    <option value="standard">Standard</option>
+                                                    <option value="premium">Premium 👑</option>
+                                                </select>
+                                            </td>
+                                            <td className="px-8 py-6 text-center">
+                                                <input
+                                                    type="number"
+                                                    value={est.max_repairs || 100}
+                                                    onChange={(e) => updateSubscription(est.id, { max_repairs: parseInt(e.target.value) })}
+                                                    className="w-20 px-2 py-1.5 text-xs font-bold bg-neutral-50 border border-neutral-100 rounded-xl text-center focus:ring-1 focus:ring-primary focus:border-primary"
+                                                />
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar size={14} className="text-neutral-300" />
+                                                    <div className="text-xs font-bold text-neutral-700">
+                                                        {daysRemaining !== null ? (
+                                                            <span className={daysRemaining <= 7 ? 'text-red-500' : ''}>
+                                                                {daysRemaining} j
+                                                            </span>
+                                                        ) : '-'}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {est.subscription_status !== 'active' && (
+                                                        <button
+                                                            onClick={() => updateSubscription(est.id, {
+                                                                subscription_status: 'active',
+                                                                subscription_ends_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+                                                            })}
+                                                            className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
+                                                            title="Activer 1 an"
+                                                        >
+                                                            <Check size={18} />
+                                                        </button>
+                                                    )}
+                                                    {est.subscription_status === 'active' && (
+                                                        <button
+                                                            onClick={() => updateSubscription(est.id, { subscription_status: 'expired' })}
+                                                            className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                                            title="Expirer"
+                                                        >
+                                                            <X size={18} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        </div >
+            </main>
+        </div>
     );
 }
