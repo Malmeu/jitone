@@ -24,6 +24,7 @@ interface InventoryItem {
     location: string;
     image_url: string;
     icon?: string;
+    supplier?: string;
     created_at: string;
 }
 
@@ -55,7 +56,8 @@ export default function InventoryPage() {
         selling_price: 0,
         location: '',
         image_url: '',
-        icon: 'Box'
+        icon: 'Box',
+        supplier: ''
     });
 
     useEffect(() => {
@@ -308,7 +310,7 @@ export default function InventoryPage() {
                                 current_stock: 0, low_stock_threshold: 5,
                                 cost_price: 0, selling_price: 0,
                                 location: '', image_url: '',
-                                icon: 'Box'
+                                icon: 'Box', supplier: ''
                             });
                             setShowModal(true);
                         }}
@@ -376,6 +378,7 @@ export default function InventoryPage() {
                                 <th className="px-8 py-6">Article</th>
                                 <th className="px-8 py-6">Catégorie</th>
                                 <th className="px-8 py-6">Stock</th>
+                                <th className="px-8 py-6">Fournisseur</th>
                                 <th className="px-8 py-6">Prix (DA)</th>
                                 <th className="px-8 py-6 text-right">Actions</th>
                             </tr>
@@ -423,6 +426,9 @@ export default function InventoryPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
+                                            <div className="text-neutral-500 font-medium">{item.supplier || 'N/A'}</div>
+                                        </td>
+                                        <td className="px-8 py-6">
                                             <div className="text-foreground font-bold">{item.selling_price.toLocaleString()} DA</div>
                                             <div className="text-[10px] text-neutral-400 mt-1">Coût: {item.cost_price.toLocaleString()} DA</div>
                                         </td>
@@ -436,7 +442,7 @@ export default function InventoryPage() {
                                                             current_stock: item.current_stock, low_stock_threshold: item.low_stock_threshold,
                                                             cost_price: item.cost_price, selling_price: item.selling_price,
                                                             location: item.location || '', image_url: item.image_url || '',
-                                                            icon: item.icon || 'Box'
+                                                            icon: item.icon || 'Box', supplier: item.supplier || ''
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -572,15 +578,27 @@ export default function InventoryPage() {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Localisation (Rayon / Tiroir)</label>
-                                        <input
-                                            type="text"
-                                            value={formData.location}
-                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                            placeholder="ex: Étagère SAV-01"
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Localisation (Rayon / Tiroir)</label>
+                                            <input
+                                                type="text"
+                                                value={formData.location}
+                                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                                placeholder="ex: Étagère SAV-01"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Fournisseur</label>
+                                            <input
+                                                type="text"
+                                                value={formData.supplier}
+                                                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                                placeholder="ex: Tech Parts DZ"
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="space-y-4">

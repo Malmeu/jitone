@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Plus, Search, X, Loader2, Smartphone, User, DollarSign, Calendar, Filter, MoreHorizontal, Printer, Edit3, Trash2, CheckCircle2, AlertCircle, Info, Clock, Check } from 'lucide-react';
+import { Plus, Search, X, Loader2, Smartphone, User, DollarSign, Calendar, Filter, MoreHorizontal, Printer, Edit3, Trash2, CheckCircle2, AlertCircle, Info, Clock, Check, Tag } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RepairTicket } from '@/components/ui/RepairTicket';
 import { IconRenderer } from '@/components/ui/IconRenderer';
+import { RepairLabel } from '@/components/ui/RepairLabel';
 
 export default function RepairsPage() {
     const [repairs, setRepairs] = useState<any[]>([]);
@@ -20,6 +21,7 @@ export default function RepairsPage() {
     const [paymentFilter, setPaymentFilter] = useState('all');
     const [submitting, setSubmitting] = useState(false);
     const [showTicket, setShowTicket] = useState(false);
+    const [showLabel, setShowLabel] = useState(false);
     const [ticketData, setTicketData] = useState<any>(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedRepair, setSelectedRepair] = useState<any>(null);
@@ -562,6 +564,7 @@ export default function RepairsPage() {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => { setTicketData(repair); setShowLabel(true); }} className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all" title="Étiquette"><Tag size={18} /></button>
                                                 <button onClick={() => { setTicketData(repair); setShowTicket(true); }} className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all" title="Ticket"><Printer size={18} /></button>
                                                 <button onClick={() => handleEdit(repair)} className="p-2.5 bg-card text-blue-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 shadow-sm transition-all" title="Modifier"><Edit3 size={18} /></button>
                                                 <button onClick={() => deleteRepair(repair.id, repair.code)} className="p-2.5 bg-card text-red-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm transition-all" title="Supprimer"><Trash2 size={18} /></button>
@@ -856,16 +859,20 @@ export default function RepairsPage() {
                 )}
             </AnimatePresence>
 
-            {/* Printable Ticket */}
-            {
-                showTicket && ticketData && establishment && (
-                    <RepairTicket
-                        repair={ticketData}
-                        establishment={establishment}
-                        onClose={() => setShowTicket(false)}
-                    />
-                )
-            }
+            {showTicket && ticketData && establishment && (
+                <RepairTicket
+                    repair={ticketData}
+                    establishment={establishment}
+                    onClose={() => setShowTicket(false)}
+                />
+            )}
+
+            {showLabel && ticketData && (
+                <RepairLabel
+                    repair={ticketData}
+                    onClose={() => setShowLabel(false)}
+                />
+            )}
         </motion.div >
     );
 }
