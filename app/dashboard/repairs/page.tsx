@@ -26,6 +26,8 @@ export default function RepairsPage() {
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [paymentAmount, setPaymentAmount] = useState(0);
     const [paymentNote, setPaymentNote] = useState('');
+    const [inventory, setInventory] = useState<any[]>([]);
+    const [selectedParts, setSelectedParts] = useState<any[]>([]);
 
     const [formData, setFormData] = useState({
         clientId: '',
@@ -78,6 +80,13 @@ export default function RepairsPage() {
                 .order('name');
 
             if (clientsData) setClients(clientsData);
+
+            const { data: inventoryData } = await supabase
+                .from('inventory')
+                .select('*')
+                .eq('establishment_id', establishmentData.id)
+                .order('name');
+            if (inventoryData) setInventory(inventoryData);
         } catch (error) {
             console.error('Error:', error);
         } finally {
@@ -141,6 +150,19 @@ export default function RepairsPage() {
                     .eq('id', editingRepair.id);
 
                 if (repairError) throw repairError;
+
+                // Update parts (simplified: delete old ones and re-insert)
+                await supabase.from('repair_parts').delete().eq('repair_id', editingRepair.id);
+                if (selectedParts.length > 0) {
+                    const partsToInsert = selectedParts.map(p => ({
+                        repair_id: editingRepair.id,
+                        inventory_id: p.id,
+                        quantity: p.quantity || 1,
+                        unit_cost: p.cost_price,
+                        unit_price: p.selling_price
+                    }));
+                    await supabase.from('repair_parts').insert(partsToInsert);
+                }
             } else {
                 const repairData = {
                     establishment_id: establishmentId,
@@ -164,6 +186,18 @@ export default function RepairsPage() {
                 if (repairError) throw repairError;
 
                 const newRepair = repairResult[0];
+
+                if (selectedParts.length > 0) {
+                    const partsToInsert = selectedParts.map(p => ({
+                        repair_id: newRepair.id,
+                        inventory_id: p.id,
+                        quantity: p.quantity || 1,
+                        unit_cost: p.cost_price,
+                        unit_price: p.selling_price
+                    }));
+                    await supabase.from('repair_parts').insert(partsToInsert);
+                }
+
                 const clientData = clients.find(c => c.id === clientId) || {
                     name: formData.clientName,
                     phone: formData.clientPhone,
@@ -191,6 +225,7 @@ export default function RepairsPage() {
             });
             setShowModal(false);
             setEditingRepair(null);
+            setSelectedParts([]);
             await fetchData();
         } catch (error: any) {
             console.error('Error:', error);
@@ -320,6 +355,23 @@ export default function RepairsPage() {
             imei_sn: repair.imei_sn || '',
         });
         setShowModal(true);
+
+        // Fetch parts for this repair
+        const fetchParts = async () => {
+            const { data } = await supabase
+                .from('repair_parts')
+                .select('*, inventory(*)')
+                .eq('repair_id', repair.id);
+            if (data) {
+                setSelectedParts(data.map(p => ({
+                    ...p.inventory,
+                    quantity: p.quantity,
+                    cost_price: p.unit_cost,
+                    selling_price: p.unit_price
+                })));
+            }
+        };
+        fetchParts();
     };
 
     if (loading) {
@@ -626,6 +678,62 @@ export default function RepairsPage() {
                                                 rows={4} placeholder="Détails du problème et travaux à effectuer..."
                                             />
                                         </div>
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-2 text-primary font-bold">
+                                                <Smartphone size={18} />
+                                                <label className="text-sm font-black uppercase tracking-widest">Pièces de l'Inventaire</label>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    className="flex-1 px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-white shadow-sm font-medium font-inter"
+                                                    onChange={(e) => {
+                                                        const item = inventory.find(i => i.id === e.target.value);
+                                                        if (item && !selectedParts.find(p => p.id === item.id)) {
+                                                            const newParts = [...selectedParts, { ...item, quantity: 1 }];
+                                                            setSelectedParts(newParts);
+                                                            const totalCost = newParts.reduce((acc, p) => acc + (p.cost_price * p.quantity), 0);
+                                                            setFormData(f => ({ ...f, cost_price: totalCost.toString() }));
+                                                        }
+                                                        e.target.value = "";
+                                                    }}
+                                                >
+                                                    <option value="">Ajouter une pièce...</option>
+                                                    {inventory.filter(i => i.current_stock > 0).map(item => (
+                                                        <option key={item.id} value={item.id}>
+                                                            {item.name} ({item.current_stock} dispo)
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            {selectedParts.length > 0 && (
+                                                <div className="bg-neutral-50 rounded-2xl p-4 space-y-3 font-inter">
+                                                    {selectedParts.map((part, idx) => (
+                                                        <div key={idx} className="flex items-center justify-between text-sm">
+                                                            <div className="flex items-center gap-2">
+                                                                <Check className="text-emerald-500" size={14} />
+                                                                <span className="font-bold text-neutral-700">{part.name}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-4">
+                                                                <span className="font-mono text-[10px] bg-white px-2 py-1 rounded-lg border border-neutral-100">{part.cost_price} DA</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newParts = selectedParts.filter((_, i) => i !== idx);
+                                                                        setSelectedParts(newParts);
+                                                                        const totalCost = newParts.reduce((acc, p) => acc + (p.cost_price * p.quantity), 0);
+                                                                        setFormData(f => ({ ...f, cost_price: totalCost.toString() }));
+                                                                    }}
+                                                                    className="text-rose-500 hover:text-rose-600 font-inter"
+                                                                >
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -636,7 +744,7 @@ export default function RepairsPage() {
                                                         type="number"
                                                         value={formData.price}
                                                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-black"
+                                                        className="w-full pl-10 pr-4 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-white shadow-sm font-black font-inter"
                                                         placeholder="0.00"
                                                     />
                                                 </div>
@@ -666,7 +774,7 @@ export default function RepairsPage() {
                                                     <button
                                                         key={key} type="button"
                                                         onClick={() => setFormData({ ...formData, status: key })}
-                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all ${formData.status === key ? 'bg-neutral-900 border-neutral-900 text-white shadow-lg' : 'bg-white border-neutral-100 text-neutral-500 hover:bg-neutral-50 font-inter'}`}
+                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all font-inter ${formData.status === key ? 'bg-neutral-900 border-neutral-900 text-white shadow-lg' : 'bg-white border-neutral-100 text-neutral-500 hover:bg-neutral-50'}`}
                                                     >
                                                         {label}
                                                     </button>
@@ -746,13 +854,15 @@ export default function RepairsPage() {
             </AnimatePresence>
 
             {/* Printable Ticket */}
-            {showTicket && ticketData && establishment && (
-                <RepairTicket
-                    repair={ticketData}
-                    establishment={establishment}
-                    onClose={() => setShowTicket(false)}
-                />
-            )}
-        </motion.div>
+            {
+                showTicket && ticketData && establishment && (
+                    <RepairTicket
+                        repair={ticketData}
+                        establishment={establishment}
+                        onClose={() => setShowTicket(false)}
+                    />
+                )
+            }
+        </motion.div >
     );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone } from 'lucide-react';
+import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone, Package } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -11,6 +11,7 @@ const menu = [
     { icon: Home, label: 'Accueil', href: '/dashboard' },
     { icon: Briefcase, label: 'Réparations', href: '/dashboard/repairs' },
     { icon: Users, label: 'Clients', href: '/dashboard/clients' },
+    { icon: Package, label: 'Stock', href: '/dashboard/inventory' },
     { icon: Calendar, label: 'Calendrier', href: '/dashboard/calendar' },
     { icon: FileText, label: 'Devis', href: '/dashboard/quotes' },
     { icon: FileText, label: 'Factures', href: '/dashboard/invoices' },
