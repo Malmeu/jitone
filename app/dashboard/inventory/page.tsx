@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import {
-    Package, Plus, Search, Filter, MoreHorizontal, Edit3, Trash2,
-    AlertTriangle, TrendingUp, DollarSign, Layers, ArrowRight,
-    Loader2, X, Check, Image as ImageIcon, Box
+    Plus, Search, Filter, Edit3, Trash2,
+    AlertTriangle, TrendingUp, DollarSign,
+    Loader2, X, Check, Box
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
+import { IconRenderer, AVAILABLE_ICONS } from '@/components/ui/IconRenderer';
 
 interface InventoryItem {
     id: string;
@@ -22,6 +23,7 @@ interface InventoryItem {
     selling_price: number;
     location: string;
     image_url: string;
+    icon?: string;
     created_at: string;
 }
 
@@ -52,7 +54,8 @@ export default function InventoryPage() {
         cost_price: 0,
         selling_price: 0,
         location: '',
-        image_url: ''
+        image_url: '',
+        icon: 'Box'
     });
 
     useEffect(() => {
@@ -304,7 +307,8 @@ export default function InventoryPage() {
                                 name: '', sku: '', category_id: '',
                                 current_stock: 0, low_stock_threshold: 5,
                                 cost_price: 0, selling_price: 0,
-                                location: '', image_url: ''
+                                location: '', image_url: '',
+                                icon: 'Box'
                             });
                             setShowModal(true);
                         }}
@@ -388,11 +392,11 @@ export default function InventoryPage() {
                                     <tr key={item.id} className="group hover:bg-[#FBFBFD]/50 dark:hover:bg-neutral-900/50 transition-all border-l-4 border-l-transparent hover:border-l-primary/30">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl flex items-center justify-center text-neutral-300 overflow-hidden">
+                                                <div className="w-12 h-12 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl flex items-center justify-center text-primary overflow-hidden">
                                                     {item.image_url ? (
                                                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <ImageIcon size={20} />
+                                                        <IconRenderer name={item.icon || 'Box'} />
                                                     )}
                                                 </div>
                                                 <div>
@@ -431,7 +435,8 @@ export default function InventoryPage() {
                                                             name: item.name, sku: item.sku || '', category_id: item.category_id || '',
                                                             current_stock: item.current_stock, low_stock_threshold: item.low_stock_threshold,
                                                             cost_price: item.cost_price, selling_price: item.selling_price,
-                                                            location: item.location || '', image_url: item.image_url || ''
+                                                            location: item.location || '', image_url: item.image_url || '',
+                                                            icon: item.icon || 'Box'
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -576,6 +581,25 @@ export default function InventoryPage() {
                                             className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             placeholder="ex: Étagère SAV-01"
                                         />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Icône de l'article</label>
+                                        <div className="grid grid-cols-6 md:grid-cols-9 gap-3">
+                                            {AVAILABLE_ICONS.map((iconObj) => (
+                                                <button
+                                                    key={iconObj.id}
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, icon: iconObj.id })}
+                                                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${formData.icon === iconObj.id
+                                                        ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110'
+                                                        : 'bg-neutral-50 dark:bg-neutral-900/50 text-neutral-400 hover:text-primary hover:bg-primary/5 border border-neutral-100 dark:border-neutral-800'
+                                                        }`}
+                                                >
+                                                    <IconRenderer name={iconObj.id} size={20} />
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 

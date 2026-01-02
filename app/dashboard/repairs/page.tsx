@@ -6,6 +6,7 @@ import { Plus, Search, X, Loader2, Smartphone, User, DollarSign, Calendar, Filte
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RepairTicket } from '@/components/ui/RepairTicket';
+import { IconRenderer } from '@/components/ui/IconRenderer';
 
 export default function RepairsPage() {
     const [repairs, setRepairs] = useState<any[]>([]);
@@ -710,8 +711,10 @@ export default function RepairsPage() {
                                                 <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl p-4 space-y-3">
                                                     {selectedParts.map((part, idx) => (
                                                         <div key={idx} className="flex items-center justify-between text-sm">
-                                                            <div className="flex items-center gap-2">
-                                                                <Check className="text-emerald-500" size={14} />
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 bg-card rounded-lg flex items-center justify-center text-primary border border-neutral-100 dark:border-neutral-800 shadow-sm">
+                                                                    <IconRenderer name={part.icon || 'Box'} size={14} />
+                                                                </div>
                                                                 <span className="font-bold text-neutral-700 dark:text-neutral-300">{part.name}</span>
                                                             </div>
                                                             <div className="flex items-center gap-4">
