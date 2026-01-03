@@ -282,9 +282,18 @@ export default function SettingsPage() {
                             <h4 className="font-bold text-lg">Abonnement</h4>
                         </div>
                         <div className="relative z-10">
-                            <span className="inline-flex px-3 py-1 rounded-full text-[10px] uppercase font-black mb-4 tracking-widest bg-emerald-500/20 text-emerald-400">
-                                {establishment?.subscription_status === 'trial' ? 'Essai' : 'Compte PRO'}
-                            </span>
+                            {establishment?.subscription_status === 'trial' ? (
+                                <span className="inline-flex px-3 py-1 rounded-full text-[10px] uppercase font-black mb-4 tracking-widest bg-blue-500/20 text-blue-400">
+                                    Période d'Essai
+                                </span>
+                            ) : (
+                                <span className={`inline-flex px-3 py-1 rounded-full text-[10px] uppercase font-black mb-4 tracking-widest ${establishment?.subscription_plan === 'premium'
+                                        ? "bg-gradient-to-r from-amber-500/20 to-amber-200/10 text-amber-400 border border-amber-500/20 shadow-[0_0_15px_rgba(251,191,36,0.15)]"
+                                        : "bg-emerald-500/20 text-emerald-400"
+                                    }`}>
+                                    {establishment?.subscription_plan === 'premium' ? '✨ PREMIUM' : 'Compte PRO'}
+                                </span>
+                            )}
                             <div className="text-4xl font-black mb-2">
                                 {establishment?.subscription_status === 'trial' ? `${trialDaysLeft} Jours` : 'Actif'}
                             </div>
