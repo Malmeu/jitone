@@ -12,7 +12,7 @@ export default function ContactPage() {
     const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
     const [formData, setFormData] = useState({
         name: '',
-        email: '',
+        phone: '',
         subject: 'Activation Abonnement Premium',
         message: ''
     });
@@ -27,7 +27,7 @@ export default function ContactPage() {
                 .insert([
                     {
                         name: formData.name,
-                        email: formData.email,
+                        phone: formData.phone,
                         subject: formData.subject,
                         message: formData.message,
                         status: 'unread'
@@ -36,7 +36,7 @@ export default function ContactPage() {
 
             if (error) throw error;
             setFormStatus('sent');
-            setFormData({ name: '', email: '', subject: 'Activation Abonnement Premium', message: '' });
+            setFormData({ name: '', phone: '', subject: 'Activation Abonnement Premium', message: '' });
         } catch (error) {
             console.error('Error sending message:', error);
             setFormStatus('error');
@@ -120,13 +120,13 @@ export default function ContactPage() {
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Email professionnel</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-1">Numéro de téléphone</label>
                                         <input
                                             required
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            placeholder="votre@email.com"
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            placeholder="Ex: 0555 12 34 56"
                                             className="w-full px-6 py-4 bg-neutral-50 border border-neutral-100 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary font-bold outline-none transition-all placeholder:text-neutral-300"
                                         />
                                     </div>

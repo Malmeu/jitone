@@ -441,8 +441,8 @@ export default function AdminPage() {
                                                         <span className="text-neutral-900">{msg.name}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2 text-neutral-400">
-                                                        <Mail size={16} />
-                                                        <a href={`mailto:${msg.email}`} className="text-primary hover:underline">{msg.email}</a>
+                                                        <Phone size={16} />
+                                                        <a href={`tel:${msg.phone}`} className="text-primary hover:underline">{msg.phone}</a>
                                                     </div>
                                                 </div>
                                             </div>
