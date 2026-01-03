@@ -9,7 +9,7 @@ export function Footer() {
                         <img src="/logoFixwave.webp" alt="Fixwave" className="h-6 w-auto opacity-50 group-hover:opacity-100 transition-opacity" />
                     </Link>
                     <div className="flex gap-10 text-xs font-black uppercase tracking-[0.2em] text-neutral-400">
-                        <Link href="#" className="hover:text-primary transition-colors">Support</Link>
+                        <Link href="/contact" className="hover:text-primary transition-colors">Contact & Paiement</Link>
                         <Link href="#" className="hover:text-primary transition-colors">Conditions</Link>
                         <Link href="#" className="hover:text-primary transition-colors">Confidentialité</Link>
                     </div>

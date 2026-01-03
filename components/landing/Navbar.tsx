@@ -37,13 +37,14 @@ export function Navbar() {
                 )}>
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group transition-transform active:scale-95">
-                        <img src="/logoFixwave.webp" alt="Fixwave" className="h-7 w-auto" />
+                        <img src="/logoFixwave.webp" alt="Fixwave" className="h-9 w-auto" />
                     </Link>
 
                     {/* Desktop Nav */}
                     <div className="hidden md:flex items-center gap-8">
                         <Link href="#features" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Fonctionnalités</Link>
                         <Link href="#pricing" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Tarifs</Link>
+                        <Link href="/contact" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Contact</Link>
                         <Link href="#testimonials" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Témoignages</Link>
                     </div>
 
@@ -82,6 +83,7 @@ export function Navbar() {
                     >
                         <Link href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-neutral-800 py-2">Fonctionnalités</Link>
                         <Link href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-neutral-800 py-2">Tarifs</Link>
+                        <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium text-neutral-800 py-2">Contact & Paiement</Link>
                         <hr className="border-gray-100" />
                         <Link href="/track" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
                             <Button variant="outline" className="w-full justify-start"> <Search className="w-4 h-4 mr-2" /> Suivre ma réparation</Button>

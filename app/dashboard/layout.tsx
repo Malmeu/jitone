@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-b border-neutral-100 z-30 px-6 py-4 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-2">
-                    <img src="/logoFixwave.webp" alt="Fixwave" className="h-7 w-auto" />
+                    <img src="/logoFixwave.webp" alt="Fixwave" className="h-9 w-auto" />
                 </Link>
                 <div className="flex items-center gap-2">
                     <button
@@ -246,7 +246,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <aside className="w-72 bg-card border-r border-neutral-100 dark:border-neutral-800 hidden md:flex flex-col fixed inset-y-0 z-20">
                 <div className="p-10 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <img src="/logoFixwave.webp" alt="Fixwave" className="h-8 w-auto group-hover:scale-110 transition-transform duration-500" />
+                        <img src="/logoFixwave.webp" alt="Fixwave" className="h-10 w-auto group-hover:scale-110 transition-transform duration-500" />
                     </Link>
                 </div>
 

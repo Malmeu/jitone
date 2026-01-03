@@ -129,6 +129,26 @@ export function Pricing() {
                         </motion.div>
                     ))}
                 </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="mt-32 max-w-4xl mx-auto p-12 rounded-[3.5rem] bg-neutral-50 border border-neutral-100 flex flex-col md:flex-row items-center justify-between gap-10"
+                >
+                    <div className="flex-1">
+                        <h3 className="text-2xl font-black text-neutral-900 mb-4 uppercase tracking-tight">Modes de paiement locaux 🇩🇿</h3>
+                        <p className="text-neutral-500 font-medium leading-relaxed">
+                            Nous acceptons les paiements via <span className="text-primary font-bold">CCP, BaridiMob</span> et <span className="text-primary font-bold">Espèce</span>.
+                            Contactez-nous pour activer votre pack immédiatement après le transfert.
+                        </p>
+                    </div>
+                    <Link href="/contact" className="block">
+                        <Button variant="outline" className="h-16 px-10 rounded-2xl font-black shadow-soft w-full md:w-auto">
+                            Voir les détails
+                        </Button>
+                    </Link>
+                </motion.div>
             </div>
         </section>
     );

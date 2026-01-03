@@ -12,9 +12,10 @@ const ADMIN_EMAILS = [
 ];
 
 export default function AdminPage() {
-    const [activeTab, setActiveTab] = useState<'establishments' | 'packs'>('establishments');
+    const [activeTab, setActiveTab] = useState<'establishments' | 'packs' | 'messages'>('establishments');
     const [establishments, setEstablishments] = useState<any[]>([]);
     const [configs, setConfigs] = useState<any[]>([]);
+    const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [authorized, setAuthorized] = useState(false);
     const [stats, setStats] = useState({
@@ -34,10 +35,54 @@ export default function AdminPage() {
             setAuthorized(true);
             await Promise.all([
                 fetchEstablishments(),
-                fetchConfigs()
+                fetchConfigs(),
+                fetchMessages()
             ]);
         } else {
             setLoading(false);
+        }
+    };
+
+    const fetchMessages = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('contact_messages')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setMessages(data || []);
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    };
+
+    const deleteMessage = async (id: string) => {
+        if (!confirm('Supprimer ce message ?')) return;
+        try {
+            const { error } = await supabase
+                .from('contact_messages')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            await fetchMessages();
+        } catch (error) {
+            alert('Erreur lors de la suppression');
+        }
+    };
+
+    const markAsRead = async (id: string) => {
+        try {
+            const { error } = await supabase
+                .from('contact_messages')
+                .update({ status: 'read' })
+                .eq('id', id);
+
+            if (error) throw error;
+            await fetchMessages();
+        } catch (error) {
+            console.error('Error marking as read:', error);
         }
     };
 
@@ -203,7 +248,18 @@ export default function AdminPage() {
                             onClick={() => setActiveTab('packs')}
                             className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'packs' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
                         >
-                            Configuration Packs
+                            Packs
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('messages')}
+                            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'messages' ? 'bg-white text-neutral-900 shadow-sm relative' : 'text-neutral-400 hover:text-neutral-600'}`}
+                        >
+                            Messages
+                            {messages.filter(m => m.status === 'unread').length > 0 && (
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[10px] flex items-center justify-center rounded-full animate-pulse">
+                                    {messages.filter(m => m.status === 'unread').length}
+                                </span>
+                            )}
                         </button>
                     </nav>
                 </div>
@@ -345,6 +401,82 @@ export default function AdminPage() {
                                 </div>
                             </div>
                         </motion.div>
+                    ) : activeTab === 'messages' ? (
+                        <motion.div
+                            key="msg"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-6"
+                        >
+                            <div className="flex items-center justify-between mb-8">
+                                <h1 className="text-3xl font-black text-neutral-900 tracking-tight">Messages de Contact</h1>
+                                <div className="px-4 py-2 bg-white rounded-xl border border-neutral-100 text-xs font-bold text-neutral-400 uppercase tracking-widest">
+                                    {messages.length} Messages au total
+                                </div>
+                            </div>
+
+                            <div className="grid gap-6">
+                                {messages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={`bg-white p-8 rounded-[2.5rem] border transition-all ${msg.status === 'unread' ? 'border-primary/20 shadow-lg shadow-primary/5' : 'border-neutral-100'}`}
+                                    >
+                                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${msg.status === 'unread' ? 'bg-primary text-white' : 'bg-neutral-100 text-neutral-400'}`}>
+                                                        {msg.status === 'unread' ? 'Nouveau' : 'Lu'}
+                                                    </span>
+                                                    <span className="text-[10px] font-black text-neutral-300 uppercase tracking-widest">
+                                                        {new Date(msg.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                                <h3 className="text-xl font-black text-neutral-900 mb-2 uppercase tracking-tight">{msg.subject || 'Sans sujet'}</h3>
+                                                <p className="text-neutral-600 font-medium leading-relaxed mb-6 whitespace-pre-wrap">{msg.message}</p>
+
+                                                <div className="flex flex-wrap gap-6 items-center pt-6 border-t border-neutral-50 text-sm font-bold">
+                                                    <div className="flex items-center gap-2 text-neutral-400">
+                                                        <Users size={16} />
+                                                        <span className="text-neutral-900">{msg.name}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-neutral-400">
+                                                        <Mail size={16} />
+                                                        <a href={`mailto:${msg.email}`} className="text-primary hover:underline">{msg.email}</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex md:flex-col gap-2">
+                                                {msg.status === 'unread' && (
+                                                    <button
+                                                        onClick={() => markAsRead(msg.id)}
+                                                        className="p-3 bg-primary/10 text-primary rounded-2xl hover:bg-primary/20 transition-all active:scale-95 flex items-center justify-center"
+                                                        title="Marquer comme lu"
+                                                    >
+                                                        <Check size={20} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => deleteMessage(msg.id)}
+                                                    className="p-3 bg-red-50 text-red-500 rounded-2xl hover:bg-red-100 transition-all active:scale-95 flex items-center justify-center"
+                                                    title="Supprimer"
+                                                >
+                                                    <X size={20} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {messages.length === 0 && (
+                                    <div className="text-center py-24 bg-white rounded-[3rem] border border-neutral-100 border-dashed">
+                                        <Mail className="w-12 h-12 text-neutral-200 mx-auto mb-4" />
+                                        <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs">Aucun message pour le moment</p>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
                     ) : (
                         <motion.div
                             key="packs"
@@ -377,7 +509,7 @@ export default function AdminPage() {
                                                     onChange={(e) => {
                                                         const newConfigs = [...configs];
                                                         const c = newConfigs.find(x => x.plan_id === config.plan_id);
-                                                        c.price_da = parseFloat(e.target.value);
+                                                        if (c) c.price_da = parseFloat(e.target.value);
                                                         setConfigs(newConfigs);
                                                     }}
                                                     className="w-full px-6 py-4 bg-neutral-50 border border-neutral-100 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary font-bold text-lg"
@@ -395,7 +527,7 @@ export default function AdminPage() {
                                                     onChange={(e) => {
                                                         const newConfigs = [...configs];
                                                         const c = newConfigs.find(x => x.plan_id === config.plan_id);
-                                                        c.default_max_repairs = parseInt(e.target.value);
+                                                        if (c) c.default_max_repairs = parseInt(e.target.value);
                                                         setConfigs(newConfigs);
                                                     }}
                                                     className="w-full px-6 py-4 bg-neutral-50 border border-neutral-100 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary font-bold"
@@ -409,7 +541,7 @@ export default function AdminPage() {
                                                     onChange={(e) => {
                                                         const newConfigs = [...configs];
                                                         const c = newConfigs.find(x => x.plan_id === config.plan_id);
-                                                        c.default_max_team_members = parseInt(e.target.value);
+                                                        if (c) c.default_max_team_members = parseInt(e.target.value);
                                                         setConfigs(newConfigs);
                                                     }}
                                                     className="w-full px-6 py-4 bg-neutral-50 border border-neutral-100 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary font-bold"
