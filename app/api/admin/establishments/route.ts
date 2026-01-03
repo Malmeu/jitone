@@ -9,10 +9,16 @@ const ADMIN_EMAILS = [
 
 export async function GET(request: Request) {
     try {
+        // Vérifier si la clé service role est présente
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!serviceRoleKey) {
+            console.warn('ATTENTION: SUPABASE_SERVICE_ROLE_KEY est manquante. Fallback sur ANON_KEY. Les RLS s\'appliqueront.');
+        }
+
         // Créer un client avec la clé service role pour bypasser RLS
         const supabaseAdmin = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
             {
                 auth: {
                     autoRefreshToken: false,
@@ -63,9 +69,10 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
     try {
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         const supabaseAdmin = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
             {
                 auth: {
                     autoRefreshToken: false,
