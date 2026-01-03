@@ -44,6 +44,38 @@ export default function TrackPage() {
 
     useEffect(() => {
         const fetchAllData = async () => {
+            if (code.toUpperCase() === 'REPAR-DEMO') {
+                setRepair({
+                    id: 'demo-id',
+                    code: 'REPAR-DEMO',
+                    status: 'diagnostic',
+                    item: 'iPhone 14 Pro Max',
+                    description: 'Écran brisé et batterie faible - Diagnostic complet demandé.',
+                    created_at: new Date().toISOString(),
+                    imei_sn: '3587420911XXXXX',
+                    client: { name: 'Client Démo', phone: '+213 555 00 00 00', email: 'demo@fixwave.dz' },
+                    establishment: {
+                        name: 'Fixwave Tech Center',
+                        address: '123 Boulevard Mohamed V, Alger',
+                        phone: '+213 21 00 00 00',
+                        owner_email: 'contact@fixwave.dz'
+                    }
+                });
+                setQuotes([{
+                    id: 'q-demo',
+                    quote_number: 'Q-2024-001',
+                    total: 12500,
+                    status: 'sent',
+                    issue_date: new Date().toISOString(),
+                    quote_items: [
+                        { description: 'Écran Original iPhone 14 Pro Max', quantity: 1, unit_price: 9500 },
+                        { description: 'Main d\'œuvre & Tests', quantity: 1, unit_price: 3000 }
+                    ]
+                }]);
+                setLoading(false);
+                return;
+            }
+
             try {
                 // Fetch Repair
                 const { data: repairData, error: repairError } = await supabase

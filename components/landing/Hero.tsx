@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/Button';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Wrench } from 'lucide-react';
+import { CheckCircle2, Wrench, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 export function Hero() {
@@ -68,7 +68,7 @@ export function Hero() {
                                 <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Button>
                         </Link>
-                        <Link href="/track">
+                        <Link href="/track/REPAR-DEMO">
                             <Button variant="ghost" size="lg" className="h-16 px-10 rounded-2xl border border-neutral-100 bg-white shadow-soft text-neutral-600 font-bold text-lg hover:bg-neutral-50 active:scale-95 transition-all">
                                 <QrCode className="mr-3 w-5 h-5 text-primary" />
                                 Démo Suivi Client
@@ -89,22 +89,16 @@ export function Hero() {
                         {/* Main UI Frame - Glassmorphism */}
                         <div className="bg-white/40 backdrop-blur-2xl border border-white/60 p-4 rounded-[3.5rem] shadow-heavy relative group">
                             <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-soft border border-neutral-100 aspect-[16/9] md:aspect-[21/9] flex items-center justify-center relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-neutral-50 to-white" />
+                                <img
+                                    src="/dashboard_en_direct.png"
+                                    alt="Fixwave Dashboard"
+                                    className="w-full h-full object-cover blur-[1px] opacity-80 group-hover:opacity-100 group-hover:blur-0 transition-all duration-1000"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
-                                <div className="relative z-10 flex flex-col items-center gap-6">
-                                    <img src="/logoFixwave.webp" alt="Fixwave" className="h-12 w-auto mb-4 opacity-20 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000" />
-                                    <div className="flex gap-4">
-                                        {[1, 2, 3].map((i) => (
-                                            <div key={i} className="w-16 h-1 bg-neutral-100 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    animate={{ x: ['-100%', '100%'] }}
-                                                    transition={{ repeat: Infinity, duration: 2, delay: i * 0.5 }}
-                                                    className="w-full h-full bg-primary/20"
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <p className="text-neutral-300 font-black uppercase tracking-[0.4em] text-[10px]">Dashboard en direct</p>
+                                {/* Logo Overlay */}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:scale-110 group-hover:opacity-0 transition-all duration-700">
+                                    <img src="/logoFixwave.webp" alt="Fixwave" className="h-12 md:h-20 w-auto drop-shadow-2xl" />
                                 </div>
                             </div>
 
@@ -121,27 +115,40 @@ export function Hero() {
                                     <span className="text-xs font-black uppercase tracking-widest">Devis Accepté</span>
                                 </div>
                                 <p className="text-2xl font-black mb-1">12 500 DA</p>
-                                <p className="text-[10px] text-white/60 font-medium">Réparation iPhone 13 lancée</p>
+                                <p className="text-[10px] text-white/60 font-medium text-wrap">Réparation iPhone 13 lancée - Écran original Apple</p>
                             </motion.div>
 
                             {/* Floating Element 2 - Status */}
                             <motion.div
                                 animate={{ y: [0, 10, 0] }}
                                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
-                                className="absolute -bottom-8 -left-6 md:-left-12 w-64 bg-white rounded-3xl p-6 shadow-2xl border border-neutral-50 hidden sm:block"
+                                className="absolute -bottom-12 -left-6 md:-left-12 w-72 bg-white rounded-3xl p-6 shadow-2xl border border-neutral-50 hidden sm:block"
                             >
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Suivi Client</span>
+                                <div className="flex justify-between items-center mb-5">
+                                    <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Suivi Client Direct</span>
                                     <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                                 </div>
-                                <div className="space-y-3">
-                                    <div className="h-2 w-full bg-neutral-100 rounded-full" />
-                                    <div className="h-2 w-2/3 bg-neutral-100 rounded-full" />
-                                    <div className="pt-2 flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-primary">
-                                            <Wrench size={12} />
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-[9px] font-black text-neutral-400 uppercase tracking-tighter mb-1">Appareil : iPhone 14 Pro Max</p>
+                                        <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: "65%" }}
+                                                transition={{ duration: 2, delay: 1.5 }}
+                                                className="h-full bg-amber-500"
+                                            />
                                         </div>
-                                        <span className="text-[11px] font-bold text-neutral-900">En cours de diagnostic...</span>
+                                    </div>
+
+                                    <div className="pt-2 flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+                                            <Clock size={14} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[11px] font-bold text-neutral-900 leading-none">Diagnostic terminé</p>
+                                            <p className="text-[9px] text-neutral-400 font-medium mt-1">En attente de pièce de rechange</p>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>
