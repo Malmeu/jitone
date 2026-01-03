@@ -46,6 +46,7 @@ export default function RepairsPage() {
     const [selectedParts, setSelectedParts] = useState<any[]>([]);
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [userProfile, setUserProfile] = useState<any>(null);
+    const [activeStatusMenu, setActiveStatusMenu] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         clientId: '',
@@ -588,10 +589,54 @@ export default function RepairsPage() {
                                             <div className="font-bold text-neutral-700 dark:text-neutral-300">{repair.client?.name || 'Client anonyme'}</div>
                                             <div className="text-neutral-400 text-xs mt-1 font-medium">{repair.client?.phone || 'Pas de contact'}</div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${statusColors[repair.status]}`}>
+                                        <td className="px-8 py-6 relative">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveStatusMenu(activeStatusMenu === repair.id ? null : repair.id);
+                                                }}
+                                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 border-2 border-transparent ${statusColors[repair.status]} ${activeStatusMenu === repair.id ? 'ring-2 ring-primary ring-offset-2 dark:ring-offset-neutral-900 border-primary shadow-lg' : ''}`}
+                                            >
                                                 {statusLabels[repair.status]}
-                                            </span>
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {activeStatusMenu === repair.id && (
+                                                    <>
+                                                        <div
+                                                            className="fixed inset-0 z-40 cursor-default"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveStatusMenu(null);
+                                                            }}
+                                                        />
+                                                        <motion.div
+                                                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                            className="absolute left-8 top-full z-50 mt-2 p-2 bg-card border border-neutral-100 dark:border-neutral-800 rounded-3xl shadow-heavy min-w-[200px]"
+                                                        >
+                                                            <div className="grid grid-cols-1 gap-1">
+                                                                {Object.entries(statusLabels).map(([key, label]) => (
+                                                                    <button
+                                                                        key={key}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            updateStatus(repair, key);
+                                                                            setActiveStatusMenu(null);
+                                                                        }}
+                                                                        className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between ${repair.status === key ? 'bg-primary text-white shadow-lg' : 'hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-500'}`}
+                                                                    >
+                                                                        {label}
+                                                                        {repair.status === key && <Check className="w-3 h-3" />}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    </>
+                                                )}
+                                            </AnimatePresence>
+
                                             {repair.fault_type && (
                                                 <div className="text-[10px] text-neutral-400 font-bold mt-1 uppercase tracking-tighter italic">
                                                     {FAULT_TYPES.find(f => f.id === repair.fault_type)?.label}
