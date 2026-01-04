@@ -21,7 +21,7 @@ const features = [
     {
         icon: Smartphone,
         title: "Notifications Smart",
-        description: "Envoyez des alertes automatiques par SMS et WhatsApp dès que l'appareil est prêt.",
+        description: "Envoyez des alertes automatiques par WhatsApp dès que l'appareil est prêt.",
         color: "bg-emerald-500",
         light: "bg-emerald-50"
     },

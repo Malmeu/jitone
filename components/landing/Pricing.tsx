@@ -7,33 +7,35 @@ import Link from 'next/link';
 
 const plans = [
     {
-        name: "Essentiel",
-        price: "2000",
+        name: "Standard",
+        price: "8000",
         currency: "DA",
-        period: "/ mois",
-        description: "Idéal pour les techniciens indépendants qui débutent.",
+        period: "/ an",
+        description: "L'essentiel pour gérer votre atelier efficacement.",
         features: [
-            "50 réparations / mois",
-            "Suivi client temps réel",
-            "Gestion clients standard",
+            "150 réparations / mois",
+            "Suivi client WhatsApp",
+            "Gestion clients & SAV",
+            "Tickets de dépôt PDF",
             "Support par email",
-            "Tickets de dépôt PDF"
+            "Statistiques basiques"
         ],
         cta: "Lancer l'aventure",
         popular: false
     },
     {
-        name: "Pro Performance",
-        price: "5000",
+        name: "Premium",
+        price: "12000",
         currency: "DA",
-        period: "/ mois",
-        description: "La puissance totale pour les ateliers ambitieux.",
+        period: "/ an",
+        description: "La puissance totale avec gestion de stock et ventes.",
         features: [
             "Réparations Illimitées",
-            "SMS & WhatsApp automatiques",
-            "Gestion de stock avancée",
-            "Multi-techniciens (3 accès)",
-            "Statistiques de revenus live",
+            "WhatsApp Automatique",
+            "Gestion de Stock & POS",
+            "Facturation & Devis",
+            "Multi-techniciens",
+            "Logiciel Caisse Vente",
             "Support prioritaire 24/7"
         ],
         cta: "Commencer Gratuitement",

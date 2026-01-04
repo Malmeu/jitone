@@ -279,7 +279,7 @@ export default function WidgetConfigPage() {
                         </div>
                         <div>
                             <h4 className="text-2xl font-bold mb-2">URL Directe</h4>
-                            <p className="text-neutral-400 font-medium">Partagez ce lien par SMS ou Email.</p>
+                            <p className="text-neutral-400 font-medium">Partagez ce lien par WhatsApp ou Email.</p>
                         </div>
                     </div>
 

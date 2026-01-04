@@ -32,7 +32,7 @@ export default function TrackSearchPage() {
                         Suivre ma réparation
                     </h1>
                     <p className="text-neutral-600">
-                        Entrez le code de suivi reçu par SMS ou email
+                        Entrez le code de suivi reçu par WhatsApp ou email
                     </p>
                 </div>
 
