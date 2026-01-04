@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import {
     Plus, Search, Filter, Edit3, Trash2,
     AlertTriangle, TrendingUp, DollarSign,
-    Loader2, X, Check, Box
+    Loader2, X, Check, Box, Settings, Package
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -160,8 +160,6 @@ export default function InventoryPage() {
 
         setSubmitting(true);
         try {
-            console.log('Tentative d\'ajout de catégorie:', { name: categoryName, establishment_id: establishmentId });
-
             const { data, error } = await supabase
                 .from('inventory_categories')
                 .insert([{
@@ -171,22 +169,42 @@ export default function InventoryPage() {
                 .select()
                 .single();
 
-            if (error) {
-                console.error('Supabase error adding category:', error);
-                throw error;
-            }
+            if (error) throw error;
 
-            console.log('Catégorie ajoutée avec succès:', data);
             setCategories([...categories, (data as Category)]);
             setNewCategoryName('');
-            setShowCategoryModal(false);
-
-            // Notification succès optionnelle si vous voulez
+            // On ne ferme plus forcément le modal pour permettre d'en ajouter plusieurs ou de voir la liste
         } catch (error: any) {
             console.error('Error detail:', error);
             alert(`Erreur lors de l'ajout de la catégorie: ${error.message || 'Erreur inconnue'}`);
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleDeleteCategory = async (id: string, name: string) => {
+        const hasItems = items.some(item => item.category_id === id);
+        if (hasItems) {
+            alert("Cette catégorie contient des articles. Vous devez d'abord changer la catégorie de ces articles avant de pouvoir la supprimer.");
+            return;
+        }
+
+        if (!confirm(`Supprimer la catégorie "${name}" ?`)) return;
+
+        setSubmitting(true);
+        try {
+            const { error } = await supabase
+                .from('inventory_categories')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            setCategories(categories.filter(c => c.id !== id));
+        } catch (error: any) {
+            alert("Erreur lors de la suppression : " + error.message);
+        } finally {
+            setSubmitting(true); // Small delay to prevent double clicks
+            setTimeout(() => setSubmitting(false), 500);
         }
     };
 
@@ -260,6 +278,14 @@ export default function InventoryPage() {
                     </motion.p>
                 </div>
                 <motion.div variants={itemVariants} className="flex gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setShowCategoryModal(true)}
+                        className="h-14 px-8 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all active:scale-[0.98] font-bold flex items-center gap-3 font-inter shadow-sm"
+                    >
+                        <Settings size={20} />
+                        Catégories
+                    </Button>
                     <Button
                         onClick={() => {
                             setEditingItem(null);
@@ -601,27 +627,53 @@ export default function InventoryPage() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-neutral-900/40 backdrop-blur-md" onClick={() => setShowCategoryModal(false)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                            className="relative bg-card rounded-[2.5rem] shadow-heavy max-w-md w-full p-8 border border-neutral-100 dark:border-neutral-800"
+                            className="relative bg-card rounded-[2.5rem] shadow-heavy max-w-lg w-full p-8 border border-neutral-100 dark:border-neutral-800 overflow-hidden flex flex-col max-h-[90vh]"
                         >
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-bold text-foreground">Nouvelle Catégorie</h2>
-                                <button onClick={() => setShowCategoryModal(false)} className="text-neutral-400 hover:text-neutral-600"><X size={24} /></button>
+                                <div>
+                                    <h2 className="text-xl font-bold text-foreground font-inter">Gestion des Catégories</h2>
+                                    <p className="text-xs text-neutral-400 font-medium">Ajoutez ou supprimez vos catégories de stock.</p>
+                                </div>
+                                <button onClick={() => setShowCategoryModal(false)} className="w-10 h-10 flex items-center justify-center bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-800 transition-all active:scale-90"><X className="w-5 h-5 text-neutral-400" /></button>
                             </div>
-                            <form onSubmit={handleAddCategory} className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Nom de la catégorie</label>
+
+                            <form onSubmit={handleAddCategory} className="flex gap-2 mb-8 items-end">
+                                <div className="flex-1 space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Nouveau nom</label>
                                     <input
-                                        type="text" required autoFocus
+                                        type="text" required
                                         value={newCategoryName}
                                         onChange={(e) => setNewCategoryName(e.target.value)}
-                                        className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                        placeholder="ex: Écrans, Batteries..."
+                                        className="w-full px-5 py-3.5 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                        placeholder="ex: Batteries, Écrans..."
                                     />
                                 </div>
-                                <Button type="submit" disabled={submitting} className="w-full h-14 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-2xl shadow-xl font-bold">
-                                    {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Créer la catégorie'}
+                                <Button type="submit" disabled={submitting} className="h-[58px] aspect-square rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-black flex items-center justify-center">
+                                    <Plus size={24} />
                                 </Button>
                             </form>
+
+                            <div className="space-y-3 overflow-y-auto pr-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1 block mb-2">Catégories existantes ({categories.length})</label>
+                                {categories.length === 0 ? (
+                                    <div className="text-center py-10 bg-neutral-50 dark:bg-neutral-900/50 rounded-[2rem] border border-dashed border-neutral-200 dark:border-neutral-800">
+                                        <Package className="w-10 h-10 text-neutral-200 dark:text-neutral-800 mx-auto mb-2" />
+                                        <p className="text-xs text-neutral-400 font-medium">Aucune catégorie</p>
+                                    </div>
+                                ) : (
+                                    categories.map(cat => (
+                                        <div key={cat.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900/30 border border-neutral-100 dark:border-neutral-800 rounded-2xl group hover:border-primary/30 transition-all">
+                                            <span className="font-bold text-neutral-700 dark:text-neutral-300">{cat.name}</span>
+                                            <button
+                                                onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                                                className="p-2 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-lg transition-all"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </motion.div>
                     </div>
                 )}
