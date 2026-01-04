@@ -10,7 +10,7 @@ export function Hero() {
         <section className="relative pt-32 pb-20 md:pt-48 md:pb-40 overflow-hidden bg-[#FAFAFA]">
             {/* Background Aesthetic */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
             </div>
 
@@ -40,7 +40,7 @@ export function Hero() {
                         className="text-5xl md:text-8xl font-black tracking-tight text-neutral-900 leading-[0.95] mb-10"
                     >
                         Réinventez votre <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-blue-600 to-sky-400">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-br from-primary via-[#269cc3] to-[#3ab9e2]">
                             Service Après-Vente.
                         </span>
                     </motion.h1>

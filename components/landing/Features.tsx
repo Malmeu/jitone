@@ -8,8 +8,8 @@ const features = [
         icon: Clock,
         title: "Suivi en Temps Réel",
         description: "Offrez à vos clients une visibilité totale sur l'avancement technique de leur matériel.",
-        color: "bg-blue-500",
-        light: "bg-blue-50"
+        color: "bg-[#1f80a0]",
+        light: "bg-[#1f80a0]/10"
     },
     {
         icon: Zap,
@@ -43,8 +43,8 @@ const features = [
         icon: Users,
         title: "Expérience Client",
         description: "Fidélisez votre clientèle avec une interface de suivi digne des plus grandes marques.",
-        color: "bg-sky-500",
-        light: "bg-sky-50"
+        color: "bg-[#1f80a0]",
+        light: "bg-[#1f80a0]/10"
     }
 ];
 
