@@ -12,8 +12,10 @@ const ADMIN_EMAILS = [
 ];
 
 export default function AdminPage() {
-    const [activeTab, setActiveTab] = useState<'establishments' | 'packs' | 'messages'>('establishments');
+    const [activeTab, setActiveTab] = useState<'establishments' | 'packs' | 'messages' | 'users'>('establishments');
     const [establishments, setEstablishments] = useState<any[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
+    const [authUsers, setAuthUsers] = useState<any[]>([]);
     const [configs, setConfigs] = useState<any[]>([]);
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,7 +38,8 @@ export default function AdminPage() {
             await Promise.all([
                 fetchEstablishments(),
                 fetchConfigs(),
-                fetchMessages()
+                fetchMessages(),
+                fetchUsers()
             ]);
         } else {
             setLoading(false);
@@ -93,6 +96,25 @@ export default function AdminPage() {
             if (Array.isArray(data)) setConfigs(data);
         } catch (error) {
             console.error('Error fetching configs:', error);
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            const response = await fetch('/api/admin/users', {
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            });
+            const result = await response.json();
+
+            setUsers(result.profiles || []);
+            setAuthUsers(result.authUsers || []);
+        } catch (error) {
+            console.error('Error fetching users:', error);
         }
     };
 
@@ -251,6 +273,15 @@ export default function AdminPage() {
                             Packs
                         </button>
                         <button
+                            onClick={() => setActiveTab('users')}
+                            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-white text-neutral-900 shadow-sm relative' : 'text-neutral-400 hover:text-neutral-600'}`}
+                        >
+                            Comptes
+                            <span className="ml-2 px-1.5 py-0.5 bg-neutral-100 rounded text-[10px] text-neutral-500">
+                                {authUsers.length}
+                            </span>
+                        </button>
+                        <button
                             onClick={() => setActiveTab('messages')}
                             className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'messages' ? 'bg-white text-neutral-900 shadow-sm relative' : 'text-neutral-400 hover:text-neutral-600'}`}
                         >
@@ -392,6 +423,89 @@ export default function AdminPage() {
                                                                     </button>
                                                                 )}
                                                             </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ) : activeTab === 'users' ? (
+                        <motion.div
+                            key="users"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                        >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                                <div className="bg-white p-8 rounded-[2.5rem] border border-neutral-100 shadow-sm">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <Users className="text-primary" size={24} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Auth Users</span>
+                                    </div>
+                                    <div className="text-3xl font-black text-neutral-900">{authUsers.length}</div>
+                                    <div className="text-sm font-bold text-neutral-400 mt-1">Utilisateurs inscrits (Auth)</div>
+                                </div>
+                                <div className="bg-white p-8 rounded-[2.5rem] border border-neutral-100 shadow-sm">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <Shield className="text-emerald-500" size={24} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Profiles</span>
+                                    </div>
+                                    <div className="text-3xl font-black text-neutral-900">{users.length}</div>
+                                    <div className="text-sm font-bold text-neutral-400 mt-1">Profils complets créés</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-[2.5rem] shadow-sm border border-neutral-100 overflow-hidden">
+                                <div className="p-8 border-b border-neutral-100">
+                                    <h3 className="text-lg font-bold text-neutral-900">Tous les comptes utilisateurs</h3>
+                                    <p className="text-sm text-neutral-400">Liste exhaustive des inscrits réels et tentatives.</p>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead className="bg-[#FBFBFD] border-b border-neutral-100">
+                                            <tr>
+                                                <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Utilisateur</th>
+                                                <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Établissement</th>
+                                                <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Rôle</th>
+                                                <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Inscription</th>
+                                                <th className="px-8 py-6 text-[11px] font-black uppercase tracking-widest text-neutral-400">Dernière Connexion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-neutral-50 text-sm">
+                                            {authUsers.map((u) => {
+                                                const profile = users.find(p => p.id === u.id);
+                                                return (
+                                                    <tr key={u.id} className="hover:bg-neutral-50/50 transition-colors">
+                                                        <td className="px-8 py-6">
+                                                            <div className="font-bold text-neutral-900">{profile?.name || 'Inconnu (Non finalisé)'}</div>
+                                                            <div className="text-xs text-neutral-400 font-medium">{u.email}</div>
+                                                        </td>
+                                                        <td className="px-8 py-6">
+                                                            {profile?.establishments ? (
+                                                                <div className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-3 py-1 rounded-full w-fit text-xs">
+                                                                    <CheckCircle2 size={12} />
+                                                                    {profile.establishments.name}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 text-red-400 font-bold bg-red-50 px-3 py-1 rounded-full w-fit text-xs">
+                                                                    <AlertCircle size={12} />
+                                                                    Aucune boutique
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-8 py-6">
+                                                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${profile?.role === 'owner' ? 'bg-indigo-50 text-indigo-600' : 'bg-neutral-100 text-neutral-500'}`}>
+                                                                {profile?.role || 'Visitant'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-8 py-6 text-neutral-500 font-medium">
+                                                            {new Date(u.created_at).toLocaleDateString('fr-FR')}
+                                                        </td>
+                                                        <td className="px-8 py-6 text-neutral-400 font-medium">
+                                                            {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Jamais'}
                                                         </td>
                                                     </tr>
                                                 );

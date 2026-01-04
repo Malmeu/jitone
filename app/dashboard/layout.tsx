@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/Button';
 
 const menu = [
     { icon: Home, label: 'Accueil', href: '/dashboard', roles: ['owner', 'manager', 'technician'] },
@@ -35,6 +36,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [isAdmin, setIsAdmin] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
     const [userPlan, setUserPlan] = useState<string | null>(null);
+    const [requiresSetup, setRequiresSetup] = useState(false);
+    const [setupLoading, setSetupLoading] = useState(false);
+    const [setupName, setSetupName] = useState('');
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
         // Nettoyage forcé du thème au cas où
@@ -56,6 +62,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 setLoading(false);
                 return;
             }
+
+            setUserId(user.id);
+            setUserEmail(user.email || null);
 
             // Récupérer tous les profils associés à cet utilisateur
             let { data: profiles, error: profileError } = await supabase
@@ -90,6 +99,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             if (activeProfile) {
                 setUserRole(activeProfile.role);
+                setRequiresSetup(false);
+            } else {
+                setRequiresSetup(true);
             }
 
             const establishmentId = activeProfile?.establishment_id;
@@ -134,6 +146,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const handleLogout = async () => {
         await supabase.auth.signOut();
         router.push('/');
+    };
+
+    const handleSetupEstablishment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!setupName.trim() || !userId || !userEmail) return;
+
+        setSetupLoading(true);
+        try {
+            const trialEndsAt = new Date();
+            trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+
+            const { error } = await supabase
+                .from('establishments')
+                .insert([{
+                    user_id: userId,
+                    name: setupName.trim(),
+                    owner_email: userEmail,
+                    subscription_status: 'trial',
+                    trial_ends_at: trialEndsAt.toISOString(),
+                }]);
+
+            if (error) throw error;
+
+            // Recharger pour détecter le nouveau profil créé par le trigger
+            window.location.reload();
+        } catch (error: any) {
+            alert(error.message || "Erreur lors de la création");
+        } finally {
+            setSetupLoading(false);
+        }
     };
 
     if (loading) {
@@ -301,6 +343,67 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {children}
                 </div>
             </main>
+
+            {/* Force Setup Overlay */}
+            <AnimatePresence>
+                {requiresSetup && !isAdmin && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="fixed inset-0 z-[100] bg-neutral-900/95 backdrop-blur-xl flex items-center justify-center p-6"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            className="bg-white rounded-[3rem] p-8 md:p-12 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16" />
+
+                            <div className="relative">
+                                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-8">
+                                    <Smartphone className="w-10 h-10 text-primary" />
+                                </div>
+
+                                <h2 className="text-3xl font-black text-neutral-900 mb-4 tracking-tight">Finalisez votre profil 🚀</h2>
+                                <p className="text-neutral-500 font-medium leading-relaxed mb-10">
+                                    Il ne manque qu'une étape pour activer votre période d'essai de <span className="text-emerald-500 font-bold">14 jours gratuits</span>.
+                                    Donnez un nom à votre atelier pour commencer.
+                                </p>
+
+                                <form onSubmit={handleSetupEstablishment} className="space-y-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2 ml-1">Nom de votre boutique / atelier</label>
+                                        <input
+                                            type="text"
+                                            value={setupName}
+                                            onChange={(e) => setSetupName(e.target.value)}
+                                            required
+                                            placeholder="Ex: Allo Phone Réparation"
+                                            className="w-full px-6 py-4 bg-neutral-50 border border-neutral-100 rounded-2xl focus:ring-4 focus:ring-primary/5 focus:border-primary font-bold text-lg"
+                                        />
+                                    </div>
+
+                                    <Button
+                                        type="submit"
+                                        disabled={setupLoading || !setupName.trim()}
+                                        className="w-full h-16 rounded-2xl bg-neutral-900 text-white font-bold text-lg hover:bg-neutral-800 transition-all shadow-xl"
+                                    >
+                                        {setupLoading ? 'Activation en cours...' : 'Activer mes 14 jours gratuits'}
+                                    </Button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleLogout}
+                                        className="w-full text-center text-sm font-bold text-neutral-400 hover:text-red-500 transition-colors"
+                                    >
+                                        Se déconnecter
+                                    </button>
+                                </form>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
