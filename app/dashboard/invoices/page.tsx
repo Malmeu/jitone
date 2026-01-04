@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Download, Eye, DollarSign, Calendar, Filter, Smartphone, User, History, Check, X, TrendingUp, CreditCard, Wallet, Percent } from 'lucide-react';
+import { Loader2, Download, Eye, DollarSign, Calendar, Filter, Smartphone, User, History, Check, X, TrendingUp, CreditCard, Wallet, Percent, Box } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -104,6 +104,13 @@ export default function InvoicesPage() {
                 .select('*')
                 .eq('establishment_id', currentEstId);
 
+            // Fetch sales
+            const { data: salesData, error: salesError } = await supabase
+                .from('sales')
+                .select('*, items:sale_items(*, inventory:inventory(cost_price))')
+                .eq('establishment_id', currentEstId)
+                .order('created_at', { ascending: false });
+
             const { data: paymentsData, error: paymentsError } = await supabase
                 .from('payments')
                 .select(`
@@ -116,6 +123,7 @@ export default function InvoicesPage() {
                 .order('created_at', { ascending: false });
 
             if (paymentsError) throw paymentsError;
+            if (salesError) throw salesError;
 
             if (paymentsData) {
                 setPayments(paymentsData);
@@ -125,15 +133,25 @@ export default function InvoicesPage() {
 
                 const getPeriodStats = (filterFn: (d: Date) => boolean) => {
                     const periodPayments = validPayments.filter(p => filterFn(new Date(p.created_at)));
+                    const periodSales = (salesData || []).filter(s => filterFn(new Date(s.created_at)));
                     const periodExpenses = (expensesData || []).filter(e => filterFn(new Date(e.expense_date)));
 
+                    const salesTotal = periodSales.reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0);
+                    const salesCost = periodSales.reduce((sum, s) => {
+                        const itemsCost = s.items?.reduce((iSum: number, item: any) => iSum + (item.quantity * (item.inventory?.cost_price || 0)), 0) || 0;
+                        return sum + itemsCost;
+                    }, 0);
+                    const salesProfit = salesTotal - salesCost;
+
                     return {
-                        total: periodPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
-                        cash: periodPayments.filter(p => p.payment_method === 'cash').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
-                        baridi: periodPayments.filter(p => p.payment_method === 'baridimob').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
-                        count: periodPayments.length,
-                        cost: periodPayments.reduce((sum, p) => sum + parseFloat(p.repair?.cost_price || 0), 0),
-                        profit: periodPayments.reduce((sum, p) => sum + parseFloat(p.repair?.profit || 0), 0),
+                        total: periodPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) + salesTotal,
+                        cash: periodPayments.filter(p => p.payment_method === 'cash').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) +
+                            periodSales.filter(s => s.payment_method === 'cash').reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0),
+                        baridi: periodPayments.filter(p => p.payment_method === 'baridimob').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) +
+                            periodSales.filter(s => s.payment_method === 'card').reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0),
+                        count: periodPayments.length + periodSales.length,
+                        cost: periodPayments.reduce((sum, p) => sum + parseFloat(p.repair?.cost_price || 0), 0) + salesCost,
+                        profit: periodPayments.reduce((sum, p) => sum + parseFloat(p.repair?.profit || 0), 0) + salesProfit,
                         expenses: periodExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0),
                     };
                 };
@@ -172,7 +190,13 @@ export default function InvoicesPage() {
                     .sort((a, b) => b.value - a.value)
                     .slice(0, 5);
 
-                setFaultStats(faultData);
+                // Merge and Sort all entries
+                const combined = [
+                    ...paymentsData.map(p => ({ ...p, type: 'repair' })),
+                    ...(salesData || []).map(s => ({ ...s, type: 'sale', amount: s.total_amount }))
+                ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+                setPayments(combined);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -265,11 +289,12 @@ export default function InvoicesPage() {
                             }
                             const data = payments.map(p => ({
                                 Date: new Date(p.created_at).toLocaleDateString(),
-                                Référence: p.repair?.code,
-                                Client: p.repair?.client?.name,
-                                Appareil: p.repair?.item,
+                                Type: p.type === 'repair' ? 'Réparation' : 'Vente Produit',
+                                Référence: p.type === 'repair' ? p.repair?.code : `VNT-${p.id.slice(0, 5)}`,
+                                Client: p.type === 'repair' ? p.repair?.client?.name : (p.client_name || 'Client passage'),
+                                Détails: p.type === 'repair' ? p.repair?.item : p.items?.map((i: any) => `${i.quantity}x ${i.item_name}`).join(', '),
                                 Montant: p.amount,
-                                Méthode: p.payment_method === 'cash' ? 'Espèces' : 'BaridiMob',
+                                Méthode: p.payment_method === 'cash' ? 'Espèces' : (p.payment_method === 'baridimob' || p.payment_method === 'card' ? 'Carte/Baridi' : p.payment_method),
                                 Statut: p.repair?.status === 'annule' ? 'Annulé' : 'Confirmé'
                             }));
                             const ws = XLSX.utils.json_to_sheet(data);
@@ -455,22 +480,28 @@ export default function InvoicesPage() {
                                     <tr key={payment.id} className="group hover:bg-[#FBFBFD]/50 transition-all border-l-4 border-l-transparent hover:border-l-emerald-300">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-neutral-50 rounded-xl flex items-center justify-center text-neutral-400">
-                                                    <CreditCard size={18} />
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${payment.type === 'sale' ? 'bg-amber-50 text-amber-500' : 'bg-neutral-50 text-neutral-400'}`}>
+                                                    {payment.type === 'sale' ? <Box size={18} /> : <CreditCard size={18} />}
                                                 </div>
                                                 <div>
                                                     <div className="text-neutral-900 font-bold">{new Date(payment.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
-                                                    <div className="font-mono text-[10px] text-neutral-400 mt-0.5 font-bold uppercase tracking-widest">REF: {payment.repair?.code || '---'}</div>
+                                                    <div className="font-mono text-[10px] text-neutral-400 mt-0.5 font-bold uppercase tracking-widest">
+                                                        {payment.type === 'repair' ? `REF: ${payment.repair?.code || '---'}` : `VENTE: ${payment.id.slice(0, 5).toUpperCase()}`}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="text-neutral-700 font-bold">{payment.repair?.client?.name || 'N/A'}</div>
-                                            <div className="text-neutral-400 text-[10px] mt-0.5 font-medium">{payment.repair?.item || 'N/A'}</div>
+                                            <div className="text-neutral-700 font-bold">
+                                                {payment.type === 'repair' ? (payment.repair?.client?.name || 'N/A') : (payment.client_name || 'Client de passage')}
+                                            </div>
+                                            <div className="text-neutral-400 text-[10px] mt-0.5 font-medium line-clamp-1 max-w-[200px]">
+                                                {payment.type === 'repair' ? (payment.repair?.item || 'N/A') : payment.items?.map((i: any) => `${i.quantity}x ${i.item_name}`).join(', ')}
+                                            </div>
                                         </td>
                                         <td className="px-8 py-6 font-inter">
-                                            <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight ${payment.payment_method === 'baridimob' ? 'bg-blue-50 text-blue-500' : 'bg-emerald-50 text-emerald-600'}`}>
-                                                {payment.payment_method === 'baridimob' ? '📱 BaridiMob' : '💵 Espèces'}
+                                            <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight ${payment.payment_method === 'baridimob' || payment.payment_method === 'card' ? 'bg-blue-50 text-blue-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                                                {payment.payment_method === 'baridimob' || payment.payment_method === 'card' ? '📱 Carte/Baridi' : '💵 Espèces'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">

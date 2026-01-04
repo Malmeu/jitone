@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone, Package, Sun, Moon } from 'lucide-react';
+import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone, Package, Sun, Moon, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const menu = [
     { icon: Home, label: 'Accueil', href: '/dashboard', roles: ['owner', 'manager', 'technician'] },
     { icon: Briefcase, label: 'Réparations', href: '/dashboard/repairs', roles: ['owner', 'manager', 'technician'] },
+    { icon: ShoppingCart, label: 'Ventes', href: '/dashboard/sales', roles: ['owner', 'manager', 'technician'] },
     { icon: Users, label: 'Clients', href: '/dashboard/clients', roles: ['owner', 'manager', 'technician'] },
     { icon: Users, label: 'Équipe', href: '/dashboard/team', roles: ['owner', 'manager'] },
     { icon: Package, label: 'Stock', href: '/dashboard/inventory', roles: ['owner', 'manager', 'technician'] },

@@ -25,13 +25,28 @@ interface InventoryItem {
     image_url: string;
     icon?: string;
     supplier?: string;
+    type: 'repair_part' | 'sale_item';
     created_at: string;
 }
 
 interface Category {
     id: string;
     name: string;
+    type: 'repair_part' | 'sale_item';
 }
+
+const COMMON_SUGGESTIONS = {
+    repair_part: [
+        "Écran iPhone", "Batterie iPhone", "Connecteur de charge", "Caméra arrière",
+        "Caméra avant", "Vitre arrière", "Châssis", "Bouton Power", "Microphone",
+        "Écran Samsung", "Batterie Samsung", "Écran iPad", "Batterie iPad"
+    ],
+    sale_item: [
+        "Coque silicone", "Verre trempé", "Chargeur 20W", "Câble Lightning",
+        "Écouteurs", "AirPods Pro", "iPhone 13 Neuf", "Samsung S21 Occasion",
+        "Adaptateur USB-C", "Powerbank 10000mAh"
+    ]
+};
 
 export default function InventoryPage() {
     const [items, setItems] = useState<InventoryItem[]>([]);
@@ -39,9 +54,13 @@ export default function InventoryPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
+    const [activeTab, setActiveTab] = useState<'repair_part' | 'sale_item'>('repair_part');
     const [showModal, setShowModal] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategoryType, setNewCategoryType] = useState<'repair_part' | 'sale_item'>('repair_part');
+    const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [establishmentId, setEstablishmentId] = useState<string | null>(null);
@@ -58,8 +77,17 @@ export default function InventoryPage() {
         location: '',
         image_url: '',
         icon: 'Box',
-        supplier: ''
+        supplier: '',
+        type: 'repair_part' as 'repair_part' | 'sale_item'
     });
+
+    // Reset categories logic when type changes
+    useEffect(() => {
+        if (!editingItem) {
+            setFormData(prev => ({ ...prev, category_id: '' }));
+        }
+        setShowSuggestions(false);
+    }, [formData.type, editingItem]);
 
     useEffect(() => {
         fetchData();
@@ -98,7 +126,7 @@ export default function InventoryPage() {
                     .order('name'),
                 supabase
                     .from('inventory_categories')
-                    .select('id, name')
+                    .select('id, name, type')
                     .eq('establishment_id', estId)
                     .order('name')
             ]);
@@ -146,13 +174,24 @@ export default function InventoryPage() {
         }
     };
 
+    const handleNameChange = (val: string) => {
+        setFormData({ ...formData, name: val });
+        if (val.length > 1) {
+            const list = COMMON_SUGGESTIONS[formData.type];
+            const filtered = list.filter(s => s.toLowerCase().includes(val.toLowerCase()));
+            setNameSuggestions(filtered);
+            setShowSuggestions(filtered.length > 0);
+        } else {
+            setShowSuggestions(false);
+        }
+    };
+
     const handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault();
         const categoryName = newCategoryName.trim();
 
         if (!establishmentId) {
-            console.error('Establishment ID missing');
-            alert('Erreur: Identifiant établissement manquant. Veuillez rafraîchir la page.');
+            alert('Erreur: Identifiant établissement manquant.');
             return;
         }
 
@@ -164,6 +203,7 @@ export default function InventoryPage() {
                 .from('inventory_categories')
                 .insert([{
                     name: categoryName,
+                    type: newCategoryType,
                     establishment_id: establishmentId
                 }])
                 .select()
@@ -223,14 +263,15 @@ export default function InventoryPage() {
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.sku?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = categoryFilter === 'all' || item.category_id === categoryFilter;
-        return matchesSearch && matchesCategory;
+        const matchesType = item.type === activeTab;
+        return matchesSearch && matchesCategory && matchesType;
     });
 
     const stats = {
-        totalItems: items.length,
-        lowStock: items.filter(i => i.current_stock <= i.low_stock_threshold && i.current_stock > 0).length,
-        outOfStock: items.filter(i => i.current_stock === 0).length,
-        totalValue: items.reduce((acc, i) => acc + (i.cost_price * i.current_stock), 0)
+        totalItems: items.filter(i => i.type === activeTab).length,
+        lowStock: items.filter(i => i.type === activeTab && i.current_stock <= i.low_stock_threshold && i.current_stock > 0).length,
+        outOfStock: items.filter(i => i.type === activeTab && i.current_stock === 0).length,
+        totalValue: items.filter(i => i.type === activeTab).reduce((acc, i) => acc + (i.cost_price * i.current_stock), 0)
     };
 
     if (loading) {
@@ -294,7 +335,8 @@ export default function InventoryPage() {
                                 current_stock: 0, low_stock_threshold: 5,
                                 cost_price: 0, selling_price: 0,
                                 location: '', image_url: '',
-                                icon: 'Box', supplier: ''
+                                icon: 'Box', supplier: '',
+                                type: activeTab
                             });
                             setShowModal(true);
                         }}
@@ -305,6 +347,22 @@ export default function InventoryPage() {
                     </Button>
                 </motion.div>
             </div>
+
+            {/* Tabs */}
+            <motion.div variants={itemVariants} className="flex gap-1 bg-neutral-100 dark:bg-neutral-900/50 p-1 rounded-2xl w-fit mb-8 border border-neutral-100 dark:border-neutral-800">
+                <button
+                    onClick={() => setActiveTab('repair_part')}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'repair_part' ? 'bg-white dark:bg-neutral-800 text-primary shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
+                >
+                    Pièces Réparation
+                </button>
+                <button
+                    onClick={() => setActiveTab('sale_item')}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'sale_item' ? 'bg-white dark:bg-neutral-800 text-primary shadow-sm' : 'text-neutral-400 hover:text-neutral-600'}`}
+                >
+                    Articles Vente
+                </button>
+            </motion.div>
 
             {/* Quick Stats */}
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 font-inter">
@@ -428,7 +486,8 @@ export default function InventoryPage() {
                                                             current_stock: item.current_stock, low_stock_threshold: item.low_stock_threshold,
                                                             cost_price: item.cost_price, selling_price: item.selling_price,
                                                             location: item.location || '', image_url: item.image_url || '',
-                                                            icon: item.icon || 'Box', supplier: item.supplier || ''
+                                                            icon: item.icon || 'Box', supplier: item.supplier || '',
+                                                            type: item.type
                                                         });
                                                         setShowModal(true);
                                                     }}
@@ -470,142 +529,181 @@ export default function InventoryPage() {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto">
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2 relative">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Nom de l'article *</label>
                                         <input
                                             type="text" required
                                             value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                            onChange={(e) => handleNameChange(e.target.value)}
+                                            onFocus={() => formData.name.length > 1 && setShowSuggestions(true)}
+                                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground transition-all"
                                             placeholder="ex: Écran iPhone 13 Pro Max"
                                         />
+                                        <AnimatePresence>
+                                            {showSuggestions && nameSuggestions.length > 0 && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                                                    className="absolute z-50 left-0 right-0 mt-2 bg-card border border-neutral-100 dark:border-neutral-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto overflow-x-hidden p-2"
+                                                >
+                                                    {nameSuggestions.map((suggestion, idx) => (
+                                                        <button
+                                                            key={idx} type="button"
+                                                            onClick={() => {
+                                                                setFormData({ ...formData, name: suggestion });
+                                                                setShowSuggestions(false);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-900 rounded-xl text-sm font-bold text-neutral-600 dark:text-neutral-400 transition-colors flex items-center gap-2"
+                                                        >
+                                                            <Box size={14} className="text-primary" />
+                                                            {suggestion}
+                                                        </button>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Type de Stock *</label>
+                                        <select
+                                            required
+                                            value={formData.type}
+                                            onChange={(e) => setFormData({ ...formData, type: e.target.value as 'repair_part' | 'sale_item' })}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                        >
+                                            <option value="repair_part">Pièce de Réparation</option>
+                                            <option value="sale_item">Article de Vente</option>
+                                        </select>
+                                    </div>
+                                </div>
 
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Référence / SKU</label>
+                                        <input
+                                            type="text"
+                                            value={formData.sku}
+                                            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                            placeholder="ex: SCR-I13PM-BLK"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Catégorie</label>
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={formData.category_id}
+                                                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                                                className="flex-1 px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                            >
+                                                <option value="">Aucune catégorie</option>
+                                                {categories
+                                                    .filter(cat => !cat.type || cat.type === formData.type)
+                                                    .map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)
+                                                }
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCategoryModal(true)}
+                                                className="w-14 h-14 bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl flex items-center justify-center text-neutral-400 border border-neutral-100 dark:border-neutral-800 transition-all font-inter"
+                                                title="Gérer les catégories"
+                                            >
+                                                <Plus size={20} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {userRole !== 'technician' && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Référence / SKU</label>
-                                            <input
-                                                type="text"
-                                                value={formData.sku}
-                                                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                placeholder="ex: SCR-I13PM-BLK"
-                                            />
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix d'Achat (Coût) *</label>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                                <input
+                                                    type="number" required
+                                                    value={formData.cost_price}
+                                                    onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) })}
+                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                                />
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Catégorie</label>
-                                            <div className="flex gap-2">
-                                                <select
-                                                    value={formData.category_id}
-                                                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                                                    className="flex-1 px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                >
-                                                    <option value="">Aucune catégorie</option>
-                                                    {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                                                </select>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowCategoryModal(true)}
-                                                    className="w-14 h-14 bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-2xl flex items-center justify-center text-neutral-400 border border-neutral-100 dark:border-neutral-800 transition-all font-inter"
-                                                    title="Gérer les catégories"
-                                                >
-                                                    <Plus size={20} />
-                                                </button>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix de Vente *</label>
+                                            <div className="relative">
+                                                <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
+                                                <input
+                                                    type="number" required
+                                                    value={formData.selling_price}
+                                                    onChange={(e) => setFormData({ ...formData, selling_price: parseFloat(e.target.value) })}
+                                                    className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                                />
                                             </div>
                                         </div>
                                     </div>
+                                )}
 
-                                    {userRole !== 'technician' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix d'Achat (Coût) *</label>
-                                                <div className="relative">
-                                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
-                                                    <input
-                                                        type="number" required
-                                                        value={formData.cost_price}
-                                                        onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) })}
-                                                        className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Prix de Vente *</label>
-                                                <div className="relative">
-                                                    <TrendingUp className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300" />
-                                                    <input
-                                                        type="number" required
-                                                        value={formData.selling_price}
-                                                        onChange={(e) => setFormData({ ...formData, selling_price: parseFloat(e.target.value) })}
-                                                        className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Stock Actuel *</label>
-                                            <input
-                                                type="number" required
-                                                value={formData.current_stock}
-                                                onChange={(e) => setFormData({ ...formData, current_stock: parseInt(e.target.value) })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Seuil d'Alerte *</label>
-                                            <input
-                                                type="number" required
-                                                value={formData.low_stock_threshold}
-                                                onChange={(e) => setFormData({ ...formData, low_stock_threshold: parseInt(e.target.value) })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                            />
-                                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Stock Actuel *</label>
+                                        <input
+                                            type="number" required
+                                            value={formData.current_stock}
+                                            onChange={(e) => setFormData({ ...formData, current_stock: parseInt(e.target.value) })}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                        />
                                     </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Localisation (Rayon / Tiroir)</label>
-                                            <input
-                                                type="text"
-                                                value={formData.location}
-                                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                placeholder="ex: Étagère SAV-01"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Fournisseur</label>
-                                            <input
-                                                type="text"
-                                                value={formData.supplier}
-                                                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                                placeholder="ex: Tech Parts DZ"
-                                            />
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Seuil d'Alerte *</label>
+                                        <input
+                                            type="number" required
+                                            value={formData.low_stock_threshold}
+                                            onChange={(e) => setFormData({ ...formData, low_stock_threshold: parseInt(e.target.value) })}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                        />
                                     </div>
+                                </div>
 
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Icône de l'article</label>
-                                        <div className="grid grid-cols-6 md:grid-cols-9 gap-3">
-                                            {AVAILABLE_ICONS.map((iconObj) => (
-                                                <button
-                                                    key={iconObj.id}
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, icon: iconObj.id })}
-                                                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${formData.icon === iconObj.id
-                                                        ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110'
-                                                        : 'bg-neutral-50 dark:bg-neutral-900/50 text-neutral-400 hover:text-primary hover:bg-primary/5 border border-neutral-100 dark:border-neutral-800'
-                                                        }`}
-                                                >
-                                                    <IconRenderer name={iconObj.id} size={20} />
-                                                </button>
-                                            ))}
-                                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Localisation (Rayon / Tiroir)</label>
+                                        <input
+                                            type="text"
+                                            value={formData.location}
+                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                            placeholder="ex: Étagère SAV-01"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Fournisseur</label>
+                                        <input
+                                            type="text"
+                                            value={formData.supplier}
+                                            onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                                            className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
+                                            placeholder="ex: Tech Parts DZ"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Icône de l'article</label>
+                                    <div className="grid grid-cols-6 md:grid-cols-9 gap-3">
+                                        {AVAILABLE_ICONS.map((iconObj) => (
+                                            <button
+                                                key={iconObj.id}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, icon: iconObj.id })}
+                                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${formData.icon === iconObj.id
+                                                    ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110'
+                                                    : 'bg-neutral-50 dark:bg-neutral-900/50 text-neutral-400 hover:text-primary hover:bg-primary/5 border border-neutral-100 dark:border-neutral-800'
+                                                    }`}
+                                            >
+                                                <IconRenderer name={iconObj.id} size={20} />
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
@@ -637,19 +735,33 @@ export default function InventoryPage() {
                                 <button onClick={() => setShowCategoryModal(false)} className="w-10 h-10 flex items-center justify-center bg-card hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl border border-neutral-100 dark:border-neutral-800 transition-all active:scale-90"><X className="w-5 h-5 text-neutral-400" /></button>
                             </div>
 
-                            <form onSubmit={handleAddCategory} className="flex gap-2 mb-8 items-end">
-                                <div className="flex-1 space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Nouveau nom</label>
-                                    <input
-                                        type="text" required
-                                        value={newCategoryName}
-                                        onChange={(e) => setNewCategoryName(e.target.value)}
-                                        className="w-full px-5 py-3.5 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
-                                        placeholder="ex: Batteries, Écrans..."
-                                    />
+                            <form onSubmit={handleAddCategory} className="space-y-4 mb-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Nouveau nom</label>
+                                        <input
+                                            type="text" required
+                                            value={newCategoryName}
+                                            onChange={(e) => setNewCategoryName(e.target.value)}
+                                            className="w-full px-5 py-3.5 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground transition-all"
+                                            placeholder="ex: Batteries, Écrans..."
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Type de stock</label>
+                                        <select
+                                            value={newCategoryType}
+                                            onChange={(e) => setNewCategoryType(e.target.value as 'repair_part' | 'sale_item')}
+                                            className="w-full px-5 py-3.5 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground transition-all"
+                                        >
+                                            <option value="repair_part">Réparation</option>
+                                            <option value="sale_item">Vente</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <Button type="submit" disabled={submitting} className="h-[58px] aspect-square rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-black flex items-center justify-center">
-                                    <Plus size={24} />
+                                <Button type="submit" disabled={submitting} className="w-full h-14 rounded-2x bg-neutral-900 dark:bg-white text-white dark:text-black font-black flex items-center justify-center gap-2 shadow-lg">
+                                    <Plus size={20} />
+                                    Ajouter la catégorie
                                 </Button>
                             </form>
 
@@ -663,7 +775,15 @@ export default function InventoryPage() {
                                 ) : (
                                     categories.map(cat => (
                                         <div key={cat.id} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-900/30 border border-neutral-100 dark:border-neutral-800 rounded-2xl group hover:border-primary/30 transition-all">
-                                            <span className="font-bold text-neutral-700 dark:text-neutral-300">{cat.name}</span>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-neutral-700 dark:text-neutral-300">{cat.name}</span>
+                                                <span className={`text-[8px] font-black uppercase tracking-tighter w-fit px-1.5 py-0.5 rounded-md mt-1 ${cat.type === 'sale_item'
+                                                    ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-500'
+                                                    : 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-500'
+                                                    }`}>
+                                                    {cat.type === 'sale_item' ? 'Vente' : 'Réparation'}
+                                                </span>
+                                            </div>
                                             <button
                                                 onClick={() => handleDeleteCategory(cat.id, cat.name)}
                                                 className="p-2 text-neutral-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-lg transition-all"
@@ -678,6 +798,6 @@ export default function InventoryPage() {
                     </div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </motion.div >
     );
 }

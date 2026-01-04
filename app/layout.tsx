@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning style={{ colorScheme: 'light' }} className="light">
-      <body className={`${inter.variable} font-sans antialiased bg-[#FAFAFA]`}>
+      <body className={`${inter.variable} font-sans antialiased bg-[#FAFAFA]`} suppressHydrationWarning>
         {children}
       </body>
     </html>
