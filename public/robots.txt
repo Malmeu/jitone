@@ -9,7 +9,7 @@ Disallow: /_next/
 Disallow: /track/
 
 # Sitemap
-Sitemap: https://repairtrack.dz/sitemap.xml
+Sitemap: https://fixwave.space/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
