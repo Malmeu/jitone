@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
-import { Menu, X, Wrench, Search } from 'lucide-react';
+import { Menu, X, Wrench, Search, ChevronDown, BookOpen, HelpCircle, Library } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isDocsOpen, setIsDocsOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -45,7 +46,69 @@ export function Navbar() {
                         <Link href="#features" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Fonctionnalités</Link>
                         <Link href="#pricing" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Tarifs</Link>
                         <Link href="/contact" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Contact</Link>
-                        <Link href="#testimonials" className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors">Témoignages</Link>
+
+                        {/* Documentation Dropdown */}
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setIsDocsOpen(true)}
+                            onMouseLeave={() => setIsDocsOpen(false)}
+                        >
+                            <button className="text-sm font-medium text-neutral-600 hover:text-primary transition-colors flex items-center gap-1">
+                                Documentation
+                                <ChevronDown className={cn("w-4 h-4 transition-transform", isDocsOpen && "rotate-180")} />
+                            </button>
+
+                            <AnimatePresence>
+                                {isDocsOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute top-full left-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50"
+                                    >
+                                        <Link
+                                            href="/docs/guide-demarrage"
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-50 transition-colors group"
+                                        >
+                                            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                                <BookOpen className="w-5 h-5 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold text-sm text-neutral-900">Guide de démarrage</div>
+                                                <div className="text-xs text-neutral-500">Commencez en 10 minutes</div>
+                                            </div>
+                                        </Link>
+
+                                        <Link
+                                            href="/docs/faq"
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-50 transition-colors group"
+                                        >
+                                            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
+                                                <HelpCircle className="w-5 h-5 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold text-sm text-neutral-900">FAQ</div>
+                                                <div className="text-xs text-neutral-500">Questions fréquentes</div>
+                                            </div>
+                                        </Link>
+
+                                        <Link
+                                            href="/docs/base-connaissances"
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-50 transition-colors group"
+                                        >
+                                            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+                                                <Library className="w-5 h-5 text-amber-600" />
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold text-sm text-neutral-900">Base de connaissances</div>
+                                                <div className="text-xs text-neutral-500">Documentation complète</div>
+                                            </div>
+                                        </Link>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
 
                     {/* Actions */}
