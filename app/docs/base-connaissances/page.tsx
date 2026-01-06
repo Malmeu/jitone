@@ -1,9 +1,14 @@
-'use client';
-
 import { Library, ArrowLeft, BookOpen, Wrench, ShoppingCart, Package, Users, DollarSign, Settings, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
+import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
+import fs from 'fs';
+import path from 'path';
 
 export default function BaseConnaissancesPage() {
+    // Lire le fichier markdown côté serveur
+    const filePath = path.join(process.cwd(), 'docs', 'BASE_CONNAISSANCES.md');
+    const markdownContent = fs.readFileSync(filePath, 'utf8');
+
     const modules = [
         { name: 'Démarrage', icon: BookOpen, color: 'blue', sections: 3 },
         { name: 'Réparations', icon: Wrench, color: 'emerald', sections: 5 },
@@ -55,8 +60,8 @@ export default function BaseConnaissancesPage() {
                                 key={module.name}
                                 className="bg-white border border-neutral-100 rounded-2xl p-6 hover:shadow-xl transition-all cursor-pointer group hover:border-primary/20"
                             >
-                                <div className={`w-12 h-12 bg-${module.color}-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                                    <Icon className={`w-6 h-6 text-${module.color}-600`} />
+                                <div className="w-12 h-12 bg-neutral-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                    <Icon className="w-6 h-6 text-neutral-700" />
                                 </div>
                                 <h3 className="font-bold text-neutral-900 mb-1">{module.name}</h3>
                                 <p className="text-sm text-neutral-500">{module.sections} sections</p>
@@ -72,11 +77,7 @@ export default function BaseConnaissancesPage() {
                         <p className="text-neutral-600 mt-2">Guides détaillés avec exemples concrets et captures d'écran</p>
                     </div>
                     <div className="p-8">
-                        <iframe
-                            src="/docs/BASE_CONNAISSANCES.md"
-                            className="w-full h-[3000px] border-0"
-                            title="Base de connaissances"
-                        />
+                        <MarkdownViewer content={markdownContent} />
                     </div>
                 </div>
 

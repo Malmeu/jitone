@@ -1,4 +1,4 @@
-# ✅ Récapitulatif des Optimisations RepairTrack
+# ✅ Récapitulatif des Optimisations Fixwave
 
 Ce document résume toutes les optimisations de performance, SEO et documentation implémentées le 06/01/2026.
 
@@ -453,7 +453,7 @@ repair-track/
 
 **Date** : 06/01/2026  
 **Version** : 1.0.0  
-**Auteur** : Équipe RepairTrack  
+**Auteur** : Équipe Fixwave  
 **Statut** : ✅ Terminé
 
 ---

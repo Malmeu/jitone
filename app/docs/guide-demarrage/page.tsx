@@ -1,10 +1,15 @@
-'use client';
-
 import { BookOpen, ArrowLeft, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
+import fs from 'fs';
+import path from 'path';
 
 export default function GuideDemarragePage() {
+    // Lire le fichier markdown côté serveur
+    const filePath = path.join(process.cwd(), 'docs', 'GUIDE_DEMARRAGE.md');
+    const markdownContent = fs.readFileSync(filePath, 'utf8');
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
             {/* Header */}
@@ -59,13 +64,7 @@ export default function GuideDemarragePage() {
                 </div>
 
                 {/* Content */}
-                <div className="prose prose-neutral max-w-none">
-                    <iframe
-                        src="/docs/GUIDE_DEMARRAGE.md"
-                        className="w-full h-[2000px] border-0"
-                        title="Guide de démarrage"
-                    />
-                </div>
+                <MarkdownViewer content={markdownContent} />
 
                 {/* CTA Footer */}
                 <div className="mt-16 p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border border-blue-100">

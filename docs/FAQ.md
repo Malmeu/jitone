@@ -20,7 +20,7 @@ Retrouvez ici les réponses aux questions les plus posées par nos utilisateurs.
 
 ### Comment créer un compte ?
 
-1. Rendez-vous sur [repairtrack.dz](https://repairtrack.dz)
+1. Rendez-vous sur [fixwave.space](https://fixwave.space)
 2. Cliquez sur "Créer un compte"
 3. Remplissez vos informations (email, mot de passe, nom de l'établissement)
 4. Validez votre email
@@ -39,7 +39,7 @@ Oui ! Allez dans **Paramètres** → **Informations de l'établissement** → Mo
 
 ### Comment supprimer mon compte ?
 
-Contactez notre support à support@repairtrack.dz. Nous traiterons votre demande dans les 48h conformément au RGPD.
+Contactez notre support à support@fixwave.space. Nous traiterons votre demande dans les 48h conformément au RGPD.
 
 ### Quels sont les plans tarifaires ?
 
@@ -92,7 +92,7 @@ Oui, mais **attention** : la suppression est définitive. Cliquez sur l'icône *
 
 Oui ! Chaque réparation a un **code de suivi unique** et un **QR code**. Le client peut :
 - Scanner le QR code
-- Aller sur repairtrack.dz/track/[CODE]
+- Aller sur fixwave.space/track/[CODE]
 - Voir le statut en temps réel
 
 ### Comment gérer les paiements partiels ?
@@ -259,11 +259,11 @@ Oui ! Vous pouvez exporter :
 
 ### L'application fonctionne-t-elle hors ligne ?
 
-Non, RepairTrack nécessite une connexion internet. Cependant, nous travaillons sur un mode hors ligne pour une version future.
+Non, Fixwave nécessite une connexion internet. Cependant, nous travaillons sur un mode hors ligne pour une version future.
 
-### Sur quels navigateurs fonctionne RepairTrack ?
+### Sur quels navigateurs fonctionne Fixwave ?
 
-RepairTrack fonctionne sur :
+Fixwave fonctionne sur :
 - ✅ Google Chrome (recommandé)
 - ✅ Mozilla Firefox
 - ✅ Safari
@@ -272,9 +272,9 @@ RepairTrack fonctionne sur :
 
 ### Comment contacter le support technique ?
 
-- 📧 **Email** : support@repairtrack.dz
+- 📧 **Email** : support@fixwave.space
 - 💬 **Chat** : Disponible dans l'application (coin inférieur droit)
-- 📱 **WhatsApp** : +213 XXX XXX XXX
+- 📱 **WhatsApp** : +213 540 031 126
 - ⏰ **Horaires** : Lun-Sam 9h-18h
 
 ### Proposez-vous des formations ?
@@ -294,7 +294,7 @@ Oui ! Nous proposons :
 Vérifiez :
 1. Votre dossier **Spam/Courrier indésirable**
 2. Que l'email est correct dans vos paramètres
-3. Ajoutez noreply@repairtrack.dz à vos contacts
+3. Ajoutez noreply@fixwave.space à vos contacts
 
 ### L'impression du ticket ne fonctionne pas
 
@@ -318,10 +318,10 @@ Vérifiez :
 
 Notre équipe support est là pour vous aider :
 
-- 📧 **Email** : support@repairtrack.dz
+- 📧 **Email** : support@fixwave.space
 - 💬 **Chat en direct** : Cliquez sur l'icône en bas à droite
-- 📱 **WhatsApp** : +213 XXX XXX XXX
-- 📚 **Documentation** : [docs.repairtrack.dz](https://docs.repairtrack.dz)
+- 📱 **WhatsApp** : +213 540 031 126
+- 📚 **Documentation** : [docs.fixwave.space](https://docs.fixwave.space)
 
 **Temps de réponse moyen** : 2-4 heures (jours ouvrés)
 

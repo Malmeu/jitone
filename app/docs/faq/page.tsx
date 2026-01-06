@@ -1,11 +1,13 @@
-'use client';
-
 import { HelpCircle, ArrowLeft, Search } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
+import fs from 'fs';
+import path from 'path';
 
 export default function FAQPage() {
-    const [searchTerm, setSearchTerm] = useState('');
+    // Lire le fichier markdown côté serveur
+    const filePath = path.join(process.cwd(), 'docs', 'FAQ.md');
+    const markdownContent = fs.readFileSync(filePath, 'utf8');
 
     const categories = [
         { name: 'Compte & Abonnement', count: 4, color: 'blue' },
@@ -41,40 +43,22 @@ export default function FAQPage() {
                     </p>
                 </div>
 
-                {/* Search */}
-                <div className="max-w-2xl mx-auto mb-12">
-                    <div className="relative">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                        <input
-                            type="text"
-                            placeholder="Rechercher une question..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-14 pr-6 py-5 rounded-3xl border-2 border-neutral-200 focus:border-primary focus:outline-none transition-colors text-lg"
-                        />
-                    </div>
-                </div>
-
                 {/* Categories Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
                     {categories.map((cat) => (
                         <div
                             key={cat.name}
-                            className={`bg-${cat.color}-50 border border-${cat.color}-100 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer group`}
+                            className="bg-white border border-neutral-200 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer group"
                         >
-                            <h3 className={`font-bold text-${cat.color}-900 mb-2`}>{cat.name}</h3>
-                            <p className={`text-sm text-${cat.color}-600`}>{cat.count} questions</p>
+                            <h3 className="font-bold text-neutral-900 mb-2">{cat.name}</h3>
+                            <p className="text-sm text-neutral-600">{cat.count} questions</p>
                         </div>
                     ))}
                 </div>
 
                 {/* Content */}
                 <div className="bg-white rounded-3xl border border-neutral-100 p-8 shadow-sm">
-                    <iframe
-                        src="/docs/FAQ.md"
-                        className="w-full h-[2000px] border-0"
-                        title="FAQ"
-                    />
+                    <MarkdownViewer content={markdownContent} />
                 </div>
 
                 {/* CTA */}

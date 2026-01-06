@@ -59,7 +59,7 @@ Documentation complète pour maîtriser toutes les fonctionnalités de RepairTra
 
 **1. Création du compte**
 ```
-1. Accédez à https://repairtrack.dz
+1. Accédez à https://fixwave.space
 2. Cliquez sur "Créer un compte"
 3. Remplissez le formulaire :
    - Email : votre-email@entreprise.dz
@@ -362,7 +362,7 @@ Couleur: Noir et blanc
 
 Chaque réparation génère un lien unique :
 ```
-https://repairtrack.dz/track/TR-2026-0123
+https://fixwave.space/track/REPAR-ABCDEF
 ```
 
 **Partage**
@@ -671,7 +671,7 @@ Pour chaque article:
 ```
 ┌─────────────────────────────────┐
 │ Invitation à rejoindre          │
-│ TechRepair Pro sur RepairTrack  │
+│ TechWave Pro sur Fixwave      │
 ├─────────────────────────────────┤
 │ Bonjour Karim,                  │
 │                                 │
@@ -936,14 +936,14 @@ Configuration: Clés publique/privée
 ### Besoin d'aide ?
 
 **Contact**
-- 📧 Email: support@repairtrack.dz
+- 📧 Email: support@fixwave.space
 - 💬 Chat: Disponible dans l'app
-- 📱 WhatsApp: +213 XXX XXX XXX
+- 📱 WhatsApp: +213 540 031 126
 
 **Ressources**
-- 📚 Documentation: docs.repairtrack.dz
-- 🎥 Vidéos: youtube.com/repairtrack
-- ❓ FAQ: repairtrack.dz/faq
+- 📚 Documentation: docs.fixwave.space
+- 🎥 Vidéos: youtube.com/fixwave
+- ❓ FAQ: fixwave.space/faq
 
 ---
 

@@ -1,6 +1,6 @@
-# 🚀 Guide de Démarrage RepairTrack
+# 🚀 Guide de Démarrage Fixwave
 
-Bienvenue sur **RepairTrack** ! Ce guide vous aidera à configurer et utiliser votre logiciel de gestion SAV en quelques minutes.
+Bienvenue sur **Fixwave** ! Ce guide vous aidera à configurer et utiliser votre logiciel de gestion SAV en quelques minutes.
 
 ---
 
@@ -20,7 +20,7 @@ Bienvenue sur **RepairTrack** ! Ce guide vous aidera à configurer et utiliser v
 
 ### Étape 1 : Créer votre compte
 
-1. Rendez-vous sur [repairtrack.dz](https://repairtrack.dz)
+1. Rendez-vous sur [fixwave.space](https://fixwave.space)
 2. Cliquez sur **"Créer un compte"**
 3. Remplissez le formulaire :
    - **Email professionnel** (ex: contact@monateliertech.dz)
@@ -264,14 +264,13 @@ Votre tableau de bord affiche en temps réel :
 
 ### Support
 
-- 📧 **Email** : support@repairtrack.dz
-- 💬 **Chat en direct** : Disponible dans l'application
-- 📱 **WhatsApp** : +213 XXX XXX XXX
-- 📚 **Base de connaissances** : [docs.repairtrack.dz](https://docs.repairtrack.dz)
+- 📧 **Email** : support@fixwave.space
+-  **WhatsApp** : +213 540 031 126
+- 📚 **Base de connaissances** : [docs.fixwave.space](https://docs.fixwave.space)
 
 ### Ressources
 
-- 🎥 **Tutoriels vidéo** : [youtube.com/repairtrack](https://youtube.com/repairtrack)
+- 🎥 **Tutoriels vidéo** : [youtube.com/fixwave](https://youtube.com/fixwave)
 - ❓ **FAQ** : Réponses aux questions fréquentes
 - 🎓 **Webinaires** : Sessions de formation gratuites
 
@@ -279,7 +278,7 @@ Votre tableau de bord affiche en temps réel :
 
 ## 🚀 Prêt à démarrer !
 
-Vous avez maintenant toutes les clés pour utiliser RepairTrack efficacement. 
+Vous avez maintenant toutes les clés pour utiliser Fixwave efficacement. 
 
 **Prochaines étapes** :
 1. Explorez chaque module
@@ -287,7 +286,7 @@ Vous avez maintenant toutes les clés pour utiliser RepairTrack efficacement.
 3. Formez votre équipe
 4. Profitez du gain de temps !
 
-Bon courage et bienvenue dans la famille RepairTrack ! 🎉
+Bon courage et bienvenue dans la famille Fixwave ! 🎉
 
 ---
 

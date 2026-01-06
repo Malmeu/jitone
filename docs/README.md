@@ -1,6 +1,6 @@
-# 📚 Documentation RepairTrack
+# 📚 Documentation Fixwave
 
-Bienvenue dans la documentation complète de **RepairTrack** - Votre solution de gestion SAV professionnelle.
+Bienvenue dans la documentation complète de **Fixwave**  - Votre solution de gestion SAV professionnelle.
 
 ---
 
@@ -28,9 +28,9 @@ Bienvenue dans la documentation complète de **RepairTrack** - Votre solution de
 
 ## 🎯 Introduction {#introduction}
 
-**RepairTrack** est un logiciel SaaS complet de gestion pour ateliers de réparation, conçu spécifiquement pour le marché algérien.
+**Fixwave** est un logiciel SaaS complet de gestion pour ateliers de réparation, conçu spécifiquement pour le marché algérien.
 
-### Pourquoi RepairTrack ?
+### Pourquoi Fixwave ?
 
 ✅ **Tout-en-un** : SAV, ventes, stock, facturation  
 ✅ **Simple** : Interface intuitive, prise en main rapide  
@@ -182,7 +182,7 @@ Bienvenue dans la documentation complète de **RepairTrack** - Votre solution de
 - Intégrations tierces
 - Astuces de pro
 
-📺 **Chaîne YouTube** : [youtube.com/repairtrack](https://youtube.com/repairtrack)
+📺 **Chaîne YouTube** : [youtube.com/fixwave](https://youtube.com/fixwave)
 
 ---
 
@@ -206,10 +206,10 @@ Bienvenue dans la documentation complète de **RepairTrack** - Votre solution de
 
 ### Liens externes
 
-- 🌐 **Site web** : [repairtrack.dz](https://repairtrack.dz)
+- 🌐 **Site web** : [fixwave.space](https://fixwave.space)
 - 📱 **Application mobile** : Bientôt disponible
-- 💬 **Communauté** : [community.repairtrack.dz](https://community.repairtrack.dz)
-- 📰 **Blog** : [blog.repairtrack.dz](https://blog.repairtrack.dz)
+- 💬 **Communauté** : [community.fixwave.space](https://community.fixwave.space)
+- 📰 **Blog** : [blog.fixwave.space](https://blog.fixwave.space)
 
 ---
 
@@ -219,7 +219,7 @@ Bienvenue dans la documentation complète de **RepairTrack** - Votre solution de
 
 #### Support technique
 
-- 📧 **Email** : support@repairtrack.dz  
+- 📧 **Email** : support@fixwave.space  
   *Réponse sous 2-4h (jours ouvrés)*
 
 - 💬 **Chat en direct** : Disponible dans l'application  
@@ -240,13 +240,13 @@ Bienvenue dans la documentation complète de **RepairTrack** - Votre solution de
 1. Décrivez le problème en détail
 2. Joignez des captures d'écran si possible
 3. Indiquez votre navigateur et système d'exploitation
-4. Envoyez à : bugs@repairtrack.dz
+4. Envoyez à : bugs@fixwave.space
 
 ### Demander une fonctionnalité
 
 Votre avis compte ! Proposez de nouvelles fonctionnalités :
-- 💡 **Email** : features@repairtrack.dz
-- 🗳️ **Vote** : [roadmap.repairtrack.dz](https://roadmap.repairtrack.dz)
+- 💡 **Email** : features@fixwave.space
+- 🗳️ **Vote** : [roadmap.fixwave.space](https://roadmap.fixwave.space)
 
 ---
 
@@ -256,11 +256,11 @@ Votre avis compte ! Proposez de nouvelles fonctionnalités :
 
 Rejoignez nos sessions de formation en direct :
 
-- **Démarrage RepairTrack** : Chaque 1er mardi du mois à 14h
+- **Démarrage Fixwave** : Chaque 1er mardi du mois à 14h
 - **Fonctionnalités avancées** : Chaque 3ème jeudi du mois à 14h
 - **Q&A mensuel** : Dernier vendredi du mois à 15h
 
-📅 **Inscription** : [webinars.repairtrack.dz](https://webinars.repairtrack.dz)
+📅 **Inscription** : [webinars.fixwave.space](https://webinars.fixwave.space)
 
 ### Formation sur site
 
@@ -270,7 +270,7 @@ Pour les abonnés **Enterprise**, nous proposons :
 - Jusqu'à 10 participants
 - Support post-formation pendant 1 mois
 
-📞 **Contact** : formation@repairtrack.dz
+📞 **Contact** : formation@fixwave.space
 
 ---
 
@@ -278,15 +278,15 @@ Pour les abonnés **Enterprise**, nous proposons :
 
 ### Réseaux sociaux
 
-- 📘 **Facebook** : [@RepairTrackDZ](https://facebook.com/repairtrackdz)
-- 📸 **Instagram** : [@repairtrack.dz](https://instagram.com/repairtrack.dz)
-- 🐦 **Twitter** : [@RepairTrackDZ](https://twitter.com/repairtrackdz)
-- 💼 **LinkedIn** : [RepairTrack](https://linkedin.com/company/repairtrack)
+- 📘 **Facebook** : [@Fixwave](https://facebook.com/fixwave)
+- 📸 **Instagram** : [@fixwave.space](https://instagram.com/fixwave.space)
+- 🐦 **Twitter** : [@Fixwave](https://twitter.com/fixwave)
+- 💼 **LinkedIn** : [Fixwave](https://linkedin.com/company/fixwave)
 
 ### Newsletter
 
 Recevez nos actualités, astuces et nouveautés :
-📧 **Inscription** : [repairtrack.dz/newsletter](https://repairtrack.dz/newsletter)
+📧 **Inscription** : [fixwave.space/newsletter](https://fixwave.space/newsletter)
 
 ---
 
@@ -301,12 +301,12 @@ Recevez nos actualités, astuces et nouveautés :
 
 ## 🚀 Prêt à démarrer ?
 
-1. **[Créez votre compte gratuit](https://repairtrack.dz/signup)**
+1. **[Créez votre compte gratuit](https://fixwave.space/signup)**
 2. **[Suivez le guide de démarrage](./GUIDE_DEMARRAGE.md)**
-3. **[Regardez la vidéo d'introduction](https://youtube.com/repairtrack)**
+3. **[Regardez la vidéo d'introduction](https://youtube.com/fixwave)**
 
 ---
 
-**RepairTrack** - Simplifiez la gestion de votre atelier de réparation 🔧
+**Fixwave** - Simplifiez la gestion de votre atelier de réparation 🔧
 
 *Dernière mise à jour : Janvier 2026 - v1.0.0*
