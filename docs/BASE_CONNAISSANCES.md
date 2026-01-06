@@ -46,9 +46,9 @@ Documentation complète pour maîtriser toutes les fonctionnalités de RepairTra
 
 ---
 
-## 🚀 Démarrage {#demarrage}
+## 🚀 Démarrage
 
-### Installation et configuration initiale {#installation}
+### Installation et configuration initiale
 
 #### Prérequis
 - Connexion internet stable
@@ -89,7 +89,7 @@ Documentation complète pour maîtriser toutes les fonctionnalités de RepairTra
    - Imprimez un ticket test
 ```
 
-### Premier paramétrage {#parametrage}
+### Premier paramétrage
 
 #### Configuration établissement complète
 
@@ -120,7 +120,7 @@ Message email: "Votre appareil est prêt ! Passez le récupérer aux heures d'ou
 Signature: "L'équipe TechRepair Pro"
 ```
 
-### Comprendre l'interface {#interface}
+### Comprendre l'interface
 
 #### Menu principal (Sidebar)
 
@@ -148,9 +148,9 @@ Ctrl + F    → Rechercher
 
 ---
 
-## 🔧 Gestion des Réparations {#reparations}
+## 🔧 Gestion des Réparations
 
-### Créer une réparation {#creer-reparation}
+### Créer une réparation
 
 #### Formulaire détaillé
 
@@ -269,7 +269,7 @@ Date limite: 08/01/2026
 ❌ N'oubliez pas de passer en "Livré"
 ```
 
-### Assignation aux techniciens {#assignation}
+### Assignation aux techniciens
 
 #### Comment assigner
 
@@ -305,7 +305,7 @@ Mehdi:    15 réparations en cours
 ✅ Tenez compte des délais
 ```
 
-### Tickets et impression {#tickets}
+### Tickets et impression
 
 #### Contenu du ticket
 
@@ -393,9 +393,9 @@ Email: Envoi automatique avec le lien
 
 ---
 
-## 🛒 Point de Vente {#point-vente}
+## 🛒 Point de Vente 
 
-### Utiliser la caisse {#caisse}
+### Utiliser la caisse
 
 #### Interface POS
 
@@ -435,7 +435,7 @@ Email: Envoi automatique avec le lien
 └─────────────────────────────┘
 ```
 
-### Gérer la TVA {#tva}
+### Gérer la TVA
 
 #### Configuration
 
@@ -514,7 +514,7 @@ Visuel:
   Photo: ecran-ip13pm.jpg (optionnel)
 ```
 
-### Types d'articles {#types-articles}
+### Types d'articles
 
 #### Pièce de réparation 🔧
 
@@ -556,7 +556,7 @@ Visuel:
 - Accessoires
 ```
 
-### Alertes de stock {#alertes-stock}
+### Alertes de stock
 
 #### Configuration
 
@@ -585,7 +585,7 @@ Alerte déclenchée si:
    Action: Prévoir commande
 ```
 
-### Inventaire physique {#inventaire}
+### Inventaire physique
 
 #### Procédure
 
@@ -625,9 +625,9 @@ Pour chaque article:
 
 ---
 
-## 👥 Équipe {#equipe}
+## 👥 Équipe
 
-### Rôles et permissions {#roles}
+### Rôles et permissions
 
 #### Tableau des permissions
 
@@ -734,9 +734,9 @@ Procédure:
 
 ---
 
-## 💰 Facturation {#facturation}
+## 💰 Facturation
 
-### Créer des devis {#devis}
+### Créer des devis
 
 #### Formulaire de devis
 
@@ -769,7 +769,7 @@ Conditions:
   - Garantie: 3 mois pièces et main d'œuvre
 ```
 
-### Générer des factures {#factures}
+### Générer des factures
 
 #### Types de factures
 
@@ -791,7 +791,7 @@ Créée manuellement pour services divers
 Personnalisable entièrement
 ```
 
-### Rapports financiers {#rapports}
+### Rapports financiers
 
 #### Types de rapports
 
@@ -826,9 +826,9 @@ Janvier 2026
 
 ---
 
-## ⚙️ Paramètres {#parametres}
+## ⚙️ Paramètres
 
-### Configuration établissement {#config-etablissement}
+### Configuration établissement
 
 #### Sections
 
@@ -866,7 +866,7 @@ RIB: 00400000123456789012 34
 IBAN: DZ59 0040 0000 1234 5678 9012 34
 ```
 
-### Personnalisation {#personnalisation}
+### Personnalisation
 
 #### Branding
 
@@ -904,7 +904,7 @@ Email notification:
    Cordialement, L'équipe TechRepair Pro"
 ```
 
-### Intégrations {#integrations}
+### Intégrations
 
 #### APIs disponibles
 

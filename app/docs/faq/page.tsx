@@ -66,7 +66,7 @@ export default function FAQPage() {
                     <h3 className="text-2xl font-bold text-neutral-900 mb-2">Vous ne trouvez pas votre réponse ?</h3>
                     <p className="text-neutral-600 mb-6">Notre équipe support est là pour vous aider</p>
                     <div className="flex gap-4 justify-center">
-                        <a href="mailto:support@repairtrack.dz" className="px-6 py-3 bg-emerald-600 text-white rounded-2xl font-semibold hover:bg-emerald-700 transition-colors">
+                        <a href="mailto:support@fixwave.space" className="px-6 py-3 bg-emerald-600 text-white rounded-2xl font-semibold hover:bg-emerald-700 transition-colors">
                             Contacter le support
                         </a>
                         <Link href="/docs/base-connaissances" className="px-6 py-3 bg-white border-2 border-emerald-200 text-emerald-700 rounded-2xl font-semibold hover:bg-emerald-50 transition-colors">

@@ -16,7 +16,7 @@ Retrouvez ici les réponses aux questions les plus posées par nos utilisateurs.
 
 ---
 
-## 🔐 Compte & Abonnement {#compte-abonnement}
+## 🔐 Compte & Abonnement
 
 ### Comment créer un compte ?
 
@@ -44,13 +44,13 @@ Contactez notre support à support@fixwave.space. Nous traiterons votre demande 
 ### Quels sont les plans tarifaires ?
 
 Nous proposons 3 formules :
-- **Starter** : Gratuit (limité à 50 réparations/mois)
-- **Pro** : 9 900 DA/mois (illimité)
-- **Enterprise** : Sur devis (multi-établissements)
+- **Essai** : Gratuit pendant 15 jours
+- **Standard** : 8 000 DA/an (150 réparations / mois)
+- **Premium** : 12 000 DA/an (illimité)
 
 ---
 
-## 🔧 Gestion des Réparations {#gestion-reparations}
+## 🔧 Gestion des Réparations
 
 ### Comment créer une nouvelle réparation ?
 
@@ -105,7 +105,7 @@ Lors de la création/modification :
 
 ---
 
-## 🛒 Point de Vente {#point-de-vente}
+## 🛒 Point de Vente
 
 ### Comment effectuer une vente ?
 
@@ -139,7 +139,7 @@ Menu **Ventes** → Onglet **Historique**. Vous y trouverez toutes vos ventes av
 
 ---
 
-## 📦 Stock & Inventaire {#stock-inventaire}
+## 📦 Stock & Inventaire
 
 ### Comment ajouter un article au stock ?
 
@@ -173,7 +173,7 @@ Oui ! Contactez le support pour recevoir un template Excel et importer vos artic
 
 ---
 
-## 👥 Équipe & Permissions {#equipe-permissions}
+## 👥 Équipe & Permissions
 
 ### Quels sont les différents rôles ?
 
@@ -208,7 +208,7 @@ Oui ! Cliquez sur **Modifier** à côté du membre → Changez le rôle → **En
 
 ---
 
-## 💰 Facturation & Paiements {#facturation-paiements}
+## 💰 Facturation & Paiements
 
 ### Comment générer une facture ?
 
@@ -239,7 +239,7 @@ Oui ! Dans **Paramètres** → **Facturation** :
 
 ---
 
-## 🔒 Technique & Sécurité {#technique-securite}
+## 🔒 Technique & Sécurité
 
 ### Mes données sont-elles sécurisées ?
 

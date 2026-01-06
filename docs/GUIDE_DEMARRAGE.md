@@ -39,7 +39,7 @@ Une fois connecté, vous arrivez sur votre **tableau de bord** qui affiche :
 
 ---
 
-## ⚙️ Configuration de votre établissement {#configuration-établissement}
+## ⚙️ Configuration de votre établissement
 
 ### Accéder aux paramètres
 
