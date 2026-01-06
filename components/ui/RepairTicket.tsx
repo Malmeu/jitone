@@ -15,6 +15,8 @@ interface RepairTicketProps {
         price?: number;
         is_unlock?: boolean;
         imei_sn?: string;
+        payment_status?: string;
+        paid_amount?: number;
     };
     establishment: {
         name: string;
@@ -196,6 +198,35 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
                             </div>
                         </div>
 
+                        {/* Statut de paiement */}
+                        {repair.price && (
+                            <div className="mb-3 pb-3 border-b-2 border-dashed border-gray-300">
+                                <p className="text-xs text-neutral-400 uppercase font-bold mb-1">Paiement</p>
+                                {repair.payment_status === 'paid' ? (
+                                    <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+                                        <p className="text-xs text-emerald-900 font-bold flex items-center gap-1">
+                                            ✅ Payé intégralement - {parseFloat(repair.price.toString()).toLocaleString('fr-DZ')} DA
+                                        </p>
+                                    </div>
+                                ) : repair.payment_status === 'partial' ? (
+                                    <div className="bg-amber-50 p-2 rounded-lg border border-amber-200">
+                                        <p className="text-xs text-amber-900 font-bold">
+                                            💰 Paiement partiel : {parseFloat((repair.paid_amount || 0).toString()).toLocaleString('fr-DZ')} DA / {parseFloat(repair.price.toString()).toLocaleString('fr-DZ')} DA
+                                        </p>
+                                        <p className="text-xs text-amber-700 mt-1">
+                                            Reste à payer : {(parseFloat(repair.price.toString()) - parseFloat((repair.paid_amount || 0).toString())).toLocaleString('fr-DZ')} DA
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="bg-red-50 p-2 rounded-lg border border-red-200">
+                                        <p className="text-xs text-red-900 font-bold">
+                                            ⏳ Non payé - Montant : {parseFloat(repair.price.toString()).toLocaleString('fr-DZ')} DA
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Instructions compactes */}
                         <div className="bg-blue-50 p-2 rounded-lg mb-2">
                             <p className="text-xs text-blue-900 font-medium">
@@ -327,11 +358,29 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
           
           /* Boxes compactes */
           .ticket-content .bg-blue-50,
-          .ticket-content .bg-green-50 {
+          .ticket-content .bg-green-50,
+          .ticket-content .bg-emerald-50,
+          .ticket-content .bg-amber-50,
+          .ticket-content .bg-red-50 {
             padding: 3px !important;
             margin-bottom: 3px !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          
+          /* Forcer tous les textes gris à devenir noirs pour l'impression */
+          .ticket-content .text-neutral-300,
+          .ticket-content .text-neutral-400,
+          .ticket-content .text-neutral-500,
+          .ticket-content .text-neutral-600,
+          .ticket-content .text-neutral-700 {
+            color: #000 !important;
+          }
+          
+          /* Assurer que tous les spans et divs sont en noir */
+          .ticket-content span,
+          .ticket-content div {
+            color: #000 !important;
           }
         }
       `}</style>

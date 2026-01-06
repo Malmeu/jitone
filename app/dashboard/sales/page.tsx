@@ -5,12 +5,13 @@ import {
     Plus, Search, Filter, ShoppingCart, Trash2,
     DollarSign, Loader2, X, Check, Box, Tag,
     User, Phone, FileText, ArrowRight, Package,
-    History, TrendingUp, CreditCard
+    History, TrendingUp, CreditCard, Percent
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { IconRenderer } from '@/components/ui/IconRenderer';
+import { SaleTicket } from '@/components/ui/SaleTicket';
 
 interface InventoryItem {
     id: string;
@@ -44,7 +45,11 @@ export default function SalesPage() {
     const [showCheckout, setShowCheckout] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [establishmentId, setEstablishmentId] = useState<string | null>(null);
+    const [establishment, setEstablishment] = useState<any>(null);
     const [activeView, setActiveView] = useState<'pos' | 'history'>('pos');
+    const [showTicket, setShowTicket] = useState(false);
+    const [ticketData, setTicketData] = useState<any>(null);
+    const [taxRate, setTaxRate] = useState(0);
 
     const [clientData, setClientData] = useState({
         name: '',
@@ -65,12 +70,13 @@ export default function SalesPage() {
 
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('establishment_id')
+                .select('establishment_id, establishment:establishments(*)')
                 .eq('user_id', user.id)
                 .single();
 
             if (!profile) return;
             setEstablishmentId(profile.establishment_id);
+            setEstablishment(profile.establishment);
 
             await Promise.all([
                 loadInventory(profile.establishment_id),
@@ -134,7 +140,9 @@ export default function SalesPage() {
         }));
     };
 
-    const cartTotal = cart.reduce((acc, item) => acc + (item.selling_price * item.quantity), 0);
+    const cartSubtotal = cart.reduce((acc, item) => acc + (item.selling_price * item.quantity), 0);
+    const taxAmount = cartSubtotal * (taxRate / 100);
+    const cartTotal = cartSubtotal + taxAmount;
 
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -147,6 +155,9 @@ export default function SalesPage() {
                 .from('sales')
                 .insert([{
                     establishment_id: establishmentId,
+                    subtotal: cartSubtotal,
+                    tax_rate: taxRate,
+                    tax_amount: taxAmount,
                     total_amount: cartTotal,
                     payment_method: clientData.payment_method,
                     client_name: clientData.name,
@@ -179,12 +190,25 @@ export default function SalesPage() {
                 });
             }
 
+            // Préparer les données du ticket
+            const ticketItems = cart.map(item => ({
+                item_name: item.name,
+                quantity: item.quantity,
+                unit_price: item.selling_price
+            }));
+
+            setTicketData({
+                ...sale,
+                items: ticketItems
+            });
+
             // Reset
             setCart([]);
             setClientData({ name: '', phone: '', payment_method: 'cash', notes: '' });
+            setTaxRate(0);
             setShowCheckout(false);
+            setShowTicket(true);
             await fetchData();
-            alert('Vente enregistrée avec succès !');
         } catch (error: any) {
             console.error('Error processing sale:', error);
             alert('Erreur lors de la vente: ' + error.message);
@@ -254,15 +278,21 @@ export default function SalesPage() {
                                     layout
                                     key={item.id}
                                     onClick={() => addToCart(item)}
-                                    className="group cursor-pointer bg-card rounded-[2rem] border border-neutral-100 dark:border-neutral-800 p-6 hover:shadow-xl hover:border-primary/20 transition-all active:scale-[0.98] border-b-4 hover:border-b-primary"
+                                    className="group cursor-pointer bg-card rounded-[2rem] border border-neutral-100 dark:border-neutral-800 p-6 hover:shadow-xl hover:border-primary/20 transition-all active:scale-[0.98] border-b-4 hover:border-b-primary flex flex-col min-h-[180px]"
                                 >
-                                    <div className="w-14 h-14 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                                    <div className="w-14 h-14 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform flex-shrink-0">
                                         <IconRenderer name={item.icon || 'Box'} size={24} />
                                     </div>
-                                    <div className="font-bold text-foreground mb-1 line-clamp-1">{item.name}</div>
-                                    <div className="flex justify-between items-end">
-                                        <div className="text-primary font-black">{item.selling_price.toLocaleString()} DA</div>
-                                        <div className="text-[10px] text-neutral-400 font-bold uppercase">Stock: {item.current_stock}</div>
+                                    <div className="flex-1 flex flex-col justify-between">
+                                        <div className="font-bold text-foreground mb-3 leading-tight break-words">{item.name}</div>
+                                        <div className="space-y-2">
+                                            <div className="text-primary font-black text-lg">{item.selling_price.toLocaleString()} DA</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-[10px] text-neutral-400 font-bold uppercase bg-neutral-50 dark:bg-neutral-900/50 px-2 py-1 rounded-lg">
+                                                    Stock: {item.current_stock}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
@@ -288,17 +318,17 @@ export default function SalesPage() {
                                     </div>
                                 ) : (
                                     cart.map(item => (
-                                        <div key={item.id} className="flex items-center gap-4 group">
-                                            <div className="flex-1">
-                                                <div className="font-bold text-sm truncate">{item.name}</div>
-                                                <div className="text-xs text-neutral-400">{item.selling_price.toLocaleString()} DA</div>
+                                        <div key={item.id} className="flex items-start gap-4 group">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-bold text-sm break-words leading-tight">{item.name}</div>
+                                                <div className="text-xs text-neutral-400 mt-1">{item.selling_price.toLocaleString()} DA</div>
                                             </div>
-                                            <div className="flex items-center gap-3 bg-neutral-50 dark:bg-neutral-900/50 p-1.5 rounded-xl">
+                                            <div className="flex items-center gap-3 bg-neutral-50 dark:bg-neutral-900/50 p-1.5 rounded-xl flex-shrink-0">
                                                 <button onClick={() => updateQuantity(item.id, -1)} className="w-6 h-6 flex items-center justify-center hover:bg-white dark:hover:bg-neutral-800 rounded-lg text-neutral-500">-</button>
                                                 <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
                                                 <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 flex items-center justify-center hover:bg-white dark:hover:bg-neutral-800 rounded-lg text-neutral-500">+</button>
                                             </div>
-                                            <button onClick={() => removeFromCart(item.id)} className="p-2 text-neutral-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
+                                            <button onClick={() => removeFromCart(item.id)} className="p-2 text-neutral-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"><Trash2 size={16} /></button>
                                         </div>
                                     ))
                                 )}
@@ -307,11 +337,27 @@ export default function SalesPage() {
                             <div className="pt-8 border-t border-neutral-100 dark:border-neutral-800 space-y-4">
                                 <div className="flex justify-between items-center text-sm text-neutral-500">
                                     <span>Sous-total</span>
-                                    <span>{(cartTotal * 0.9).toLocaleString()} DA</span>
+                                    <span>{cartSubtotal.toLocaleString()} DA</span>
                                 </div>
-                                <div className="flex justify-between items-center text-sm text-neutral-500">
-                                    <span>TVA (0%)</span>
-                                    <span>0 DA</span>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Percent size={14} className="text-neutral-400" />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.1"
+                                            value={taxRate}
+                                            onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                                            className="w-20 px-2 py-1 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold"
+                                            placeholder="0"
+                                        />
+                                        <span className="text-xs text-neutral-400 font-medium">% TVA</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm text-neutral-500">
+                                        <span>TVA ({taxRate}%)</span>
+                                        <span>{taxAmount.toLocaleString()} DA</span>
+                                    </div>
                                 </div>
                                 <div className="flex justify-between items-center pt-2">
                                     <span className="text-lg font-bold">Total</span>
@@ -448,6 +494,17 @@ export default function SalesPage() {
                             </form>
                         </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+
+            {/* Sale Ticket Modal */}
+            <AnimatePresence>
+                {showTicket && ticketData && establishment && (
+                    <SaleTicket
+                        sale={ticketData}
+                        establishment={establishment}
+                        onClose={() => setShowTicket(false)}
+                    />
                 )}
             </AnimatePresence>
         </div>

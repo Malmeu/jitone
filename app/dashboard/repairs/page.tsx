@@ -62,6 +62,8 @@ export default function RepairsPage() {
         is_unlock: false,
         imei_sn: '',
         assigned_to: '',
+        payment_status: 'unpaid',
+        paid_amount: '',
     });
 
     useEffect(() => {
@@ -179,6 +181,8 @@ export default function RepairsPage() {
                     is_unlock: formData.is_unlock,
                     imei_sn: formData.is_unlock ? formData.imei_sn : null,
                     assigned_to: formData.assigned_to || null,
+                    payment_status: formData.payment_status,
+                    paid_amount: formData.payment_status === 'partial' ? parseFloat(formData.paid_amount) : (formData.payment_status === 'paid' ? parseFloat(formData.price) : 0),
                     updated_at: new Date().toISOString(),
                 };
 
@@ -223,6 +227,8 @@ export default function RepairsPage() {
                     is_unlock: formData.is_unlock,
                     imei_sn: formData.is_unlock ? formData.imei_sn : null,
                     assigned_to: formData.assigned_to || null,
+                    payment_status: formData.payment_status,
+                    paid_amount: formData.payment_status === 'partial' ? parseFloat(formData.paid_amount) : (formData.payment_status === 'paid' ? parseFloat(formData.price) : 0),
                 };
 
                 if (formData.status === 'diagnostic') repairData.diagnostic_at = new Date().toISOString();
@@ -275,6 +281,8 @@ export default function RepairsPage() {
                 is_unlock: false,
                 imei_sn: '',
                 assigned_to: '',
+                payment_status: 'unpaid',
+                paid_amount: '',
             });
             setShowModal(false);
             setEditingRepair(null);
@@ -414,6 +422,8 @@ export default function RepairsPage() {
             is_unlock: repair.is_unlock || false,
             imei_sn: repair.imei_sn || '',
             assigned_to: repair.assigned_to || '',
+            payment_status: repair.payment_status || 'unpaid',
+            paid_amount: repair.paid_amount?.toString() || '',
         });
         setShowModal(true);
 
@@ -491,6 +501,7 @@ export default function RepairsPage() {
                                 additional_info: '', fault_type: '', status: 'nouveau', price: '', cost_price: '',
                                 is_unlock: false, imei_sn: '',
                                 assigned_to: userProfile?.role === 'technician' ? userProfile.id : '',
+                                payment_status: 'unpaid', paid_amount: '',
                             });
                             setShowModal(true);
                         }}
@@ -902,6 +913,53 @@ export default function RepairsPage() {
                                                         />
                                                     </div>
                                                 </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 text-emerald-500">
+                                                <DollarSign size={18} />
+                                                <label className="text-sm font-black uppercase tracking-widest">Paiement</label>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Statut du paiement</label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, payment_status: 'unpaid', paid_amount: '' })}
+                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all ${formData.payment_status === 'unpaid' ? 'bg-neutral-900 dark:bg-white border-neutral-900 dark:border-white text-white dark:text-black shadow-lg' : 'bg-card border-neutral-100 dark:border-neutral-800 text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800'}`}
+                                                    >
+                                                        ⏳ Non payé
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, payment_status: 'partial', paid_amount: '' })}
+                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all ${formData.payment_status === 'partial' ? 'bg-neutral-900 dark:bg-white border-neutral-900 dark:border-white text-white dark:text-black shadow-lg' : 'bg-card border-neutral-100 dark:border-neutral-800 text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800'}`}
+                                                    >
+                                                        💰 Partiel
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, payment_status: 'paid', paid_amount: formData.price })}
+                                                        className={`px-4 py-3 rounded-xl border text-xs font-bold transition-all ${formData.payment_status === 'paid' ? 'bg-neutral-900 dark:bg-white border-neutral-900 dark:border-white text-white dark:text-black shadow-lg' : 'bg-card border-neutral-100 dark:border-neutral-800 text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800'}`}
+                                                    >
+                                                        ✅ Payé
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {formData.payment_status === 'partial' && (
+                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Montant payé (DA)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.paid_amount}
+                                                        onChange={(e) => setFormData({ ...formData, paid_amount: e.target.value })}
+                                                        className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 shadow-sm font-black text-foreground"
+                                                        placeholder="Montant déjà versé"
+                                                    />
+                                                </motion.div>
                                             )}
                                         </div>
 
