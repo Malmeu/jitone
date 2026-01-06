@@ -50,6 +50,7 @@ export default function SalesPage() {
     const [showTicket, setShowTicket] = useState(false);
     const [ticketData, setTicketData] = useState<any>(null);
     const [taxRate, setTaxRate] = useState(0);
+    const [discount, setDiscount] = useState(0);
 
     const [clientData, setClientData] = useState({
         name: '',
@@ -141,8 +142,10 @@ export default function SalesPage() {
     };
 
     const cartSubtotal = cart.reduce((acc, item) => acc + (item.selling_price * item.quantity), 0);
-    const taxAmount = cartSubtotal * (taxRate / 100);
-    const cartTotal = cartSubtotal + taxAmount;
+    const discountAmount = cartSubtotal * (discount / 100);
+    const subtotalAfterDiscount = cartSubtotal - discountAmount;
+    const taxAmount = subtotalAfterDiscount * (taxRate / 100);
+    const cartTotal = subtotalAfterDiscount + taxAmount;
 
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -156,6 +159,8 @@ export default function SalesPage() {
                 .insert([{
                     establishment_id: establishmentId,
                     subtotal: cartSubtotal,
+                    discount_rate: discount,
+                    discount_amount: discountAmount,
                     tax_rate: taxRate,
                     tax_amount: taxAmount,
                     total_amount: cartTotal,
@@ -206,6 +211,7 @@ export default function SalesPage() {
             setCart([]);
             setClientData({ name: '', phone: '', payment_method: 'cash', notes: '' });
             setTaxRate(0);
+            setDiscount(0);
             setShowCheckout(false);
             setShowTicket(true);
             await fetchData();
@@ -339,6 +345,31 @@ export default function SalesPage() {
                                     <span>Sous-total</span>
                                     <span>{cartSubtotal.toLocaleString()} DA</span>
                                 </div>
+                                {/* Remise */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Percent size={14} className="text-emerald-500" />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.1"
+                                            value={discount}
+                                            onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                                            className="w-20 px-2 py-1 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
+                                            placeholder="0"
+                                        />
+                                        <span className="text-xs text-neutral-400 font-medium">% Remise</span>
+                                    </div>
+                                    {discount > 0 && (
+                                        <div className="flex justify-between items-center text-sm text-emerald-600">
+                                            <span>Remise ({discount}%)</span>
+                                            <span>-{discountAmount.toLocaleString()} DA</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* TVA */}
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <Percent size={14} className="text-neutral-400" />

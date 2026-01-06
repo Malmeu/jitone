@@ -11,6 +11,8 @@ interface SaleTicketProps {
         created_at: string;
         total_amount: number;
         subtotal?: number;
+        discount_rate?: number;
+        discount_amount?: number;
         tax_rate?: number;
         tax_amount?: number;
         payment_method: string;
@@ -189,6 +191,12 @@ export function SaleTicket({ sale, establishment, onClose }: SaleTicketProps) {
                                 <span>Sous-total</span>
                                 <span>{parseFloat((sale.subtotal || sale.total_amount).toString()).toLocaleString('fr-DZ')} DA</span>
                             </div>
+                            {sale.discount_rate && sale.discount_rate > 0 && (
+                                <div className="flex justify-between text-sm text-emerald-600">
+                                    <span>Remise ({sale.discount_rate}%)</span>
+                                    <span>-{parseFloat((sale.discount_amount || 0).toString()).toLocaleString('fr-DZ')} DA</span>
+                                </div>
+                            )}
                             {sale.tax_rate && sale.tax_rate > 0 && (
                                 <div className="flex justify-between text-sm text-neutral-600">
                                     <span>TVA ({sale.tax_rate}%)</span>
