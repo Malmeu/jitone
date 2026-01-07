@@ -569,12 +569,14 @@ export default function InvoicesPage() {
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 px-1">Catégorie</label>
                                     <select value={expenseData.category} onChange={e => setExpenseData({ ...expenseData, category: e.target.value })} className="w-full px-5 py-4 rounded-2xl border border-neutral-100 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 font-bold">
-                                        <option value="loyer">Loyer</option>
-                                        <option value="stock">Stock / Outillage</option>
-                                        <option value="marketing">Marketing</option>
-                                        <option value="abonnement">Abonnement / Logiciel</option>
-                                        <option value="personnel">Personnel / Salaires</option>
-                                        <option value="autre">Autre</option>
+                                        <option value="loyer">🏠 Loyer</option>
+                                        <option value="stock">📦 Stock / Outillage</option>
+                                        <option value="pieces">🔧 Pièces détachées</option>
+                                        <option value="appareil_endommage">📱 Appareil / pièces endommagé</option>
+                                        <option value="marketing">📢 Marketing</option>
+                                        <option value="abonnement">💳 Abonnement / Logiciel</option>
+                                        <option value="personnel">👥 Personnel / Salaires</option>
+                                        <option value="autre">📝 Autre</option>
                                     </select>
                                 </div>
                                 <Button disabled={isSubmitting} type="submit" className="w-full py-6 mt-4 rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl text-xs">
