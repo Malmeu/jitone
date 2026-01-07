@@ -670,6 +670,21 @@ export default function RepairsPage() {
                 .eq('id', repair.id);
 
             if (error) throw error;
+
+            // Notification WhatsApp si prêt
+            if (newStatus === 'pret_recup' && repair.client?.phone) {
+                const clientName = repair.client.name;
+                // Nettoyer le numéro (enlever espaces, tirets, etc. et s'assurer qu'il y a le code pays 213 pour l'Algérie)
+                let phone = repair.client.phone.replace(/[^0-9]/g, '');
+                if (phone.startsWith('0')) phone = '213' + phone.substring(1);
+                if (!phone.startsWith('213')) phone = '213' + phone;
+
+                const message = `Bonjour ${clientName}, votre ${repair.item} est prêt à être récupéré chez ${establishment?.name || 'notre atelier'}. Le montant total est de ${repair.price} DA. À bientôt !`;
+                const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+                window.open(whatsappUrl, '_blank');
+            }
+
             await fetchData();
         } catch (error: any) {
             console.error('Error updating status:', error);
