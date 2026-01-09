@@ -11,7 +11,7 @@ export function Hero() {
             {/* Background Aesthetic */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <img
-                    src="/back.jpg"
+                    src="/back_repair.jpeg"
                     alt="Background"
                     className="w-full h-full object-cover opacity-[0.4] mix-blend-multiply"
                 />
