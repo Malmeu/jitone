@@ -66,23 +66,27 @@ export function RepairLabel({ repair, onClose }: RepairLabelProps) {
 
                 <div className="p-8 flex flex-col items-center">
                     {/* The Label Area */}
-                    <div id="repair-label-to-print" className="bg-white p-4 border border-dashed border-neutral-200 rounded-xl w-full max-w-[250px] aspect-[5/3] flex flex-col justify-between text-black font-sans">
-                        <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1 min-w-0">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 leading-none mb-1">Fixwave Repair</div>
-                                <div className="text-sm font-bold truncate leading-tight">{repair.item}</div>
-                                <div className="text-[10px] font-medium text-neutral-500 truncate mt-0.5">{repair.client?.name || 'Client anonyme'}</div>
+                    <div id="repair-label-to-print" className="bg-white p-3 border border-dashed border-neutral-200 rounded-xl w-[200px] h-[333px] flex flex-col items-center text-black font-sans overflow-hidden">
+                        {/* Header */}
+                        <div className="text-center w-full mb-1">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-neutral-400 leading-none mb-1">Diagnostic & Travaux</div>
+                            <div className="text-[11px] font-bold leading-tight border-b border-neutral-100 pb-1 line-clamp-2 uppercase">
+                                {repair.description || 'Diagnostic en attente'}
                             </div>
-                            <canvas ref={qrCanvasRef} className="w-12 h-12 flex-shrink-0" />
                         </div>
 
-                        <div className="mt-2 flex items-end justify-between border-t border-neutral-100 pt-2">
-                            <div className="flex-1 min-w-0 pr-2">
-                                <div className="text-[8px] font-bold text-neutral-400 uppercase tracking-tighter">Problème / Travaux</div>
-                                <div className="text-[13px] font-black leading-tight line-clamp-2 uppercase mt-0.5">{repair.description || 'Pas de description'}</div>
-                            </div>
-                            <div className="text-[9px] font-bold text-neutral-400 leading-none mb-0.5">
-                                {new Date(repair.created_at).toLocaleDateString()}
+                        {/* QR Code central */}
+                        <div className="flex-1 flex items-center justify-center py-2">
+                            <canvas ref={qrCanvasRef} className="w-24 h-24" />
+                        </div>
+
+                        {/* Info Appareil */}
+                        <div className="w-full text-center mt-auto border-t border-neutral-100 pt-2 space-y-1">
+                            <div className="text-[11px] font-black leading-tight uppercase line-clamp-2">{repair.item}</div>
+                            <div className="text-[9px] font-bold text-neutral-500 truncate">{repair.client?.name || 'Client'}</div>
+                            <div className="text-[8px] font-bold text-neutral-400 mt-1 flex justify-between w-full px-1">
+                                <span>{new Date(repair.created_at).toLocaleDateString()}</span>
+                                <span className="font-mono">{repair.code}</span>
                             </div>
                         </div>
                     </div>
@@ -103,22 +107,22 @@ export function RepairLabel({ repair, onClose }: RepairLabelProps) {
             <style jsx global>{`
                 @media print {
                     @page {
-                        size: 50mm 30mm;
+                        size: 30mm 50mm;
                         margin: 0;
                     }
                     body * {
-                        visibility: hidden;
+                        visibility: hidden !important;
                         background: white !important;
                     }
                     #repair-label-to-print, #repair-label-to-print * {
-                        visibility: visible;
+                        visibility: visible !important;
                     }
                     #repair-label-to-print {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 50mm !important;
-                        height: 30mm !important;
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 30mm !important;
+                        height: 50mm !important;
                         padding: 2mm !important;
                         border: none !important;
                         border-radius: 0 !important;
@@ -126,7 +130,15 @@ export function RepairLabel({ repair, onClose }: RepairLabelProps) {
                         box-shadow: none !important;
                         display: flex !important;
                         flex-direction: column !important;
+                        align-items: center !important;
                         justify-content: space-between !important;
+                        text-align: center !important;
+                        box-sizing: border-box !important;
+                    }
+                    /* Forcer le QR code */
+                    #repair-label-to-print canvas {
+                        width: 20mm !important;
+                        height: 20mm !important;
                     }
                 }
             `}</style>

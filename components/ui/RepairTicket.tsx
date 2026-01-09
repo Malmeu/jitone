@@ -17,6 +17,7 @@ interface RepairTicketProps {
         imei_sn?: string;
         payment_status?: string;
         paid_amount?: number;
+        intervention_devices?: any[];
     };
     establishment: {
         name: string;
@@ -176,6 +177,31 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
                                     </div>
                                 )}
 
+                                {repair.intervention_devices && repair.intervention_devices.length > 0 && (
+                                    <div className="col-span-2 mt-2 pt-2 border-t border-gray-100">
+                                        <p className="text-xs text-neutral-400 uppercase font-bold mb-2">Détails de l'intervention</p>
+                                        <div className="space-y-3">
+                                            {repair.intervention_devices.map((device: any, idx: number) => (
+                                                <div key={idx} className="bg-neutral-50 p-2 rounded-lg">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <p className="text-[11px] font-black uppercase text-neutral-900">{device.model}</p>
+                                                        {device.imei && <p className="text-[9px] font-mono text-neutral-500">SN: {device.imei}</p>}
+                                                    </div>
+                                                    {device.faults && device.faults.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1 mt-1">
+                                                            {device.faults.map((f: any, fIdx: number) => (
+                                                                <span key={fIdx} className="text-[9px] bg-white border border-neutral-200 px-1.5 py-0.5 rounded-md font-bold text-neutral-700">
+                                                                    {f.fault_type?.name || f.name}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div>
                                     <p className="text-xs text-neutral-400 uppercase font-bold mb-0.5">Date</p>
                                     <p className="text-xs font-medium text-neutral-900">
@@ -275,18 +301,17 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
           
           /* Container du ticket - centré et compact */
           .ticket-content {
-            position: absolute !important;
-            left: 50% !important;
-            top: 0 !important;
-            transform: translateX(-50%) !important;
+            margin: 0 auto !important;
             width: 80mm !important;
             max-width: 80mm !important;
             padding: 5mm !important;
-            margin: 0 auto !important;
             background: white !important;
             box-sizing: border-box !important;
             box-shadow: none !important;
             border: none !important;
+            display: block !important;
+            height: auto !important;
+            min-height: 100px !important;
           }
           
           /* Format ticket de caisse */
@@ -301,7 +326,6 @@ export function RepairTicket({ repair, establishment, onClose }: RepairTicketPro
             line-height: 1.2 !important;
             color: #000 !important;
           }
-          
           /* Titres compacts */
           .ticket-content h1 {
             font-size: 11pt !important;

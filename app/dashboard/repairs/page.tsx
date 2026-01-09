@@ -743,6 +743,20 @@ export default function RepairsPage() {
         }
     };
 
+    const handlePrintSelection = async (repair: any, type: 'label' | 'ticket') => {
+        let finalData = { ...repair };
+        if (repair.type === 'intervention') {
+            const { data: devices } = await supabase
+                .from('intervention_devices')
+                .select('*, faults:device_faults(*, fault_type:fault_types(*))')
+                .eq('repair_id', repair.id);
+            finalData.intervention_devices = devices;
+        }
+        setTicketData(finalData);
+        if (type === 'label') setShowLabel(true);
+        else setShowTicket(true);
+    };
+
     const handleEdit = async (repair: any) => {
         setEditingRepair(repair);
 
@@ -1169,8 +1183,8 @@ export default function RepairsPage() {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => { setTicketData(repair); setShowLabel(true); }} className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all" title="Étiquette"><Tag size={18} /></button>
-                                                <button onClick={() => { setTicketData(repair); setShowTicket(true); }} className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all" title="Ticket"><Printer size={18} /></button>
+                                                <button onClick={() => handlePrintSelection(repair, 'label')} className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all" title="Étiquette"><Tag size={18} /></button>
+                                                <button onClick={() => handlePrintSelection(repair, 'ticket')} className="p-2.5 bg-card text-neutral-600 dark:text-neutral-400 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 shadow-sm transition-all" title="Ticket"><Printer size={18} /></button>
                                                 <button onClick={() => handleEdit(repair)} className="p-2.5 bg-card text-blue-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 shadow-sm transition-all" title="Modifier"><Edit3 size={18} /></button>
                                                 <button onClick={() => deleteRepair(repair.id, repair.code)} className="p-2.5 bg-card text-red-500 rounded-xl border border-neutral-100 dark:border-neutral-800 hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm transition-all" title="Supprimer"><Trash2 size={18} /></button>
                                             </div>
@@ -1523,7 +1537,6 @@ export default function RepairsPage() {
                                             value={formData.clientId}
                                             onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
                                             className="w-full px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all bg-neutral-50/50 dark:bg-neutral-900/50 font-medium text-foreground"
-                                            required
                                         >
                                             <option value="">+ Nouveau client</option>
                                             {clients.map((client: any) => (
@@ -1534,23 +1547,26 @@ export default function RepairsPage() {
                                         </select>
 
                                         {formData.clientId === '' && (
-                                            <div className="grid grid-cols-2 gap-4 mt-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                                 <input
                                                     type="text"
                                                     placeholder="Nom du client *"
                                                     value={formData.clientName}
                                                     onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                                                    className="px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-medium text-foreground"
+                                                    className="px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all bg-neutral-50/50 dark:bg-neutral-900/50 font-medium text-foreground"
                                                     required
                                                 />
-                                                <input
-                                                    type="tel"
-                                                    placeholder="Téléphone *"
-                                                    value={formData.clientPhone}
-                                                    onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
-                                                    className="px-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-medium text-foreground"
-                                                    required
-                                                />
+                                                <div className="relative">
+                                                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">+213</span>
+                                                    <input
+                                                        type="tel"
+                                                        placeholder="555 000 000 *"
+                                                        value={formData.clientPhone.replace('+213', '').trim()}
+                                                        onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value ? `+213 ${e.target.value}` : '' })}
+                                                        className="w-full pl-16 pr-5 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all bg-neutral-50/50 dark:bg-neutral-900/50 font-medium text-foreground"
+                                                        required
+                                                    />
+                                                </div>
                                             </div>
                                         )}
                                     </div>
