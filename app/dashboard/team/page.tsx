@@ -20,6 +20,7 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useUser } from '../UserContext';
 
 export default function TeamPage() {
     const [team, setTeam] = useState<any[]>([]);
@@ -32,43 +33,34 @@ export default function TeamPage() {
     const [submitting, setSubmitting] = useState(false);
     const [stats, setStats] = useState<any>(null);
 
+    const { profile, establishment: userEst, loading: userLoading } = useUser();
+
     useEffect(() => {
-        fetchTeamData();
-    }, []);
+        if (!userLoading && profile) {
+            fetchTeamData();
+        }
+    }, [userLoading, profile]);
 
     const fetchTeamData = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('establishment_id, role')
-                .eq('user_id', user.id)
-                .single();
-
             if (!profile) return;
+            setEstablishment(userEst);
 
-            const { data: estData } = await supabase
-                .from('establishments')
-                .select('*')
-                .eq('id', profile.establishment_id)
-                .single();
-            setEstablishment(estData);
+            const [teamRes, repairStatsRes] = await Promise.all([
+                supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('establishment_id', profile.establishment_id)
+                    .order('role'),
+                supabase
+                    .from('repairs')
+                    .select('assigned_to, status, started_at, completed_at')
+                    .eq('establishment_id', profile.establishment_id)
+            ]);
 
-            const { data: teamData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('establishment_id', profile.establishment_id)
-                .order('role');
-            if (teamData) setTeam(teamData);
+            if (teamRes.data) setTeam(teamRes.data);
 
-            // Fetch performance stats
-            const { data: repairStats } = await supabase
-                .from('repairs')
-                .select('assigned_to, status, started_at, completed_at')
-                .eq('establishment_id', profile.establishment_id);
-
+            const repairStats = repairStatsRes.data;
             if (repairStats) {
                 const memberStats: any = {};
                 repairStats.forEach(r => {

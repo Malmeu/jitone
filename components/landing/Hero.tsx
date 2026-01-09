@@ -7,11 +7,17 @@ import Link from 'next/link';
 
 export function Hero() {
     return (
-        <section className="relative pt-24 pb-16 md:pt-32 lg:pt-48 md:pb-20 lg:pb-40 overflow-hidden bg-[#FAFAFA]">
+        <section className="relative pt-24 pb-16 md:pt-32 lg:pt-48 md:pb-20 lg:pb-40 overflow-hidden bg-white">
             {/* Background Aesthetic */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <img
+                    src="/back.jpg"
+                    alt="Background"
+                    className="w-full h-full object-cover opacity-[0.4] mix-blend-multiply"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-white" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 md:px-12 relative z-10">
@@ -165,7 +171,7 @@ export function Hero() {
                         <p className="text-[9px] sm:text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-6 sm:mb-8">Propulse les meilleurs ateliers du pays</p>
                         <div className="flex flex-wrap justify-center gap-6 sm:gap-8 md:gap-12 opacity-30 grayscale saturate-0 contrast-150">
                             {/* Placeholder for local partner logos or just stylish names */}
-                            {["TECHLAB", "MOBIZONE", "SMART CLINIC", "EL-FENIA"].map((name) => (
+                            {["FACE ID TECH", "MOBISTORE PLUS", "SOS MOBILE", "MADALA PHONE"].map((name) => (
                                 <span key={name} className="text-base sm:text-lg md:text-xl font-black italic tracking-tighter">{name}</span>
                             ))}
                         </div>

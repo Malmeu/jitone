@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RepairTicket } from '@/components/ui/RepairTicket';
 import { IconRenderer } from '@/components/ui/IconRenderer';
 import { RepairLabel } from '@/components/ui/RepairLabel';
+import { useUser } from '../UserContext';
 
 export default function RepairsPage() {
     const [repairs, setRepairs] = useState<any[]>([]);
@@ -67,26 +68,20 @@ export default function RepairsPage() {
         paid_amount: '',
     });
 
+    const { profile, establishment: userEst, loading: userLoading } = useUser();
+
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (!userLoading && profile) {
+            fetchData();
+        }
+    }, [userLoading, profile]);
 
     const fetchData = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            // Fetch current user profile to get establishment_id and role
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('*, establishment:establishments(*)')
-                .eq('user_id', user.id)
-                .single();
-
             if (!profile) return;
-            setUserProfile(profile);
             setEstablishmentId(profile.establishment_id);
-            setEstablishment(profile.establishment);
+            setEstablishment(userEst);
+            setUserProfile(profile);
 
             let query = supabase
                 .from('repairs')
@@ -101,38 +96,29 @@ export default function RepairsPage() {
                 query = query.eq('assigned_to', profile.id);
             }
 
-            const { data: repairsData } = await query.order('created_at', { ascending: false });
+            // Exécution des requêtes en parallèle avec limites
+            const [
+                { data: repairsData },
+                { data: clientsData },
+                { data: teamData },
+                { data: inventoryData },
+                { data: faultTypesData }
+            ] = await Promise.all([
+                // On limite aux 50 dernières réparations pour la fluidité
+                query.order('created_at', { ascending: false }).limit(50),
+
+                // Pour les clients et le stock, on peut limiter aussi si besoin, 
+                // mais ici on garde le chargement pour les sélections de formulaire
+                supabase.from('clients').select('id, name, phone').eq('establishment_id', profile.establishment_id).order('name').limit(200),
+                supabase.from('profiles').select('*').eq('establishment_id', profile.establishment_id).eq('status', 'active'),
+                supabase.from('inventory').select('*').eq('establishment_id', profile.establishment_id).order('name').limit(150),
+                supabase.from('fault_types').select('*').eq('establishment_id', profile.establishment_id).eq('is_active', true).order('name')
+            ]);
 
             if (repairsData) setRepairs(repairsData);
-
-            const { data: clientsData } = await supabase
-                .from('clients')
-                .select('*')
-                .eq('establishment_id', profile.establishment_id)
-                .order('name');
-
             if (clientsData) setClients(clientsData);
-
-            const { data: teamData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('establishment_id', profile.establishment_id)
-                .eq('status', 'active');
             if (teamData) setTeamMembers(teamData);
-
-            const { data: inventoryData } = await supabase
-                .from('inventory')
-                .select('*')
-                .eq('establishment_id', profile.establishment_id)
-                .order('name');
             if (inventoryData) setInventory(inventoryData);
-
-            const { data: faultTypesData } = await supabase
-                .from('fault_types')
-                .select('*')
-                .eq('establishment_id', profile.establishment_id)
-                .eq('is_active', true)
-                .order('name');
             if (faultTypesData) setFaultTypes(faultTypesData);
         } catch (error) {
             console.error('Error:', error);

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSimplifiedMode } from './SimplifiedModeContext';
+import { useUser } from './UserContext';
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -25,104 +26,88 @@ export default function DashboardPage() {
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
     const { isSimplified } = useSimplifiedMode();
+    const { profile, loading: userLoading } = useUser();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return;
+        if (!userLoading && profile) {
+            fetchData();
+        }
+    }, [userLoading, profile, customStartDate, customEndDate]);
 
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('id, role, establishment_id')
-                    .eq('user_id', user.id)
-                    .single();
+    const fetchData = async () => {
+        try {
+            if (!profile) return;
+            setEstablishmentId(profile.establishment_id);
+            setUserRole(profile.role);
+            const currentEstId = profile.establishment_id;
+            const isTechnician = profile.role === 'technician';
 
-                if (!profile) return;
-                setEstablishmentId(profile.establishment_id);
-                setUserRole(profile.role);
-                const currentEstId = profile.establishment_id;
-                const isTechnician = profile.role === 'technician';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayISO = today.toISOString();
 
-                let query = supabase
-                    .from('repairs')
-                    .select(`
-                        *,
-                        client:clients(name)
-                    `)
-                    .eq('establishment_id', currentEstId);
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const monthISO = firstDayOfMonth.toISOString();
 
-                if (isTechnician) {
-                    query = query.eq('assigned_to', profile.id);
-                }
+            // Requêtes optimisées et parallèles
+            const [
+                { count: todayCount },
+                { count: readyCount },
+                { data: recentRepairsData },
+                { data: todayRevData },
+                { data: monthRevData }
+            ] = await Promise.all([
+                // Nombre de réparations aujourd'hui
+                supabase.from('repairs').select('*', { count: 'exact', head: true })
+                    .eq('establishment_id', currentEstId)
+                    .gte('created_at', todayISO)
+                    .is('assigned_to', isTechnician ? profile.id : null),
 
-                const { data: repairs } = await query.order('created_at', { ascending: false });
+                // Prêt pour récupération
+                supabase.from('repairs').select('*', { count: 'exact', head: true })
+                    .eq('establishment_id', currentEstId)
+                    .eq('status', 'pret_recup')
+                    .is('assigned_to', isTechnician ? profile.id : null),
 
-                if (repairs) {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
+                // Dernières réparations uniquement (limite à 8)
+                supabase.from('repairs').select('*, client:clients(name)')
+                    .eq('establishment_id', currentEstId)
+                    .order('created_at', { ascending: false })
+                    .limit(8),
 
-                    const todayRepairs = repairs.filter(r =>
-                        new Date(r.created_at) >= today
-                    ).length;
+                // CA aujourd'hui
+                supabase.from('repairs').select('paid_amount')
+                    .eq('establishment_id', currentEstId)
+                    .eq('payment_status', 'paid')
+                    .neq('status', 'annule')
+                    .gte('created_at', todayISO),
 
-                    const readyRepairs = repairs.filter(r =>
-                        r.status === 'pret_recup'
-                    ).length;
+                // CA mois
+                supabase.from('repairs').select('paid_amount')
+                    .eq('establishment_id', currentEstId)
+                    .eq('payment_status', 'paid')
+                    .neq('status', 'annule')
+                    .gte('created_at', monthISO)
+            ]);
 
-                    const todayRevenue = repairs
-                        .filter(r =>
-                            new Date(r.created_at) >= today &&
-                            r.payment_status === 'paid' &&
-                            r.status !== 'annule'
-                        )
-                        .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
+            const todayRevenue = todayRevData?.reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0) || 0;
+            const monthRevenue = monthRevData?.reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0) || 0;
 
-                    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                    const monthRevenue = repairs
-                        .filter(r =>
-                            new Date(r.created_at) >= firstDayOfMonth &&
-                            r.payment_status === 'paid' &&
-                            r.status !== 'annule'
-                        )
-                        .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
+            setStats({
+                todayRepairs: todayCount || 0,
+                readyRepairs: readyCount || 0,
+                todayRevenue,
+                monthRevenue,
+                customRevenue: 0,
+            });
 
-                    let customRevenue = 0;
-                    if (customStartDate && customEndDate) {
-                        const startDate = new Date(customStartDate);
-                        const endDate = new Date(customEndDate);
-                        endDate.setHours(23, 59, 59, 999);
-
-                        customRevenue = repairs
-                            .filter(r => {
-                                const repairDate = new Date(r.created_at);
-                                return repairDate >= startDate &&
-                                    repairDate <= endDate &&
-                                    r.payment_status === 'paid' &&
-                                    r.status !== 'annule';
-                            })
-                            .reduce((sum, r) => sum + parseFloat(r.paid_amount || 0), 0);
-                    }
-
-                    setStats({
-                        todayRepairs,
-                        readyRepairs,
-                        todayRevenue,
-                        monthRevenue,
-                        customRevenue,
-                    });
-
-                    setRecentRepairs(repairs.slice(0, 8));
-                }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [customStartDate, customEndDate]);
+            if (recentRepairsData) setRecentRepairs(recentRepairsData);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const statusColors: Record<string, string> = {
         nouveau: 'bg-blue-50 text-blue-600',

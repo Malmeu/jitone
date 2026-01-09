@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { SimplifiedModeProvider, useSimplifiedMode } from './SimplifiedModeContext';
+import { UserProvider, useUser } from './UserContext';
 
 const menu = [
     { icon: Home, label: 'Accueil', href: '/dashboard', roles: ['owner', 'manager', 'technician'] },
@@ -44,10 +45,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const { isSimplified, toggleSimplified } = useSimplifiedMode();
-    useEffect(() => {
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+    const { user, profile, establishment, loading: userLoading } = useUser();
 
+    useEffect(() => {
+        if (!userLoading) {
             if (!user) {
                 router.push('/login');
                 return;
@@ -62,78 +63,35 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             setUserId(user.id);
             setUserEmail(user.email || null);
 
-            // Récupérer tous les profils associés à cet utilisateur
-            let { data: profiles, error: profileError } = await supabase
-                .from('profiles')
-                .select('role, establishment_id, user_id')
-                .eq('user_id', user.id);
-
-            // Prioriser le profil de technicien s'il en a plusieurs (cas du technicien qui a créé son propre shop par erreur)
-            let activeProfile = profiles?.find(p => p.role === 'technician') || profiles?.[0];
-
-            // Si pas de profil lié, tenter de le lier par email
-            if (!activeProfile) {
-                const { data: profilesByEmail } = await supabase
-                    .from('profiles')
-                    .select('id, role, establishment_id, user_id')
-                    .eq('email', user.email)
-                    .is('user_id', null);
-
-                const profileToLink = profilesByEmail?.[0];
-
-                if (profileToLink) {
-                    // Lier automatiquement le compte
-                    const { data: updated } = await supabase
-                        .from('profiles')
-                        .update({ user_id: user.id })
-                        .eq('id', profileToLink.id)
-                        .select()
-                        .single();
-                    activeProfile = updated;
-                }
-            }
-
-            if (activeProfile) {
-                setUserRole(activeProfile.role);
+            if (profile) {
+                setUserRole(profile.role);
                 setRequiresSetup(false);
             } else {
                 setRequiresSetup(true);
             }
 
-            const establishmentId = activeProfile?.establishment_id;
+            if (establishment) {
+                const now = new Date();
+                const isExpired =
+                    establishment.subscription_status === 'expired' ||
+                    establishment.subscription_status === 'cancelled' ||
+                    (establishment.subscription_status === 'trial' && new Date(establishment.trial_ends_at) < now) ||
+                    (establishment.subscription_status === 'active' && establishment.subscription_ends_at && new Date(establishment.subscription_ends_at) < now);
 
-            if (establishmentId) {
-                const { data: establishment } = await supabase
-                    .from('establishments')
-                    .select('subscription_status, trial_ends_at, subscription_ends_at, subscription_plan')
-                    .eq('id', establishmentId)
-                    .single();
-
-                if (establishment) {
-                    const now = new Date();
-                    const isExpired =
-                        establishment.subscription_status === 'expired' ||
-                        establishment.subscription_status === 'cancelled' ||
-                        (establishment.subscription_status === 'trial' && new Date(establishment.trial_ends_at) < now) ||
-                        (establishment.subscription_status === 'active' && establishment.subscription_ends_at && new Date(establishment.subscription_ends_at) < now);
-
-                    if (isExpired) {
-                        router.push('/subscription-expired');
-                        return;
-                    }
-
-                    setUserPlan(establishment.subscription_plan);
+                if (isExpired) {
+                    router.push('/subscription-expired');
+                    return;
                 }
+
+                setUserPlan(establishment.subscription_plan);
             }
 
             setLoading(false);
-        };
+        }
+    }, [user, profile, establishment, userLoading, router]);
 
-        checkUser();
-
-        const interval = setInterval(checkUser, 30000);
-        return () => clearInterval(interval);
-    }, [router]);
+    // L'intervalle de vérification peut être gardé si nécessaire, mais ici on simplifie
+    // car le UserProvider charge déjà les données au montage.
 
     useEffect(() => {
         setMobileMenuOpen(false);
@@ -439,8 +397,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <SimplifiedModeProvider>
-            <DashboardContent>{children}</DashboardContent>
-        </SimplifiedModeProvider>
+        <UserProvider>
+            <SimplifiedModeProvider>
+                <DashboardContent>{children}</DashboardContent>
+            </SimplifiedModeProvider>
+        </UserProvider>
     );
 }

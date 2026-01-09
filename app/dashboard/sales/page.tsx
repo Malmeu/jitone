@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { IconRenderer } from '@/components/ui/IconRenderer';
 import { SaleTicket } from '@/components/ui/SaleTicket';
+import { useUser } from '../UserContext';
 
 interface InventoryItem {
     id: string;
@@ -59,25 +60,19 @@ export default function SalesPage() {
         notes: ''
     });
 
+    const { profile, establishment: userEst, loading: userLoading } = useUser();
+
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (!userLoading && profile) {
+            fetchData();
+        }
+    }, [userLoading, profile]);
 
     const fetchData = async () => {
         try {
-            setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('establishment_id, establishment:establishments(*)')
-                .eq('user_id', user.id)
-                .single();
-
             if (!profile) return;
             setEstablishmentId(profile.establishment_id);
-            setEstablishment(profile.establishment);
+            setEstablishment(userEst);
 
             await Promise.all([
                 loadInventory(profile.establishment_id),

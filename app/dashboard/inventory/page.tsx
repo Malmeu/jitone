@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { IconRenderer, AVAILABLE_ICONS } from '@/components/ui/IconRenderer';
+import { useUser } from '../UserContext';
 
 interface InventoryItem {
     id: string;
@@ -89,22 +90,16 @@ export default function InventoryPage() {
         setShowSuggestions(false);
     }, [formData.type, editingItem]);
 
+    const { profile, loading: userLoading } = useUser();
+
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (!userLoading && profile) {
+            fetchData();
+        }
+    }, [userLoading, profile]);
 
     const fetchData = async () => {
         try {
-            setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role, establishment_id')
-                .eq('user_id', user.id)
-                .single();
-
             if (!profile) return;
             setUserRole(profile.role);
             setEstablishmentId(profile.establishment_id);

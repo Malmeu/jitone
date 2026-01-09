@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Plus, Search, Loader2, Edit3, Trash2, X, User, Phone, Mail, Calendar, Info, Users, Smartphone, History } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUser } from '../UserContext';
 
 export default function ClientsPage() {
     const [clients, setClients] = useState<any[]>([]);
@@ -21,21 +22,16 @@ export default function ClientsPage() {
         email: '',
     });
 
+    const { profile, loading: userLoading } = useUser();
+
     useEffect(() => {
-        fetchClients();
-    }, []);
+        if (!userLoading && profile) {
+            fetchClients();
+        }
+    }, [userLoading, profile]);
 
     const fetchClients = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('establishment_id')
-                .eq('user_id', user.id)
-                .single();
-
             if (!profile) return;
             setEstablishmentId(profile.establishment_id);
             const currentEstId = profile.establishment_id;
@@ -43,9 +39,9 @@ export default function ClientsPage() {
             const { data } = await supabase
                 .from('clients')
                 .select(`
-          *,
-          repairs:repairs(count)
-        `)
+                  *,
+                  repairs:repairs(count)
+                `)
                 .eq('establishment_id', currentEstId)
                 .order('name');
 
