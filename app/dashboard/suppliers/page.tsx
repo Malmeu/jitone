@@ -63,13 +63,13 @@ export default function SuppliersPage() {
         city: '',
         country: 'Algérie',
         tax_id: '',
-        initial_balance: 0,
+        initial_balance: '' as any,
         notes: ''
     });
 
     const [transactionForm, setTransactionForm] = useState({
         type: 'purchase' as 'purchase' | 'payment',
-        amount: 0,
+        amount: '' as any,
         description: '',
         reference: '',
         payment_method: 'cash'
@@ -177,7 +177,7 @@ export default function SuppliersPage() {
             setShowTransactionModal(false);
             setTransactionForm({
                 type: 'purchase',
-                amount: 0,
+                amount: '' as any,
                 description: '',
                 reference: '',
                 payment_method: 'cash'
@@ -216,7 +216,7 @@ export default function SuppliersPage() {
             city: '',
             country: 'Algérie',
             tax_id: '',
-            initial_balance: 0,
+            initial_balance: '' as any,
             notes: ''
         });
     };
@@ -561,7 +561,7 @@ export default function SuppliersPage() {
                                             <input
                                                 type="number"
                                                 value={formData.initial_balance}
-                                                onChange={(e) => setFormData({ ...formData, initial_balance: parseFloat(e.target.value) || 0 })}
+                                                onChange={(e) => setFormData({ ...formData, initial_balance: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                                 className="w-full pl-11 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                                 placeholder="0"
                                             />
@@ -638,7 +638,7 @@ export default function SuppliersPage() {
                                         <input
                                             type="number" required
                                             value={transactionForm.amount}
-                                            onChange={(e) => setTransactionForm({ ...transactionForm, amount: parseFloat(e.target.value) || 0 })}
+                                            onChange={(e) => setTransactionForm({ ...transactionForm, amount: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                             className="w-full pl-11 pr-4 py-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                             placeholder="0"
                                         />

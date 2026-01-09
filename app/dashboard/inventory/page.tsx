@@ -70,10 +70,10 @@ export default function InventoryPage() {
         name: '',
         sku: '',
         category_id: '',
-        current_stock: 0,
-        low_stock_threshold: 5,
-        cost_price: 0,
-        selling_price: 0,
+        current_stock: '' as any,
+        low_stock_threshold: '' as any,
+        cost_price: '' as any,
+        selling_price: '' as any,
         location: '',
         image_url: '',
         icon: 'Box',
@@ -332,8 +332,8 @@ export default function InventoryPage() {
                             setEditingItem(null);
                             setFormData({
                                 name: '', sku: '', category_id: '',
-                                current_stock: 0, low_stock_threshold: 5,
-                                cost_price: 0, selling_price: 0,
+                                current_stock: '' as any, low_stock_threshold: '' as any,
+                                cost_price: '' as any, selling_price: '' as any,
                                 location: '', image_url: '',
                                 icon: 'Box', supplier: '',
                                 type: activeTab
@@ -624,7 +624,7 @@ export default function InventoryPage() {
                                                 <input
                                                     type="number" required
                                                     value={formData.cost_price}
-                                                    onChange={(e) => setFormData({ ...formData, cost_price: parseFloat(e.target.value) })}
+                                                    onChange={(e) => setFormData({ ...formData, cost_price: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                                     className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                                 />
                                             </div>
@@ -636,7 +636,7 @@ export default function InventoryPage() {
                                                 <input
                                                     type="number" required
                                                     value={formData.selling_price}
-                                                    onChange={(e) => setFormData({ ...formData, selling_price: parseFloat(e.target.value) })}
+                                                    onChange={(e) => setFormData({ ...formData, selling_price: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                                     className="w-full pl-10 pr-4 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                                 />
                                             </div>
@@ -650,7 +650,7 @@ export default function InventoryPage() {
                                         <input
                                             type="number" required
                                             value={formData.current_stock}
-                                            onChange={(e) => setFormData({ ...formData, current_stock: parseInt(e.target.value) })}
+                                            onChange={(e) => setFormData({ ...formData, current_stock: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                             className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                         />
                                     </div>
@@ -659,7 +659,7 @@ export default function InventoryPage() {
                                         <input
                                             type="number" required
                                             value={formData.low_stock_threshold}
-                                            onChange={(e) => setFormData({ ...formData, low_stock_threshold: parseInt(e.target.value) })}
+                                            onChange={(e) => setFormData({ ...formData, low_stock_threshold: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                             className="w-full px-5 py-4 rounded-3xl border border-neutral-100 dark:border-neutral-800 focus:outline-none focus:ring-4 focus:ring-primary/5 bg-neutral-50/50 dark:bg-neutral-900/50 font-bold text-foreground"
                                         />
                                     </div>

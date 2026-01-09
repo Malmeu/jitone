@@ -189,27 +189,29 @@ export default function RepairsPage() {
             } else {
                 // Ajouter la panne
                 const faultType = faultTypes.find(ft => ft.id === faultId);
-                return { ...d, faults: [...faults, { id: faultId, price: 0, name: faultType?.name }] };
+                return { ...d, faults: [...faults, { id: faultId, price: '' as any, name: faultType?.name }] };
             }
         }));
     };
 
-    const updateFaultPrice = (deviceId: number, faultId: string, price: number) => {
+    const updateFaultPrice = (deviceId: number, faultId: string, price: any) => {
         setInterventionDevices(interventionDevices.map(d => {
             if (d.id !== deviceId) return d;
             return {
                 ...d,
                 faults: d.faults.map((f: any) =>
-                    f.id === faultId ? { ...f, price } : f
+                    f.id === faultId ? { ...f, price: price === '' ? '' : parseFloat(price) } : f
                 )
             };
         }));
     };
 
-    // Calculer le total d'une intervention
     const calculateInterventionTotal = () => {
         return interventionDevices.reduce((total, device) => {
-            const deviceTotal = (device.faults || []).reduce((sum: number, fault: any) => sum + (fault.price || 0), 0);
+            const deviceTotal = (device.faults || []).reduce((sum: number, fault: any) => {
+                const price = parseFloat(fault.price?.toString() || '0') || 0;
+                return sum + price;
+            }, 0);
             return total + deviceTotal;
         }, 0);
     };
@@ -1681,8 +1683,8 @@ export default function RepairsPage() {
                                                                                     <input
                                                                                         type="number"
                                                                                         placeholder="Prix"
-                                                                                        value={selectedFault?.price || ''}
-                                                                                        onChange={(e) => updateFaultPrice(device.id, fault.id, parseFloat(e.target.value) || 0)}
+                                                                                        value={selectedFault?.price}
+                                                                                        onChange={(e) => updateFaultPrice(device.id, fault.id, e.target.value)}
                                                                                         className="w-24 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white dark:bg-neutral-800 font-bold text-xs text-foreground"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                     />

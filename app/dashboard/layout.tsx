@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone, Package, Sun, Moon, ShoppingCart, Truck } from 'lucide-react';
+import { Wrench, Home, Briefcase, Users, FileText, Settings, LogOut, Code, Menu, X, Shield, Calendar, Smartphone, Package, Sun, Moon, ShoppingCart, Truck, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
+import { SimplifiedModeProvider, useSimplifiedMode } from './SimplifiedModeContext';
 
 const menu = [
     { icon: Home, label: 'Accueil', href: '/dashboard', roles: ['owner', 'manager', 'technician'] },
@@ -29,7 +30,7 @@ const ADMIN_EMAILS = [
     'contact@repairtrack.dz',
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -42,13 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [setupName, setSetupName] = useState('');
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
-
-    useEffect(() => {
-        // Nettoyage forcé du thème au cas où
-        document.documentElement.classList.remove('dark');
-        localStorage.removeItem('theme');
-    }, []);
-
+    const { isSimplified, toggleSimplified } = useSimplifiedMode();
     useEffect(() => {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -244,7 +239,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
 
                             <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
-                                {menu.filter(item => !userRole || item.roles.includes(userRole)).map((item) => {
+                                {menu.filter(item => {
+                                    if (userRole && !item.roles.includes(userRole)) return false;
+                                    if (isSimplified) {
+                                        return ['Accueil', 'Réparations', 'Ventes', 'Stock'].includes(item.label);
+                                    }
+                                    return true;
+                                }).map((item) => {
                                     const isActive = pathname === item.href;
                                     const isPremium = ['Équipe', 'Factures', 'Devis', 'Widget'].includes(item.label);
 
@@ -255,7 +256,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                         `}>
                                             <item.icon size={22} className={isActive ? 'text-white' : 'text-neutral-400'} />
                                             <span className="text-sm">{item.label}</span>
-                                            {isPremium && userPlan !== 'premium' && (
+                                            {!isSimplified && isPremium && userPlan !== 'premium' && (
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded-full">PRO</span>
                                             )}
                                         </Link>
@@ -263,7 +264,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 })}
                             </nav>
 
-                            <div className="p-6 border-t border-neutral-100 dark:border-neutral-800 space-y-3">
+                            <div className="p-6 border-t border-neutral-100 dark:border-neutral-800 space-y-3 mt-auto bg-[rgba(30,127,160,0.03)] backdrop-blur-xl">
                                 {isAdmin && (
                                     <Link
                                         href="/admin"
@@ -295,7 +296,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
 
                 <nav className="flex-1 px-6 space-y-1.5 overflow-y-auto">
-                    {menu.filter(item => !userRole || item.roles.includes(userRole)).map((item) => {
+                    {menu.filter(item => {
+                        if (userRole && !item.roles.includes(userRole)) return false;
+                        if (isSimplified) {
+                            return ['Accueil', 'Réparations', 'Ventes', 'Stock'].includes(item.label);
+                        }
+                        return true;
+                    }).map((item) => {
                         const isActive = pathname === item.href;
                         const isPremium = ['Équipe', 'Factures', 'Devis', 'Widget', 'Stock'].includes(item.label);
 
@@ -306,7 +313,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             `}>
                                 <item.icon size={22} className={isActive ? 'text-white' : 'text-neutral-400'} />
                                 <span className="text-sm">{item.label}</span>
-                                {isPremium && userPlan !== 'premium' && (
+                                {!isSimplified && isPremium && userPlan !== 'premium' && (
                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded-full scale-0 group-hover:scale-100 transition-transform">PRO</span>
                                 )}
                                 {isActive && (
@@ -317,7 +324,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     })}
                 </nav>
 
-                <div className="p-8 border-t border-neutral-100 space-y-3">
+                <div className="mt-auto p-8 border-t border-neutral-100 dark:border-neutral-800 bg-[rgba(30,127,160,0.03)] backdrop-blur-xl space-y-3">
+                    {/* Toggle Mode Simplifié */}
+                    <button
+                        onClick={toggleSimplified}
+                        className={`flex items-center justify-between w-full px-5 py-4 rounded-2xl transition-all border duration-500 group ${isSimplified ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-neutral-50 border-neutral-100 text-neutral-600'}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isSimplified ? 'bg-emerald-500 text-white animate-pulse' : 'bg-neutral-200 text-neutral-500'}`}>
+                                <Activity size={16} />
+                            </div>
+                            <div className="flex flex-col items-start leading-tight">
+                                <span className="text-[11px] font-black uppercase tracking-tight">Focus Mode</span>
+                                <span className="text-[9px] font-bold opacity-60 uppercase tracking-widest">{isSimplified ? 'Activé' : 'Désactivé'}</span>
+                            </div>
+                        </div>
+                        <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${isSimplified ? 'bg-emerald-500' : 'bg-neutral-200'}`}>
+                            <motion.div
+                                animate={{ x: isSimplified ? 20 : 2 }}
+                                className="absolute top-1 left-0 w-3 h-3 bg-white rounded-full shadow-sm"
+                            />
+                        </div>
+                    </button>
 
                     {isAdmin && (
                         <Link
@@ -406,5 +434,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <SimplifiedModeProvider>
+            <DashboardContent>{children}</DashboardContent>
+        </SimplifiedModeProvider>
     );
 }

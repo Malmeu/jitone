@@ -49,8 +49,8 @@ export default function SalesPage() {
     const [activeView, setActiveView] = useState<'pos' | 'history'>('pos');
     const [showTicket, setShowTicket] = useState(false);
     const [ticketData, setTicketData] = useState<any>(null);
-    const [taxRate, setTaxRate] = useState(0);
-    const [discount, setDiscount] = useState(0);
+    const [taxRate, setTaxRate] = useState<string | number>(0);
+    const [discount, setDiscount] = useState<string | number>(0);
 
     const [clientData, setClientData] = useState({
         name: '',
@@ -142,9 +142,12 @@ export default function SalesPage() {
     };
 
     const cartSubtotal = cart.reduce((acc, item) => acc + (item.selling_price * item.quantity), 0);
-    const discountAmount = cartSubtotal * (discount / 100);
+    const discountVal = typeof discount === 'string' ? (parseFloat(discount) || 0) : discount;
+    const taxVal = typeof taxRate === 'string' ? (parseFloat(taxRate) || 0) : taxRate;
+
+    const discountAmount = cartSubtotal * (discountVal / 100);
     const subtotalAfterDiscount = cartSubtotal - discountAmount;
-    const taxAmount = subtotalAfterDiscount * (taxRate / 100);
+    const taxAmount = subtotalAfterDiscount * (taxVal / 100);
     const cartTotal = subtotalAfterDiscount + taxAmount;
 
     const handleCheckout = async (e: React.FormEvent) => {
@@ -159,9 +162,9 @@ export default function SalesPage() {
                 .insert([{
                     establishment_id: establishmentId,
                     subtotal: cartSubtotal,
-                    discount_rate: discount,
+                    discount_rate: discountVal,
                     discount_amount: discountAmount,
-                    tax_rate: taxRate,
+                    tax_rate: taxVal,
                     tax_amount: taxAmount,
                     total_amount: cartTotal,
                     payment_method: clientData.payment_method,
@@ -355,15 +358,15 @@ export default function SalesPage() {
                                             max="100"
                                             step="0.1"
                                             value={discount}
-                                            onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                                            onChange={(e) => setDiscount(e.target.value)}
                                             className="w-20 px-2 py-1 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
                                             placeholder="0"
                                         />
                                         <span className="text-xs text-neutral-400 font-medium">% Remise</span>
                                     </div>
-                                    {discount > 0 && (
+                                    {discountVal > 0 && (
                                         <div className="flex justify-between items-center text-sm text-emerald-600">
-                                            <span>Remise ({discount}%)</span>
+                                            <span>Remise ({discountVal}%)</span>
                                             <span>-{discountAmount.toLocaleString()} DA</span>
                                         </div>
                                     )}
@@ -379,7 +382,7 @@ export default function SalesPage() {
                                             max="100"
                                             step="0.1"
                                             value={taxRate}
-                                            onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                                            onChange={(e) => setTaxRate(e.target.value)}
                                             className="w-20 px-2 py-1 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold"
                                             placeholder="0"
                                         />

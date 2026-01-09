@@ -25,15 +25,15 @@ export default function NewQuotePage() {
         client_id: '',
         issue_date: new Date().toISOString().split('T')[0],
         valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        tax_rate: 0,
-        discount_amount: 0,
+        tax_rate: '' as any,
+        discount_amount: '' as any,
         notes: '',
         terms_conditions: 'Devis valable 30 jours.\nPaiement à la commande.\nTravaux garantis 6 mois.',
     });
 
     // Lignes du devis
     const [items, setItems] = useState<QuoteItem[]>([
-        { id: '1', description: '', quantity: 1, unit_price: 0, total: 0 }
+        { id: '1', description: '', quantity: '' as any, unit_price: '' as any, total: 0 }
     ]);
 
     useEffect(() => {
@@ -73,8 +73,8 @@ export default function NewQuotePage() {
         setItems([...items, {
             id: Date.now().toString(),
             description: '',
-            quantity: 1,
-            unit_price: 0,
+            quantity: '' as any,
+            unit_price: '' as any,
             total: 0
         }]);
     };
@@ -90,7 +90,9 @@ export default function NewQuotePage() {
             if (item.id === id) {
                 const updated = { ...item, [field]: value };
                 if (field === 'quantity' || field === 'unit_price') {
-                    updated.total = updated.quantity * updated.unit_price;
+                    const q = field === 'quantity' ? (parseFloat(value) || 0) : (parseFloat(item.quantity.toString()) || 0);
+                    const p = field === 'unit_price' ? (parseFloat(value) || 0) : (parseFloat(item.unit_price.toString()) || 0);
+                    updated.total = q * p;
                 }
                 return updated;
             }
@@ -99,9 +101,11 @@ export default function NewQuotePage() {
     };
 
     const calculateTotals = () => {
-        const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-        const tax_amount = subtotal * (formData.tax_rate / 100);
-        const total = subtotal + tax_amount - formData.discount_amount;
+        const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.total.toString()) || 0), 0);
+        const taxRate = parseFloat(formData.tax_rate?.toString() || '0') || 0;
+        const discountAmount = parseFloat(formData.discount_amount?.toString() || '0') || 0;
+        const tax_amount = subtotal * (taxRate / 100);
+        const total = subtotal + tax_amount - discountAmount;
         return { subtotal, tax_amount, total };
     };
 
@@ -139,8 +143,8 @@ export default function NewQuotePage() {
                     valid_until: formData.valid_until,
                     status: status,
                     subtotal: subtotal,
-                    tax_rate: formData.tax_rate,
-                    discount_amount: formData.discount_amount,
+                    tax_rate: parseFloat(formData.tax_rate?.toString() || '0'),
+                    discount_amount: parseFloat(formData.discount_amount?.toString() || '0'),
                     notes: formData.notes,
                     terms_conditions: formData.terms_conditions,
                     created_by: user.id,
@@ -154,8 +158,8 @@ export default function NewQuotePage() {
             const quoteItems = items.map((item, index) => ({
                 quote_id: quote.id,
                 description: item.description,
-                quantity: item.quantity,
-                unit_price: item.unit_price,
+                quantity: parseFloat(item.quantity?.toString() || '0'),
+                unit_price: parseFloat(item.unit_price?.toString() || '0'),
                 position: index,
             }));
 
@@ -263,10 +267,11 @@ export default function NewQuotePage() {
                                 <input
                                     type="number"
                                     value={formData.tax_rate}
-                                    onChange={(e) => setFormData({ ...formData, tax_rate: parseFloat(e.target.value) || 0 })}
+                                    onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
                                     className="w-full px-5 py-4 bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-100 dark:border-neutral-800 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-foreground"
                                     min="0"
                                     step="0.01"
+                                    placeholder="0"
                                 />
                             </div>
                         </div>
@@ -311,10 +316,11 @@ export default function NewQuotePage() {
                                                     <input
                                                         type="number"
                                                         value={item.quantity}
-                                                        onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                        onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
                                                         className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold text-foreground text-center"
                                                         min="0"
                                                         step="0.01"
+                                                        placeholder="0"
                                                     />
                                                 </div>
 
@@ -325,10 +331,11 @@ export default function NewQuotePage() {
                                                     <input
                                                         type="number"
                                                         value={item.unit_price}
-                                                        onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
+                                                        onChange={(e) => updateItem(item.id, 'unit_price', e.target.value)}
                                                         className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all font-bold text-foreground text-right"
                                                         min="0"
                                                         step="0.01"
+                                                        placeholder="0"
                                                     />
                                                 </div>
                                             </div>
@@ -423,10 +430,11 @@ export default function NewQuotePage() {
                                     <input
                                         type="number"
                                         value={formData.discount_amount}
-                                        onChange={(e) => setFormData({ ...formData, discount_amount: parseFloat(e.target.value) || 0 })}
+                                        onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
                                         className="w-full bg-white/10 dark:bg-neutral-100 border-none rounded-lg px-2 py-1 text-right font-bold text-rose-400 dark:text-rose-600 focus:ring-2 focus:ring-rose-500/50"
                                         min="0"
                                         step="0.01"
+                                        placeholder="0"
                                     />
                                 </div>
                             </div>
