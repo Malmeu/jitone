@@ -281,25 +281,30 @@ export default function SalesPage() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                             {filteredInventory.map(item => (
                                 <motion.div
                                     layout
                                     key={item.id}
                                     onClick={() => addToCart(item)}
-                                    className="group cursor-pointer bg-card rounded-[2rem] border border-neutral-100 dark:border-neutral-800 p-6 hover:shadow-xl hover:border-primary/20 transition-all active:scale-[0.98] border-b-4 hover:border-b-primary flex flex-col min-h-[180px]"
+                                    whileHover={{ y: -5 }}
+                                    className="group cursor-pointer bg-card rounded-[2.5rem] border border-neutral-100 dark:border-neutral-800 p-6 shadow-sm hover:shadow-xl hover:border-[#1E7FA0]/20 transition-all active:scale-[0.98] flex flex-col min-h-[260px] justify-between relative overflow-hidden"
                                 >
-                                    <div className="w-14 h-14 bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform flex-shrink-0">
-                                        <IconRenderer name={item.icon || 'Box'} size={24} />
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#1E7FA0]/5 rounded-full blur-2xl -mr-12 -mt-12" />
+
+                                    <div className="w-14 h-14 bg-[#1E7FA0]/5 dark:bg-[#1E7FA0]/10 text-[#1E7FA0] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <IconRenderer name={item.icon || 'Box'} size={28} />
                                     </div>
-                                    <div className="flex-1 flex flex-col justify-between">
-                                        <div className="font-bold text-foreground mb-3 leading-tight break-words">{item.name}</div>
-                                        <div className="space-y-2">
-                                            <div className="text-primary font-black text-lg">{item.selling_price.toLocaleString()} DA</div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="text-[10px] text-neutral-400 font-bold uppercase bg-neutral-50 dark:bg-neutral-900/50 px-2 py-1 rounded-lg">
-                                                    Stock: {item.current_stock}
-                                                </div>
+
+                                    <div className="space-y-4">
+                                        <div className="font-black text-foreground text-lg leading-tight line-clamp-2 min-h-[2.5rem]">{item.name}</div>
+                                        <div className="space-y-3">
+                                            <div className="text-[#1E7FA0] font-black text-2xl tracking-tight">
+                                                {item.selling_price.toLocaleString()} <span className="text-sm font-bold opacity-60">DA</span>
+                                            </div>
+                                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-neutral-50 dark:bg-neutral-900/50 rounded-xl border border-neutral-100 dark:border-neutral-800">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                <span className="text-[10px] text-neutral-400 font-black uppercase tracking-widest">STOCK: {item.current_stock}</span>
                                             </div>
                                         </div>
                                     </div>
