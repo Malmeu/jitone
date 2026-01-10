@@ -1038,7 +1038,7 @@ export default function RepairsPage() {
             {/* Repairs Table */}
             <motion.div variants={itemVariants} className="bg-card rounded-[2.5rem] shadow-soft border border-neutral-100 dark:border-neutral-800 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
+                    <table className="w-full text-sm text-left border-collapse">
                         <thead className="bg-[#FBFBFD] dark:bg-neutral-900/50 text-neutral-400 text-[11px] font-black uppercase tracking-widest">
                             <tr>
                                 <th className="px-8 py-6">Équipement</th>
@@ -1091,21 +1091,27 @@ export default function RepairsPage() {
 
                                             <AnimatePresence>
                                                 {activeStatusMenu === repair.id && (
-                                                    <>
-                                                        <div
-                                                            className="fixed inset-0 z-40 cursor-default"
+                                                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                                                        <motion.div
+                                                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                                            className="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setActiveStatusMenu(null);
                                                             }}
                                                         />
                                                         <motion.div
-                                                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                                            className="absolute left-8 top-full z-50 mt-2 p-2 bg-card border border-neutral-100 dark:border-neutral-800 rounded-3xl shadow-heavy min-w-[200px]"
+                                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                                            className="relative bg-card p-6 rounded-[2.5rem] shadow-heavy border border-neutral-100 dark:border-neutral-800 min-w-[280px] max-w-[90vw]"
+                                                            onClick={(e) => e.stopPropagation()}
                                                         >
-                                                            <div className="grid grid-cols-1 gap-1">
+                                                            <div className="mb-6">
+                                                                <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-1">Mettre à jour</h3>
+                                                                <p className="text-xs text-neutral-400 font-bold uppercase">{repair.item} - {repair.code}</p>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 gap-2">
                                                                 {Object.entries(statusLabels).map(([key, label]) => (
                                                                     <button
                                                                         key={key}
@@ -1114,15 +1120,23 @@ export default function RepairsPage() {
                                                                             updateStatus(repair, key);
                                                                             setActiveStatusMenu(null);
                                                                         }}
-                                                                        className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-between ${repair.status === key ? 'bg-primary text-white shadow-lg' : 'hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-500'}`}
+                                                                        className={`w-full text-left px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between border-2 ${repair.status === key
+                                                                            ? 'bg-primary border-primary text-white shadow-lg'
+                                                                            : 'bg-neutral-50 dark:bg-neutral-900/50 border-transparent text-neutral-500 hover:border-primary/20 hover:text-primary'}`}
                                                                     >
                                                                         {label}
-                                                                        {repair.status === key && <Check className="w-3 h-3" />}
+                                                                        {repair.status === key && <Check className="w-4 h-4" strokeWidth={3} />}
                                                                     </button>
                                                                 ))}
                                                             </div>
+                                                            <button
+                                                                onClick={() => setActiveStatusMenu(null)}
+                                                                className="w-full mt-6 py-4 text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-neutral-600 transition-colors"
+                                                            >
+                                                                Annuler
+                                                            </button>
                                                         </motion.div>
-                                                    </>
+                                                    </div>
                                                 )}
                                             </AnimatePresence>
 
